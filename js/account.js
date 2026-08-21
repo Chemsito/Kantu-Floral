@@ -14,7 +14,7 @@ const accountPaymentLabels = {
     pending: "Pendiente", approved: "Aprobado", rejected: "Rechazado"
 };
 const accountPaymentMethods = {
-    mercadopago: "Mercado Pago", yape: "Yape", transferencia: "Transferencia"
+    mercadopago: "Mercado Pago", yape: "Yape / Plin", transferencia: "Transferencia bancaria"
 };
 const accountProofStatusLabels = {
     uploaded: "Comprobante recibido", verifying: "Estamos verificando tu pago",

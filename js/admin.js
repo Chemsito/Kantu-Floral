@@ -204,7 +204,7 @@ function renderAdminPaymentProofs() {
             <span class="proof-status proof-${adminEscape(proof.verification_status)}">${adminEscape(ADMIN_PROOF_STATUS_LABELS[proof.verification_status] || proof.verification_status)}</span></div>
             <div class="admin-payment-grid">
                 <p><span>Cliente</span>${adminEscape(client)}</p>
-                <p><span>Método</span>${proof.payment_method === "yape" ? "Yape" : "Transferencia"}</p>
+                <p><span>Método</span>${proof.payment_method === "yape" ? "Yape / Plin" : "Transferencia bancaria"}</p>
                 <p><span>Monto</span><strong>${adminEscape(adminMoney(proof.amount))}</strong></p>
                 <p><span>Operación</span>${adminEscape(proof.operation_number || "No registrada")}</p>
                 <p><span>Fecha</span>${adminEscape(adminDate(proof.uploaded_at))}</p>

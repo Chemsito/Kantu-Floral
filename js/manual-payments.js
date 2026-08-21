@@ -8,16 +8,22 @@ const MANUAL_PAYMENT_POLL_INTERVAL = 5000;
 
 const manualPaymentInstructions = {
     yape: {
-        title: "Paga mediante Yape",
+        title: "Yape / Plin",
         accountHolder: "JHONNE DIAZ",
         accountNumber: "+51 967 539 019",
         qrUrl: "https://i.postimg.cc/C1RQRqCh/QR-AARON-DIAZ.jpg",
-        message: "Después de realizar el pago, sube una foto clara del comprobante para que podamos verificarlo."
+        message: "Escanea el QR o realiza el pago al número indicado mediante Yape o Plin. Verifica que al pagar figure JHONNE DIAZ y luego sube tu comprobante."
     },
     transferencia: {
-        title: "Realiza una transferencia",
-        message: "Solicita los datos bancarios oficiales de Kantu Floral y, después de pagar, sube tu comprobante."
+        title: "Transferencia bancaria",
+        message: "Selecciona un banco, realiza la transferencia y luego sube tu comprobante."
     }
+};
+
+const manualBankAccounts = {
+    bcp: { name: "BCP", accountLabel: "Cuenta Soles", account: "21576039072038", cci: "00221517603907203829" },
+    bbva: { name: "BBVA", accountLabel: "Cuenta Soles", account: "0011-0814-0274244793", cci: "01181400027424479317" },
+    interbank: { name: "Interbank", accountLabel: "Cuenta Simple Soles", account: "898 3423653800", cci: "00389801342365380042" }
 };
 
 const manualProofStatusLabels = {
@@ -31,6 +37,7 @@ const manualProofStatusLabels = {
 let manualPaymentOrder = null;
 let manualPaymentPollId = null;
 let manualPaymentPolling = false;
+let selectedManualBank = "bcp";
 
 function manualElement(id) { return document.getElementById(id); }
 
@@ -44,6 +51,10 @@ function resetManualPayment() {
     stopManualPaymentPolling();
     manualPaymentOrder = null;
     manualElement("manualPaymentForm")?.reset();
+    const methodInput = manualElement("manualPaymentMethod");
+    if (methodInput) methodInput.value = "yape";
+    selectedManualBank = "bcp";
+    updateManualPaymentInstructions();
     if (manualElement("manualPaymentPanel")) manualElement("manualPaymentPanel").hidden = true;
     if (manualElement("manualPaymentButton")) manualElement("manualPaymentButton").hidden = true;
     if (manualElement("manualPaymentMessage")) manualElement("manualPaymentMessage").hidden = true;
@@ -70,12 +81,74 @@ function updateManualPaymentInstructions() {
     manualElement("manualPaymentInstructions").textContent = configuration.message;
     manualElement("manualYapeDetails").hidden = !isYape;
     manualElement("manualPaymentQr").hidden = !isYape;
+    manualElement("manualBankPanel").hidden = isYape;
+    document.querySelectorAll("[data-manual-method]").forEach(button => {
+        const active = button.dataset.manualMethod === method;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+    });
     if (isYape) {
         manualElement("manualYapeHolder").textContent = configuration.accountHolder;
         manualElement("manualYapeNumber").textContent = configuration.accountNumber;
         const qrImage = manualElement("manualPaymentQrImage");
         qrImage.src = configuration.qrUrl;
-        qrImage.alt = `QR de Yape de ${configuration.accountHolder}`;
+        qrImage.alt = `QR de Yape / Plin de ${configuration.accountHolder}`;
+    }
+    if (!isYape) renderManualBank();
+}
+
+function selectManualPaymentMethod(method) {
+    if (!manualPaymentInstructions[method]) return;
+    manualElement("manualPaymentMethod").value = method;
+    updateManualPaymentInstructions();
+}
+
+function selectManualBank(bank) {
+    if (!manualBankAccounts[bank]) return;
+    selectedManualBank = bank;
+    renderManualBank();
+}
+
+function renderManualBank() {
+    const bank = manualBankAccounts[selectedManualBank];
+    manualElement("manualBankName").textContent = bank.name;
+    manualElement("manualBankAccountLabel").textContent = bank.accountLabel;
+    manualElement("manualBankAccount").textContent = bank.account;
+    manualElement("manualBankCci").textContent = bank.cci;
+    document.querySelectorAll("[data-manual-bank]").forEach(button => {
+        const active = button.dataset.manualBank === selectedManualBank;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+    });
+}
+
+async function copyManualPaymentValue(button) {
+    const source = manualElement(button.dataset.copySource);
+    const value = source?.textContent.trim();
+    if (!value) return;
+    try {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(value);
+        } else {
+            const input = document.createElement("textarea");
+            input.value = value;
+            input.style.position = "fixed";
+            input.style.opacity = "0";
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand("copy");
+            input.remove();
+        }
+        const original = button.textContent;
+        button.textContent = "Copiado";
+        button.classList.add("copied");
+        window.setTimeout(() => {
+            button.textContent = original;
+            button.classList.remove("copied");
+        }, 1400);
+    } catch (error) {
+        console.error("No se pudo copiar el dato de pago:", error);
+        showManualPaymentMessage("No pudimos copiar el dato. Puedes seleccionarlo manualmente.");
     }
 }
 
@@ -228,7 +301,14 @@ function initializeManualPayments() {
     const form = manualElement("manualPaymentForm");
     if (!form) return;
     manualElement("manualPaymentButton").addEventListener("click", showManualPaymentPanel);
-    manualElement("manualPaymentMethod").addEventListener("change", updateManualPaymentInstructions);
+    manualElement("manualPaymentPanel").addEventListener("click", event => {
+        const methodButton = event.target.closest("[data-manual-method]");
+        const bankButton = event.target.closest("[data-manual-bank]");
+        const copyButton = event.target.closest("[data-copy-source]");
+        if (methodButton) selectManualPaymentMethod(methodButton.dataset.manualMethod);
+        if (bankButton) selectManualBank(bankButton.dataset.manualBank);
+        if (copyButton) copyManualPaymentValue(copyButton);
+    });
     form.addEventListener("submit", submitManualPaymentProof);
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden && manualPaymentPollId) pollManualPaymentStatus();

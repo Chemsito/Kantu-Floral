@@ -803,7 +803,7 @@
 
                 <section id="adminPaymentsView" class="admin-view" hidden>
                     <div class="admin-section-heading">
-                        <div><h3>Pagos por verificar</h3><p>Revisa comprobantes de Yape y transferencias.</p></div>
+                        <div><h3>Pagos por verificar</h3><p>Revisa comprobantes de Yape / Plin y transferencias bancarias.</p></div>
                         <button type="button" class="admin-refresh" data-admin-refresh="payments">Actualizar</button>
                     </div>
                     <div class="admin-payment-filters" id="adminPaymentFilters" aria-label="Filtrar comprobantes">
@@ -1065,7 +1065,7 @@
                     id="manualPaymentButton"
                     hidden
                 >
-                    Pagar con Yape / transferencia
+                    Pagar con Yape / Plin o transferencia
                 </button>
 
                 <p
@@ -1085,33 +1085,52 @@
                     </div>
 
                     <ol class="manual-payment-steps">
-                        <li><strong>Realiza el pago</strong><span>Usa Yape o una transferencia bancaria.</span></li>
+                        <li><strong>Realiza el pago</strong><span>Usa Yape / Plin o una transferencia bancaria.</span></li>
                         <li><strong>Sube tu comprobante</strong><span>Aceptamos JPG, JPEG o PNG de hasta 5 MB.</span></li>
                         <li><strong>Espera la verificación</strong><span>Te mostraremos el resultado automáticamente.</span></li>
                     </ol>
 
+                    <fieldset class="manual-method-selector">
+                        <legend>Selecciona cómo pagar</legend>
+                        <input id="manualPaymentMethod" type="hidden" value="yape">
+                        <div class="manual-method-buttons">
+                            <button type="button" class="active" data-manual-method="yape" aria-pressed="true">Yape / Plin</button>
+                            <button type="button" data-manual-method="transferencia" aria-pressed="false">Transferencia bancaria</button>
+                        </div>
+                    </fieldset>
+
                     <div class="manual-payment-instructions">
                         <div class="manual-payment-qr" id="manualPaymentQr">
-                            <img id="manualPaymentQrImage" src="" alt="QR de Yape" loading="lazy">
+                            <img id="manualPaymentQrImage" src="" alt="QR de Yape / Plin" loading="lazy">
                         </div>
                         <div>
                             <strong id="manualPaymentInstructionsTitle">Datos para realizar el pago</strong>
                             <dl class="manual-yape-details" id="manualYapeDetails">
                                 <div><dt>Titular</dt><dd id="manualYapeHolder"></dd></div>
-                                <div><dt>Número de Yape</dt><dd id="manualYapeNumber"></dd></div>
+                                <div><dt>Número</dt><dd><span id="manualYapeNumber"></span><button type="button" class="manual-copy-button" data-copy-source="manualYapeNumber">Copiar número</button></dd></div>
                             </dl>
                             <p id="manualPaymentInstructions">Después de pagar, sube tu comprobante.</p>
                         </div>
                     </div>
 
-                    <form id="manualPaymentForm">
-                        <div class="form-group">
-                            <label for="manualPaymentMethod">Método</label>
-                            <select id="manualPaymentMethod" required>
-                                <option value="yape">Yape</option>
-                                <option value="transferencia">Transferencia</option>
-                            </select>
+                    <section id="manualBankPanel" class="manual-bank-panel" hidden>
+                        <h4>Selecciona tu banco</h4>
+                        <div class="manual-bank-buttons" role="group" aria-label="Bancos disponibles">
+                            <button type="button" class="active" data-manual-bank="bcp" aria-pressed="true">BCP</button>
+                            <button type="button" data-manual-bank="bbva" aria-pressed="false">BBVA</button>
+                            <button type="button" data-manual-bank="interbank" aria-pressed="false">Interbank</button>
                         </div>
+                        <div class="manual-bank-details">
+                            <strong id="manualBankName"></strong>
+                            <p id="manualBankAccountLabel"></p>
+                            <div class="manual-bank-value"><code id="manualBankAccount"></code><button type="button" class="manual-copy-button" data-copy-source="manualBankAccount">Copiar cuenta</button></div>
+                            <p>CCI</p>
+                            <div class="manual-bank-value"><code id="manualBankCci"></code><button type="button" class="manual-copy-button" data-copy-source="manualBankCci">Copiar CCI</button></div>
+                            <p class="manual-bank-help">Realiza la transferencia y luego sube una imagen clara del comprobante.</p>
+                        </div>
+                    </section>
+
+                    <form id="manualPaymentForm">
                         <div class="form-group">
                             <label for="manualOperationNumber">Número de operación <span>(opcional)</span></label>
                             <input id="manualOperationNumber" type="text" maxlength="100" autocomplete="off">
