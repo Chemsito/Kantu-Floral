@@ -26,9 +26,24 @@ const ADMIN_STATUS_ERROR_MESSAGES = {
     ORDER_PRODUCT_NOT_FOUND: "Uno de los productos del pedido ya no existe.",
     INSUFFICIENT_STOCK: "No hay stock suficiente para confirmar este pedido."
 };
+const ADMIN_PROOF_STATUS_LABELS = {
+    uploaded: "Recibido", verifying: "Verificando", needs_review: "Requiere revisión",
+    approved: "Aprobado", rejected: "Rechazado"
+};
+const ADMIN_MANUAL_PAYMENT_ERRORS = {
+    INSUFFICIENT_STOCK: "No hay stock suficiente para confirmar este pedido.",
+    PAYMENT_AMOUNT_MISMATCH: "El monto del comprobante no coincide con el total del pedido.",
+    PAYMENT_OPERATION_ALREADY_APPROVED: "Ese número de operación ya fue aprobado para otro pedido.",
+    ORDER_NOT_PENDING: "El pedido ya no está pendiente.",
+    ORDER_PAYMENT_NOT_PENDING: "El pago del pedido ya no está pendiente.",
+    AUTHENTICATION_REQUIRED: "Tu sesión expiró. Inicia sesión nuevamente.",
+    ADMIN_PERMISSION_REQUIRED: "No tienes permisos para revisar pagos.",
+    PAYMENT_PROOF_NOT_FOUND: "El comprobante ya no existe o no está disponible."
+};
 
 let adminOrders = [];
 let adminProducts = [];
+let adminPaymentProofs = [];
 let adminAuthorizedUser = null;
 
 function adminElement(id) { return document.getElementById(id); }
@@ -64,6 +79,12 @@ function getAdminStatusErrorMessage(error) {
     return errorKey
         ? ADMIN_STATUS_ERROR_MESSAGES[errorKey]
         : "No pudimos actualizar el estado del pedido.";
+}
+
+function getAdminManualPaymentError(error, fallback) {
+    const text = [error?.message, error?.details, error?.hint].filter(Boolean).join(" ").toUpperCase();
+    const key = Object.keys(ADMIN_MANUAL_PAYMENT_ERRORS).find(code => text.includes(code));
+    return key ? ADMIN_MANUAL_PAYMENT_ERRORS[key] : fallback;
 }
 
 function showAdminMessage(message, type = "error") {
@@ -131,7 +152,131 @@ function switchAdminView(view) {
     clearAdminMessage();
     if (view === "dashboard") loadAdminDashboard();
     if (view === "orders") loadAdminOrders();
+    if (view === "payments") loadAdminPaymentProofs();
     if (view === "products") loadAdminProducts();
+}
+
+async function loadAdminPaymentProofs() {
+    const loading = adminElement("adminPaymentsLoading");
+    const list = adminElement("adminPaymentsList");
+    loading.hidden = false;
+    list.innerHTML = "";
+    adminElement("adminPaymentsEmpty").hidden = true;
+
+    const proofResult = await supabaseClient.from("payment_proofs").select("*")
+        .order("uploaded_at", { ascending: false });
+    if (proofResult.error) {
+        loading.hidden = true;
+        console.error("Error cargando comprobantes:", proofResult.error);
+        showAdminMessage("No pudimos cargar los comprobantes de pago.");
+        return;
+    }
+
+    const proofs = proofResult.data || [];
+    const orderIds = [...new Set(proofs.map(proof => proof.order_id).filter(Boolean))];
+    const ordersResult = orderIds.length
+        ? await supabaseClient.from("orders").select("id, customer_name, customer_phone, total, status, payment_status").in("id", orderIds)
+        : { data: [], error: null };
+    loading.hidden = true;
+    if (ordersResult.error) {
+        console.error("Error completando datos de comprobantes:", ordersResult.error);
+        showAdminMessage("No pudimos completar la información de los comprobantes.");
+        return;
+    }
+    const orders = new Map((ordersResult.data || []).map(order => [String(order.id), order]));
+    adminPaymentProofs = proofs.map(proof => ({
+        ...proof,
+        order: orders.get(String(proof.order_id)) || {}
+    }));
+    renderAdminPaymentProofs();
+}
+
+function renderAdminPaymentProofs() {
+    const selected = new Set([...document.querySelectorAll("#adminPaymentFilters input:checked")].map(input => input.value));
+    const filtered = adminPaymentProofs.filter(proof => selected.has(proof.verification_status));
+    adminElement("adminPaymentsEmpty").hidden = filtered.length > 0;
+    adminElement("adminPaymentsList").innerHTML = filtered.map(proof => {
+        const terminal = ["approved", "rejected"].includes(proof.verification_status);
+        const client = proof.order.customer_name || "Cliente no disponible";
+        return `<article class="admin-payment-card">
+            <div class="admin-order-top"><div><small>Comprobante #${adminEscape(proof.id)}</small>
+            <strong>Pedido #${adminEscape(adminShortId(proof.order_id))}</strong></div>
+            <span class="proof-status proof-${adminEscape(proof.verification_status)}">${adminEscape(ADMIN_PROOF_STATUS_LABELS[proof.verification_status] || proof.verification_status)}</span></div>
+            <div class="admin-payment-grid">
+                <p><span>Cliente</span>${adminEscape(client)}</p>
+                <p><span>Método</span>${proof.payment_method === "yape" ? "Yape" : "Transferencia"}</p>
+                <p><span>Monto</span><strong>${adminEscape(adminMoney(proof.amount))}</strong></p>
+                <p><span>Operación</span>${adminEscape(proof.operation_number || "No registrada")}</p>
+                <p><span>Fecha</span>${adminEscape(adminDate(proof.uploaded_at))}</p>
+                <p><span>Pedido / pago</span>${adminEscape(proof.order.status || "—")} / ${adminEscape(proof.order.payment_status || "—")}</p>
+            </div>
+            ${proof.verification_notes ? `<p class="admin-proof-note"><strong>Nota:</strong> ${adminEscape(proof.verification_notes)}</p>` : ""}
+            <div class="admin-payment-actions">
+                <button type="button" class="btn btn-light" data-admin-view-proof="${adminEscape(proof.id)}">Ver comprobante</button>
+                ${terminal ? "" : `<button type="button" class="btn btn-primary" data-admin-approve-proof="${adminEscape(proof.id)}">Aprobar pago</button>
+                <div class="admin-reject-control"><input type="text" maxlength="2000" placeholder="Motivo del rechazo" aria-label="Motivo del rechazo">
+                <button type="button" class="btn btn-light" data-admin-reject-proof="${adminEscape(proof.id)}">Rechazar</button></div>`}
+            </div>
+        </article>`;
+    }).join("");
+}
+
+async function viewAdminPaymentProof(proofId) {
+    const proof = adminPaymentProofs.find(row => String(row.id) === String(proofId));
+    if (!proof) return;
+    const preview = window.open("about:blank", "_blank");
+    if (preview) preview.opener = null;
+    const { data, error } = await supabaseClient.storage.from("payment-proofs")
+        .createSignedUrl(proof.storage_path, 60);
+    if (error || !data?.signedUrl) {
+        if (preview) preview.close();
+        console.error("Error generando URL firmada:", error);
+        showAdminMessage("No pudimos abrir el comprobante privado.");
+        return;
+    }
+    if (preview) preview.location.href = data.signedUrl;
+    else window.location.href = data.signedUrl;
+}
+
+async function approveAdminPaymentProof(proofId, button) {
+    button.disabled = true;
+    button.textContent = "Aprobando...";
+    clearAdminMessage();
+    const { error } = await supabaseClient.rpc("approve_manual_payment", {
+        p_payment_proof_id: String(proofId)
+    });
+    if (error) {
+        console.error("Error aprobando pago manual:", error);
+        button.disabled = false;
+        button.textContent = "Aprobar pago";
+        showAdminMessage(getAdminManualPaymentError(error, "No pudimos aprobar este comprobante."));
+        return;
+    }
+    const tasks = [loadAdminPaymentProofs(), loadAdminOrders(), loadAdminDashboard(), loadAdminProducts()];
+    if (typeof loadProducts === "function") tasks.push(loadProducts());
+    await Promise.allSettled(tasks);
+    showAdminMessage("Pago aprobado y pedido confirmado correctamente.", "success");
+}
+
+async function rejectAdminPaymentProof(proofId, button) {
+    const input = button.closest(".admin-reject-control")?.querySelector("input");
+    const reason = input?.value.trim();
+    if (!reason) return showAdminMessage("Escribe el motivo del rechazo.");
+    button.disabled = true;
+    button.textContent = "Rechazando...";
+    clearAdminMessage();
+    const { error } = await supabaseClient.rpc("reject_manual_payment", {
+        p_payment_proof_id: String(proofId), p_reason: reason
+    });
+    if (error) {
+        console.error("Error rechazando pago manual:", error);
+        button.disabled = false;
+        button.textContent = "Rechazar";
+        showAdminMessage(getAdminManualPaymentError(error, "No pudimos rechazar este comprobante."));
+        return;
+    }
+    await loadAdminPaymentProofs();
+    showAdminMessage("Comprobante rechazado. El pedido continúa pendiente.", "success");
 }
 
 async function loadAdminDashboard() {
@@ -426,7 +571,21 @@ function initializeAdmin() {
     document.querySelectorAll("[data-admin-view]").forEach(button =>
         button.addEventListener("click", () => switchAdminView(button.dataset.adminView)));
     document.querySelectorAll("[data-admin-refresh]").forEach(button =>
-        button.addEventListener("click", () => button.dataset.adminRefresh === "dashboard" ? loadAdminDashboard() : loadAdminOrders()));
+        button.addEventListener("click", () => {
+            const target = button.dataset.adminRefresh;
+            if (target === "dashboard") loadAdminDashboard();
+            else if (target === "payments") loadAdminPaymentProofs();
+            else loadAdminOrders();
+        }));
+    adminElement("adminPaymentFilters").addEventListener("change", renderAdminPaymentProofs);
+    adminElement("adminPaymentsList").addEventListener("click", event => {
+        const view = event.target.closest("[data-admin-view-proof]");
+        const approve = event.target.closest("[data-admin-approve-proof]");
+        const reject = event.target.closest("[data-admin-reject-proof]");
+        if (view) viewAdminPaymentProof(view.dataset.adminViewProof);
+        if (approve) approveAdminPaymentProof(approve.dataset.adminApproveProof, approve);
+        if (reject) rejectAdminPaymentProof(reject.dataset.adminRejectProof, reject);
+    });
     adminElement("adminOrderSearch").addEventListener("input", renderAdminOrders);
     adminElement("adminOrderFilter").addEventListener("change", renderAdminOrders);
     adminElement("adminOrdersList").addEventListener("change", event => {

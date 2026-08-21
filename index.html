@@ -760,6 +760,7 @@
             <nav class="admin-nav" aria-label="Secciones administrativas">
                 <button type="button" class="admin-nav-button active" data-admin-view="dashboard">Dashboard</button>
                 <button type="button" class="admin-nav-button" data-admin-view="orders">Pedidos</button>
+                <button type="button" class="admin-nav-button" data-admin-view="payments">Pagos por verificar</button>
                 <button type="button" class="admin-nav-button" data-admin-view="products">Productos</button>
             </nav>
 
@@ -798,6 +799,23 @@
                 <section id="adminOrderDetailView" class="admin-view" hidden>
                     <button id="adminBackToOrders" type="button" class="admin-back">← Volver a Pedidos</button>
                     <div id="adminOrderDetail"></div>
+                </section>
+
+                <section id="adminPaymentsView" class="admin-view" hidden>
+                    <div class="admin-section-heading">
+                        <div><h3>Pagos por verificar</h3><p>Revisa comprobantes de Yape y transferencias.</p></div>
+                        <button type="button" class="admin-refresh" data-admin-refresh="payments">Actualizar</button>
+                    </div>
+                    <div class="admin-payment-filters" id="adminPaymentFilters" aria-label="Filtrar comprobantes">
+                        <label><input type="checkbox" value="uploaded" checked> Recibidos</label>
+                        <label><input type="checkbox" value="verifying" checked> Verificando</label>
+                        <label><input type="checkbox" value="needs_review" checked> Requiere revisión</label>
+                        <label><input type="checkbox" value="rejected"> Rechazados</label>
+                        <label><input type="checkbox" value="approved"> Aprobados</label>
+                    </div>
+                    <div id="adminPaymentsLoading" class="admin-loader">Cargando comprobantes...</div>
+                    <div id="adminPaymentsEmpty" class="admin-empty" hidden>No hay comprobantes para los filtros seleccionados.</div>
+                    <div id="adminPaymentsList" class="admin-list"></div>
                 </section>
 
                 <section id="adminProductsView" class="admin-view" hidden>
@@ -1041,12 +1059,64 @@
                     Pagar con Mercado Pago
                 </button>
 
+                <button
+                    type="button"
+                    class="btn btn-light form-submit manual-payment-choice"
+                    id="manualPaymentButton"
+                    hidden
+                >
+                    Pagar con Yape / transferencia
+                </button>
+
                 <p
                     id="mercadoPagoError"
                     class="checkout-message checkout-error"
                     role="alert"
                     hidden
                 ></p>
+
+                <section id="manualPaymentPanel" class="manual-payment-panel" hidden>
+                    <div class="manual-payment-heading">
+                        <div>
+                            <span>Pago manual</span>
+                            <h3 id="manualPaymentOrder"></h3>
+                        </div>
+                        <strong id="manualPaymentTotal"></strong>
+                    </div>
+
+                    <ol class="manual-payment-steps">
+                        <li><strong>Realiza el pago</strong><span>Usa Yape o una transferencia bancaria.</span></li>
+                        <li><strong>Sube tu comprobante</strong><span>Aceptamos JPG, JPEG o PNG de hasta 5 MB.</span></li>
+                        <li><strong>Espera la verificación</strong><span>Te mostraremos el resultado automáticamente.</span></li>
+                    </ol>
+
+                    <div class="manual-payment-instructions">
+                        <div class="manual-payment-qr" aria-label="Espacio reservado para código QR">QR Yape<br>Kantu Floral</div>
+                        <div><strong id="manualPaymentInstructionsTitle">Datos para realizar el pago</strong><p id="manualPaymentInstructions">Configura aquí los datos oficiales de Yape o transferencia.</p></div>
+                    </div>
+
+                    <form id="manualPaymentForm">
+                        <div class="form-group">
+                            <label for="manualPaymentMethod">Método</label>
+                            <select id="manualPaymentMethod" required>
+                                <option value="yape">Yape</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="manualOperationNumber">Número de operación <span>(opcional)</span></label>
+                            <input id="manualOperationNumber" type="text" maxlength="100" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="manualPaymentFile">Comprobante</label>
+                            <input id="manualPaymentFile" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required>
+                            <small>JPG, JPEG o PNG. Máximo 5 MB.</small>
+                        </div>
+                        <button id="manualPaymentSubmit" type="submit" class="btn btn-primary form-submit">Enviar comprobante</button>
+                    </form>
+                    <p id="manualPaymentMessage" class="checkout-message" role="status" hidden></p>
+                    <div id="manualPaymentStatus" class="manual-payment-status" hidden></div>
+                </section>
 
                 <button
                     type="button"
@@ -1076,6 +1146,7 @@
 <script src="js/products.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/orders.js"></script>
+<script src="js/manual-payments.js"></script>
 <script src="js/account.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/auth.js"></script>

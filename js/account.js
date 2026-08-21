@@ -8,6 +8,19 @@ const accountStatusLabels = {
 let accountUser = null;
 let accountProfile = null;
 let accountOrdersLoaded = false;
+let accountOrders = [];
+
+const accountPaymentLabels = {
+    pending: "Pendiente", approved: "Aprobado", rejected: "Rechazado"
+};
+const accountPaymentMethods = {
+    mercadopago: "Mercado Pago", yape: "Yape", transferencia: "Transferencia"
+};
+const accountProofStatusLabels = {
+    uploaded: "Comprobante recibido", verifying: "Estamos verificando tu pago",
+    needs_review: "Tu comprobante requiere revisión", approved: "Pago aprobado",
+    rejected: "Comprobante rechazado"
+};
 
 function accountElement(id) { return document.getElementById(id); }
 
@@ -170,6 +183,7 @@ async function loadAccountOrders() {
     }
     accountOrdersLoaded = true;
     const orders = data || [];
+    accountOrders = orders;
     empty.hidden = orders.length > 0;
     list.innerHTML = orders.map(order => {
         const status = order.status || "pendiente";
@@ -196,13 +210,20 @@ async function openOrderDetail(orderId) {
     detailSection.hidden = false;
     detail.innerHTML = '<div class="account-loading">Cargando el detalle...</div>';
     clearAccountMessage();
-    const { data: items, error } = await supabaseClient.from("order_items").select("*").eq("order_id", orderId);
-    if (error) {
-        console.error("Error cargando detalle:", error);
+    const [itemsResult, proofResult] = await Promise.all([
+        supabaseClient.from("order_items").select("*").eq("order_id", orderId),
+        supabaseClient.from("payment_proofs")
+            .select("payment_method, verification_status, verification_notes, uploaded_at, operation_number")
+            .eq("order_id", orderId).order("uploaded_at", { ascending: false }).limit(1).maybeSingle()
+    ]);
+    if (itemsResult.error) {
+        console.error("Error cargando detalle:", itemsResult.error);
         detail.innerHTML = "";
         showAccountMessage("No pudimos cargar el detalle de este pedido.");
         return;
     }
+    if (proofResult.error) console.error("Error cargando comprobante del pedido:", proofResult.error);
+    const items = itemsResult.data;
     const productIds = [...new Set((items || []).map(item => item.product_id).filter(Boolean))];
     let productsById = new Map();
     if (productIds.length) {
@@ -212,7 +233,22 @@ async function openOrderDetail(orderId) {
         productsById = new Map((rows || []).map(product => [String(product.id), product]));
     }
     const rows = items || [];
+    const order = accountOrders.find(row => String(row.id) === String(orderId)) || {};
+    const proof = proofResult.data;
+    const paymentMethod = accountPaymentMethods[proof?.payment_method || order.payment_provider]
+        || proof?.payment_method || order.payment_provider || "No seleccionado";
+    const paymentStatus = accountPaymentLabels[order.payment_status] || order.payment_status || "Pendiente";
+    const proofDetails = proof ? `<div class="account-payment-summary">
+        <p><span>Método de pago</span><strong>${escapeAccountHtml(paymentMethod)}</strong></p>
+        <p><span>Estado de pago</span><strong>${escapeAccountHtml(paymentStatus)}</strong></p>
+        <p><span>Estado del comprobante</span><strong>${escapeAccountHtml(accountProofStatusLabels[proof.verification_status] || proof.verification_status)}</strong></p>
+        <p><span>Fecha de subida</span>${escapeAccountHtml(formatAccountDate(proof.uploaded_at))}</p>
+        ${proof.operation_number ? `<p><span>Número de operación</span>${escapeAccountHtml(proof.operation_number)}</p>` : ""}
+        ${proof.verification_status === "rejected" && proof.verification_notes ? `<p class="account-payment-note"><span>Motivo del rechazo</span>${escapeAccountHtml(proof.verification_notes)}</p>` : ""}
+    </div>` : `<div class="account-payment-summary"><p><span>Método de pago</span><strong>${escapeAccountHtml(paymentMethod)}</strong></p>
+        <p><span>Estado de pago</span><strong>${escapeAccountHtml(paymentStatus)}</strong></p></div>`;
     detail.innerHTML = `<h3>Detalle del pedido <span>#${escapeAccountHtml(shortOrderId(orderId))}</span></h3>
+        ${proofDetails}
         ${rows.length ? `<div class="account-order-items">${rows.map(item => {
             const product = productsById.get(String(item.product_id)) || {};
             const quantity = Number(item.quantity) || 0;

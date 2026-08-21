@@ -67,6 +67,10 @@ function closeCheckout() {
         checkoutModal.classList.remove("show");
     }
 
+    if (typeof stopManualPaymentPolling === "function") {
+        stopManualPaymentPolling();
+    }
+
 }
 
 
@@ -112,6 +116,10 @@ function resetCheckoutView() {
     if (form) form.reset();
 
     currentPaymentOrderId = null;
+
+    if (typeof resetManualPayment === "function") {
+        resetManualPayment();
+    }
 
     setOrderButtonState(false);
 
@@ -336,6 +344,10 @@ function showOrderSuccess(orderId, total) {
     }
 
     currentPaymentOrderId = String(orderId);
+
+    if (typeof setManualPaymentOrder === "function") {
+        setManualPaymentOrder(orderId, total);
+    }
 
     if (paymentButton) {
         paymentButton.hidden = false;
