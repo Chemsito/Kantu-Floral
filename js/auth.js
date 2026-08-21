@@ -6,6 +6,35 @@
 
 
 /* =====================================================
+   GENERAR URL INTERNA DE LA APLICACIÓN
+===================================================== */
+
+function getAppUrl(path = "") {
+
+    const isGitHubPages =
+        window.location.hostname.endsWith(
+            ".github.io"
+        );
+
+
+    const baseUrl = isGitHubPages
+        ? `${window.location.origin}/Kantu-Floral/`
+        : `${window.location.origin}/`;
+
+
+    const normalizedPath =
+        String(path).replace(/^\/+/, "");
+
+
+    return new URL(
+        normalizedPath,
+        baseUrl
+    ).href;
+
+}
+
+
+/* =====================================================
    ABRIR MODAL DE AUTENTICACIÓN
 ===================================================== */
 
@@ -333,8 +362,9 @@ async function recoverPassword(event) {
                 email,
                 {
                     redirectTo:
-                        window.location.origin +
-                        "/reset-password.html"
+                        getAppUrl(
+                            "reset-password.html"
+                        )
                 }
             );
 
@@ -610,8 +640,7 @@ async function socialLogin(provider) {
         options: {
 
             redirectTo:
-                window.location.origin +
-                "/index.html"
+                getAppUrl("index.html")
 
         }
 
