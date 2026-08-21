@@ -333,8 +333,9 @@ async function recoverPassword(event) {
                 email,
                 {
                     redirectTo:
-                        window.location.origin +
-                        "/reset-password.html"
+    getAppUrl(
+        "reset-password.html"
+    )
                 }
             );
 
@@ -604,18 +605,13 @@ async function socialLogin(provider) {
         data,
         error
     } = await supabaseClient.auth.signInWithOAuth({
+    provider: "google",
 
-        provider: "google",
-
-        options: {
-
-            redirectTo:
-                window.location.origin +
-                "/index.html"
-
-        }
-
-    });
+    options: {
+        redirectTo:
+            getAppUrl("index.html")
+    }
+});
 
 
     if (error) {
