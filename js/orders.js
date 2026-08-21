@@ -1,0 +1,318 @@
+/* =====================================================
+   KANTU FLORAL
+   orders.js
+   CHECKOUT MEDIANTE RPC DE SUPABASE
+===================================================== */
+
+const orderErrorMessages = {
+    AUTHENTICATION_REQUIRED:
+        "Tu sesión expiró. Inicia sesión para continuar.",
+    CUSTOMER_NAME_REQUIRED:
+        "Ingresa tu nombre completo.",
+    CUSTOMER_PHONE_REQUIRED:
+        "Ingresa un número de teléfono.",
+    DELIVERY_ADDRESS_REQUIRED:
+        "Ingresa una dirección de entrega.",
+    CART_EMPTY:
+        "Tu carrito está vacío.",
+    INVALID_CART:
+        "No se pudo validar tu carrito. Revísalo e inténtalo nuevamente.",
+    PRODUCT_NOT_AVAILABLE:
+        "Uno de los productos ya no está disponible.",
+    INSUFFICIENT_STOCK:
+        "No hay stock suficiente para uno de los productos."
+};
+
+
+function getCheckoutElement(id) {
+
+    return document.getElementById(id);
+
+}
+
+
+function openCheckout(user) {
+
+    const checkoutModal =
+        getCheckoutElement("checkoutModal");
+
+    if (!checkoutModal) return;
+
+    resetCheckoutView();
+    renderCheckoutSummary();
+    fillCheckoutName(user);
+
+    checkoutModal.classList.add("show");
+
+}
+
+
+function closeCheckout() {
+
+    const checkoutModal =
+        getCheckoutElement("checkoutModal");
+
+    if (checkoutModal) {
+        checkoutModal.classList.remove("show");
+    }
+
+}
+
+
+function resetCheckoutView() {
+
+    const formView =
+        getCheckoutElement("checkoutFormView");
+
+    const successView =
+        getCheckoutElement("checkoutSuccess");
+
+    const form =
+        getCheckoutElement("checkoutForm");
+
+    const error =
+        getCheckoutElement("checkoutError");
+
+    const loading =
+        getCheckoutElement("checkoutLoading");
+
+    if (formView) formView.hidden = false;
+    if (successView) successView.hidden = true;
+    if (error) {
+        error.hidden = true;
+        error.textContent = "";
+    }
+    if (loading) loading.hidden = true;
+    if (form) form.reset();
+
+    setOrderButtonState(false);
+
+}
+
+
+async function fillCheckoutName(user) {
+
+    const nameInput =
+        getCheckoutElement("checkoutName");
+
+    if (!nameInput || !user) return;
+
+    const metadataName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name;
+
+    if (metadataName) {
+        nameInput.value = metadataName;
+        return;
+    }
+
+    const { data: profile, error } =
+        await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+    if (error || !profile) return;
+
+    nameInput.value =
+        profile.full_name ||
+        profile.name ||
+        profile.customer_name ||
+        "";
+
+}
+
+
+function renderCheckoutSummary() {
+
+    const summary =
+        getCheckoutElement("checkoutSummary");
+
+    const totalElement =
+        getCheckoutElement("checkoutTotal");
+
+    if (!summary || !totalElement) return;
+
+    let estimatedTotal = 0;
+
+    summary.innerHTML = cart.map(item => {
+
+        const product =
+            products.find(
+                currentProduct => currentProduct.id === item.id
+            );
+
+        if (!product) return "";
+
+        const subtotal =
+            Number(product.price) * item.quantity;
+
+        estimatedTotal += subtotal;
+
+        return `
+            <div class="checkout-summary-item">
+                <span>${product.name} x${item.quantity}</span>
+                <strong>S/ ${subtotal.toFixed(2)}</strong>
+            </div>
+        `;
+
+    }).join("");
+
+    totalElement.textContent =
+        `S/ ${estimatedTotal.toFixed(2)}`;
+
+}
+
+
+function getOrderErrorMessage(error) {
+
+    const errorText =
+        `${error?.message || ""} ${error?.details || ""}`
+            .toUpperCase();
+
+    const errorCode =
+        Object.keys(orderErrorMessages)
+            .find(code => errorText.includes(code));
+
+    if (errorCode) return orderErrorMessages[errorCode];
+
+    if (errorText.includes("INVALID_CART_OR_INSUFFICIENT_STOCK")) {
+        return "Uno de los productos no está disponible o no tiene stock suficiente.";
+    }
+
+    return "No se pudo crear el pedido. Inténtalo nuevamente.";
+
+}
+
+
+function setOrderButtonState(isLoading) {
+
+    const button =
+        getCheckoutElement("confirmOrderButton");
+
+    if (!button) return;
+
+    button.disabled = isLoading;
+    button.textContent =
+        isLoading
+            ? "Procesando pedido..."
+            : "Confirmar pedido";
+
+}
+
+
+function showCheckoutError(message) {
+
+    const error =
+        getCheckoutElement("checkoutError");
+
+    if (!error) return;
+
+    error.textContent = message;
+    error.hidden = false;
+
+}
+
+
+async function submitOrder(event) {
+
+    event.preventDefault();
+
+    const name =
+        getCheckoutElement("checkoutName")?.value.trim();
+
+    const phone =
+        getCheckoutElement("checkoutPhone")?.value.trim();
+
+    const address =
+        getCheckoutElement("checkoutAddress")?.value.trim();
+
+    if (!name || !phone || !address) {
+        showCheckoutError(
+            !name
+                ? orderErrorMessages.CUSTOMER_NAME_REQUIRED
+                : !phone
+                    ? orderErrorMessages.CUSTOMER_PHONE_REQUIRED
+                    : orderErrorMessages.DELIVERY_ADDRESS_REQUIRED
+        );
+        return;
+    }
+
+    const loading =
+        getCheckoutElement("checkoutLoading");
+
+    setOrderButtonState(true);
+    if (loading) loading.hidden = false;
+
+    const { data, error } =
+        await supabaseClient.rpc(
+            "create_order",
+            {
+                p_customer_name: name,
+                p_customer_phone: phone,
+                p_delivery_address: address
+            }
+        );
+
+    setOrderButtonState(false);
+    if (loading) loading.hidden = true;
+
+    if (error) {
+        showCheckoutError(getOrderErrorMessage(error));
+        return;
+    }
+
+    const order = Array.isArray(data) ? data[0] : data;
+
+    if (!order?.order_id) {
+        showCheckoutError(
+            "El pedido no devolvió un identificador válido."
+        );
+        return;
+    }
+
+    cart = [];
+    saveCart();
+    updateCart();
+    closeCart();
+    showOrderSuccess(order.order_id, order.total);
+
+}
+
+
+function showOrderSuccess(orderId, total) {
+
+    const formView =
+        getCheckoutElement("checkoutFormView");
+
+    const successView =
+        getCheckoutElement("checkoutSuccess");
+
+    const message =
+        getCheckoutElement("checkoutSuccessMessage");
+
+    if (formView) formView.hidden = true;
+    if (successView) successView.hidden = false;
+
+    if (message) {
+        message.innerHTML =
+            `Pedido <strong>#${orderId}</strong> creado correctamente.<br>` +
+            `Total definitivo: <strong>S/ ${Number(total).toFixed(2)}</strong>`;
+    }
+
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const checkoutModal =
+        getCheckoutElement("checkoutModal");
+
+    if (checkoutModal) {
+        checkoutModal.addEventListener("click", event => {
+            if (event.target === checkoutModal) closeCheckout();
+        });
+    }
+
+});
