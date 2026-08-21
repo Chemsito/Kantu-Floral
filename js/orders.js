@@ -23,6 +23,17 @@ const orderErrorMessages = {
         "No hay stock suficiente para uno de los productos."
 };
 
+const paymentReturnMessages = {
+    success:
+        "Mercado Pago informó que regresaste desde un pago aprobado. Estamos validando el pago.",
+    pending:
+        "Tu pago quedó pendiente. Estamos esperando confirmación de Mercado Pago.",
+    failure:
+        "El pago no se completó. Puedes intentarlo nuevamente."
+};
+
+let currentPaymentOrderId = null;
+
 
 function getCheckoutElement(id) {
 
@@ -76,6 +87,12 @@ function resetCheckoutView() {
     const loading =
         getCheckoutElement("checkoutLoading");
 
+    const paymentButton =
+        getCheckoutElement("mercadoPagoButton");
+
+    const paymentError =
+        getCheckoutElement("mercadoPagoError");
+
     if (formView) formView.hidden = false;
     if (successView) successView.hidden = true;
     if (error) {
@@ -83,7 +100,18 @@ function resetCheckoutView() {
         error.textContent = "";
     }
     if (loading) loading.hidden = true;
+    if (paymentButton) {
+        paymentButton.hidden = true;
+        paymentButton.disabled = false;
+        paymentButton.textContent = "Pagar con Mercado Pago";
+    }
+    if (paymentError) {
+        paymentError.hidden = true;
+        paymentError.textContent = "";
+    }
     if (form) form.reset();
+
+    currentPaymentOrderId = null;
 
     setOrderButtonState(false);
 
@@ -292,6 +320,12 @@ function showOrderSuccess(orderId, total) {
     const message =
         getCheckoutElement("checkoutSuccessMessage");
 
+    const paymentButton =
+        getCheckoutElement("mercadoPagoButton");
+
+    const paymentError =
+        getCheckoutElement("mercadoPagoError");
+
     if (formView) formView.hidden = true;
     if (successView) successView.hidden = false;
 
@@ -299,6 +333,133 @@ function showOrderSuccess(orderId, total) {
         message.innerHTML =
             `Pedido <strong>#${orderId}</strong> creado correctamente.<br>` +
             `Total definitivo: <strong>S/ ${Number(total).toFixed(2)}</strong>`;
+    }
+
+    currentPaymentOrderId = String(orderId);
+
+    if (paymentButton) {
+        paymentButton.hidden = false;
+        paymentButton.disabled = false;
+        paymentButton.textContent = "Pagar con Mercado Pago";
+    }
+
+    if (paymentError) {
+        paymentError.hidden = true;
+        paymentError.textContent = "";
+    }
+
+}
+
+
+async function getPaymentFunctionErrorMessage(error) {
+
+    const fallback =
+        "No pudimos preparar el pago. Inténtalo nuevamente.";
+
+    const response = error?.context;
+
+    if (!(response instanceof Response)) return fallback;
+
+    try {
+        const body = await response.clone().json();
+        return body?.message || fallback;
+    } catch {
+        return fallback;
+    }
+
+}
+
+
+async function startMercadoPagoPayment() {
+
+    const button =
+        getCheckoutElement("mercadoPagoButton");
+
+    const paymentError =
+        getCheckoutElement("mercadoPagoError");
+
+    if (!button || !currentPaymentOrderId) return;
+
+    button.disabled = true;
+    button.textContent = "Preparando pago...";
+
+    if (paymentError) {
+        paymentError.hidden = true;
+        paymentError.textContent = "";
+    }
+
+    try {
+        const { data, error } =
+            await supabaseClient.functions.invoke(
+                "create-mp-preference",
+                {
+                    body: {
+                        order_id:
+                            String(currentPaymentOrderId)
+                    }
+                }
+            );
+
+        if (error) {
+            if (paymentError) {
+                paymentError.textContent =
+                    await getPaymentFunctionErrorMessage(error);
+                paymentError.hidden = false;
+            }
+            return;
+        }
+
+        const paymentUrl =
+            data?.sandbox_init_point ||
+            data?.init_point;
+
+        if (!paymentUrl) {
+            if (paymentError) {
+                paymentError.textContent =
+                    "Mercado Pago no devolvió una dirección de pago válida.";
+                paymentError.hidden = false;
+            }
+            return;
+        }
+
+        window.location.href = paymentUrl;
+
+    } catch (error) {
+        console.error(
+            "Error inesperado preparando pago:",
+            error
+        );
+
+        if (paymentError) {
+            paymentError.textContent =
+                "No pudimos conectar con Mercado Pago. Inténtalo nuevamente.";
+            paymentError.hidden = false;
+        }
+    } finally {
+        button.disabled = false;
+        button.textContent = "Pagar con Mercado Pago";
+    }
+
+}
+
+
+function showPaymentReturnMessage() {
+
+    const paymentStatus =
+        new URLSearchParams(
+            window.location.search
+        ).get("payment");
+
+    const message =
+        Object.prototype.hasOwnProperty.call(
+            paymentReturnMessages,
+            paymentStatus
+        )
+            ? paymentReturnMessages[paymentStatus]
+            : null;
+
+    if (message && typeof showToast === "function") {
+        showToast(message);
     }
 
 }
@@ -314,5 +475,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (event.target === checkoutModal) closeCheckout();
         });
     }
+
+    const paymentButton =
+        getCheckoutElement("mercadoPagoButton");
+
+    if (paymentButton) {
+        paymentButton.addEventListener(
+            "click",
+            startMercadoPagoPayment
+        );
+    }
+
+    showPaymentReturnMessage();
 
 });

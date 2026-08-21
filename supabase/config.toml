@@ -1,0 +1,4 @@
+project_id = "Kantu-Floral"
+
+[functions.create-mp-preference]
+verify_jwt = true

@@ -1071,6 +1071,29 @@ footer {
     line-height: 1.6;
 }
 
+.mp-payment-button {
+    margin-top: 20px;
+    background: #009ee3;
+    color: var(--white);
+}
+
+.mp-payment-button:hover {
+    background: #008ed0;
+}
+
+.mp-payment-button:disabled {
+    cursor: wait;
+    opacity: .7;
+}
+
+.checkout-continue-button {
+    margin-top: 10px;
+}
+
+#mercadoPagoError {
+    color: var(--danger);
+}
+
 /* =========================
    MI CUENTA
 ========================= */
