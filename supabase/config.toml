@@ -2,3 +2,6 @@ project_id = "Kantu-Floral"
 
 [functions.create-mp-preference]
 verify_jwt = true
+
+[functions.mercadopago-webhook]
+verify_jwt = false
