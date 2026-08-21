@@ -1091,8 +1091,17 @@
                     </ol>
 
                     <div class="manual-payment-instructions">
-                        <div class="manual-payment-qr" aria-label="Espacio reservado para código QR">QR Yape<br>Kantu Floral</div>
-                        <div><strong id="manualPaymentInstructionsTitle">Datos para realizar el pago</strong><p id="manualPaymentInstructions">Configura aquí los datos oficiales de Yape o transferencia.</p></div>
+                        <div class="manual-payment-qr" id="manualPaymentQr">
+                            <img id="manualPaymentQrImage" src="" alt="QR de Yape" loading="lazy">
+                        </div>
+                        <div>
+                            <strong id="manualPaymentInstructionsTitle">Datos para realizar el pago</strong>
+                            <dl class="manual-yape-details" id="manualYapeDetails">
+                                <div><dt>Titular</dt><dd id="manualYapeHolder"></dd></div>
+                                <div><dt>Número de Yape</dt><dd id="manualYapeNumber"></dd></div>
+                            </dl>
+                            <p id="manualPaymentInstructions">Después de pagar, sube tu comprobante.</p>
+                        </div>
                     </div>
 
                     <form id="manualPaymentForm">

@@ -6,10 +6,18 @@ const MANUAL_PAYMENT_MIME_TYPES = ["image/jpeg", "image/png"];
 const MANUAL_PAYMENT_EXTENSIONS = ["jpg", "jpeg", "png"];
 const MANUAL_PAYMENT_POLL_INTERVAL = 5000;
 
-// Completar únicamente con los datos oficiales del negocio.
 const manualPaymentInstructions = {
-    yape: "Configura aquí el número o nombre oficial de Yape de Kantu Floral.",
-    transferencia: "Configura aquí la cuenta bancaria oficial de Kantu Floral."
+    yape: {
+        title: "Paga mediante Yape",
+        accountHolder: "JHONNE DIAZ",
+        accountNumber: "+51 967 539 019",
+        qrUrl: "https://i.postimg.cc/C1RQRqCh/QR-AARON-DIAZ.jpg",
+        message: "Después de realizar el pago, sube una foto clara del comprobante para que podamos verificarlo."
+    },
+    transferencia: {
+        title: "Realiza una transferencia",
+        message: "Solicita los datos bancarios oficiales de Kantu Floral y, después de pagar, sube tu comprobante."
+    }
 };
 
 const manualProofStatusLabels = {
@@ -56,10 +64,19 @@ function showManualPaymentPanel() {
 
 function updateManualPaymentInstructions() {
     const method = manualElement("manualPaymentMethod")?.value || "yape";
-    manualElement("manualPaymentInstructionsTitle").textContent = method === "yape"
-        ? "Paga mediante Yape"
-        : "Realiza una transferencia";
-    manualElement("manualPaymentInstructions").textContent = manualPaymentInstructions[method];
+    const configuration = manualPaymentInstructions[method];
+    const isYape = method === "yape";
+    manualElement("manualPaymentInstructionsTitle").textContent = configuration.title;
+    manualElement("manualPaymentInstructions").textContent = configuration.message;
+    manualElement("manualYapeDetails").hidden = !isYape;
+    manualElement("manualPaymentQr").hidden = !isYape;
+    if (isYape) {
+        manualElement("manualYapeHolder").textContent = configuration.accountHolder;
+        manualElement("manualYapeNumber").textContent = configuration.accountNumber;
+        const qrImage = manualElement("manualPaymentQrImage");
+        qrImage.src = configuration.qrUrl;
+        qrImage.alt = `QR de Yape de ${configuration.accountHolder}`;
+    }
 }
 
 function showManualPaymentMessage(message, type = "error") {
