@@ -14,6 +14,14 @@ function loadKantuBrandIdentity() {
         document.head.appendChild(brandStyles);
     }
 
+    if (!document.querySelector('link[data-kantu-mobile="true"]')) {
+        const mobileStyles = document.createElement("link");
+        mobileStyles.rel = "stylesheet";
+        mobileStyles.href = "css/mobile.css";
+        mobileStyles.dataset.kantuMobile = "true";
+        document.head.appendChild(mobileStyles);
+    }
+
     document.title = "Kantu Floral | Flores que cuentan historias";
 
     const description = document.querySelector('meta[name="description"]');
