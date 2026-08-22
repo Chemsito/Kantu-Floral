@@ -57,6 +57,37 @@ function renderAdminDeliveryAddress(value) {
     return KANTU_ADMIN.renderDeliveryAddress(value, "Abrir en Google Maps");
 }
 
+function getAdminMercadoPagoDiagnostic(order) {
+    if (order?.payment_provider !== "mercadopago") return null;
+
+    const code = String(order.payment_status_detail || "").trim();
+    if (!code) return null;
+
+    return {
+        code,
+        label: KANTU_ADMIN.mercadoPagoStatusDetailLabel(code)
+    };
+}
+
+function renderAdminMercadoPagoDiagnostic(order, mode = "grid") {
+    const diagnostic = getAdminMercadoPagoDiagnostic(order);
+    if (!diagnostic) return "";
+
+    const content = `${adminEscape(diagnostic.label)}<br><small>Código: <code>${adminEscape(diagnostic.code)}</code></small>`;
+
+    if (mode === "detail") {
+        return `<div class="admin-detail-location">
+            <span>Detalle Mercado Pago</span>
+            <div>${content}</div>
+        </div>`;
+    }
+
+    return `<p class="admin-wide">
+        <span>Detalle Mercado Pago</span>
+        ${content}
+    </p>`;
+}
+
 function getAdminStatusErrorMessage(error) {
     return KANTU_ADMIN.resolveErrorMessage(
         error,
@@ -412,6 +443,12 @@ function renderAdminOrders() {
     adminElement("adminOrdersEmpty").hidden = filtered.length > 0;
     adminElement("adminOrdersList").innerHTML = filtered.map(order => {
         const transitions = ADMIN_ALLOWED_TRANSITIONS[order.status] || [];
+        const paymentStatus = KANTU_ADMIN.paymentStatusLabels[order.payment_status]
+            || order.payment_status
+            || "No registrado";
+        const paymentMethod = KANTU_ADMIN.paymentMethodLabels[order.payment_provider]
+            || order.payment_provider
+            || "No seleccionado";
         const statusControl = transitions.length
             ? `<label>Cambiar estado
                 <select data-admin-status-id="${adminEscape(order.id)}" data-previous-status="${adminEscape(order.status)}">
@@ -438,6 +475,9 @@ function renderAdminOrders() {
                 <p><span>Cliente</span>${adminEscape(order.customer_name || "No registrado")}</p>
                 <p><span>Teléfono / WhatsApp</span>${adminEscape(order.customer_phone || "No registrado")}</p>
                 <p><span>Total</span><strong>${adminEscape(adminMoney(order.total))}</strong></p>
+                <p><span>Método de pago</span>${adminEscape(paymentMethod)}</p>
+                <p><span>Estado del pago</span><strong>${adminEscape(paymentStatus)}</strong></p>
+                ${renderAdminMercadoPagoDiagnostic(order)}
                 <p class="admin-wide"><span>Ubicación de entrega</span>${renderAdminDeliveryAddress(order.delivery_address)}</p>
             </div>
             <div class="admin-order-actions">
@@ -521,8 +561,19 @@ async function openAdminOrderDetail(orderId) {
     }
 
     const order = adminOrders.find(row => String(row.id) === String(orderId)) || {};
+    const paymentStatus = KANTU_ADMIN.paymentStatusLabels[order.payment_status]
+        || order.payment_status
+        || "No registrado";
+    const paymentMethod = KANTU_ADMIN.paymentMethodLabels[order.payment_provider]
+        || order.payment_provider
+        || "No seleccionado";
 
     detail.innerHTML = `<h3>Detalle del pedido #${adminEscape(adminShortId(orderId))}</h3>
+        <div class="admin-detail-location">
+            <span>Pago</span>
+            <div>${adminEscape(paymentMethod)} · <strong>${adminEscape(paymentStatus)}</strong></div>
+        </div>
+        ${renderAdminMercadoPagoDiagnostic(order, "detail")}
         <div class="admin-detail-location">
             <span>Ubicación de entrega</span>
             ${renderAdminDeliveryAddress(order.delivery_address)}

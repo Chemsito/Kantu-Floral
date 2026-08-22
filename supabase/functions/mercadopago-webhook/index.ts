@@ -10,6 +10,7 @@ type WebhookBody = {
 type MercadoPagoPayment = {
     id?: string | number;
     status?: string;
+    status_detail?: string | null;
     external_reference?: string | number | null;
     transaction_amount?: string | number;
     currency_id?: string;
@@ -138,6 +139,12 @@ function normalizePositiveBigint(value: unknown): string | null {
     return /^[1-9]\d*$/.test(normalized) ? normalized : null;
 }
 
+function normalizePaymentStatusDetail(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+    const normalized = value.trim();
+    return normalized ? normalized.slice(0, 255) : null;
+}
+
 function decimalToCents(value: unknown): bigint | null {
     if (typeof value !== "string" && typeof value !== "number") return null;
 
@@ -252,6 +259,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const payment = paymentBody as MercadoPagoPayment;
         const realPaymentId = normalizePositiveBigint(payment.id);
         const orderId = normalizePositiveBigint(payment.external_reference);
+        const paymentStatusDetail = normalizePaymentStatusDetail(payment.status_detail);
 
         if (!realPaymentId || !orderId) {
             console.error("Pago sin identificadores válidos.", {
@@ -284,7 +292,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
         if (!mappedPaymentStatus) {
             console.warn("Estado de Mercado Pago no soportado.", {
                 paymentId,
-                status: payment.status
+                status: payment.status,
+                statusDetail: paymentStatusDetail
             });
             return jsonResponse({
                 received: true,
@@ -405,6 +414,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
         const paymentUpdate: Record<string, unknown> = {
             payment_status: mappedPaymentStatus,
+            payment_status_detail: paymentStatusDetail,
             payment_provider: "mercadopago",
             payment_id: realPaymentId
         };
@@ -477,6 +487,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
                     return jsonResponse({
                         received: true,
                         payment_recorded: true,
+                        payment_status_detail: paymentStatusDetail,
                         order_confirmed: false,
                         requires_attention: true
                     });
@@ -488,12 +499,17 @@ Deno.serve(async (request: Request): Promise<Response> => {
             return jsonResponse({
                 received: true,
                 payment_status: "approved",
+                payment_status_detail: paymentStatusDetail,
                 order_confirmed: true,
                 confirmation
             });
         }
 
-        return jsonResponse({ received: true, payment_status: mappedPaymentStatus });
+        return jsonResponse({
+            received: true,
+            payment_status: mappedPaymentStatus,
+            payment_status_detail: paymentStatusDetail
+        });
     } catch (error) {
         console.error("Error inesperado procesando webhook:", error);
         return jsonResponse({ error: "INTERNAL_SERVER_ERROR" }, 500);
