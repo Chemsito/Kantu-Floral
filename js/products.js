@@ -125,27 +125,40 @@ function enhanceRenderedProductCards(productList) {
     });
 }
 
-function ensureAdminProductMetadataFields() {
-    const form = document.getElementById("adminProductForm");
-    const categorySelect = document.getElementById("adminProductCategory");
-    if (!form || !categorySelect) return;
+/* =====================================================
+   PRODUCTOS EN ADMIN
+   La categoría, talla y nota se guardan desde un único flujo propio.
+   Esto evita depender del formulario legado de admin.js, que todavía
+   contiene las cuatro categorías antiguas y podía resetear el select.
+===================================================== */
 
-    const selectedCategory = categorySelect.value;
-    const currentCategoryValues = [...categorySelect.options].map(option => option.value);
-    const categoriesAreCurrent = currentCategoryValues.length === PRODUCT_CATEGORY_VALUES.length
-        && currentCategoryValues.every((value, index) => value === PRODUCT_CATEGORY_VALUES[index]);
+function syncAdminProductCategoryOptions(preferredValue = null) {
+    const select = document.getElementById("adminProductCategory");
+    if (!select) return null;
+
+    const selectedBeforeSync = preferredValue ?? select.value;
+    const currentValues = [...select.options].map(option => option.value);
+    const categoriesAreCurrent = currentValues.length === PRODUCT_CATEGORY_VALUES.length
+        && currentValues.every((value, index) => value === PRODUCT_CATEGORY_VALUES[index]);
 
     if (!categoriesAreCurrent) {
-        categorySelect.innerHTML = PRODUCT_CATEGORIES.map(([value, label]) =>
+        select.innerHTML = PRODUCT_CATEGORIES.map(([value, label]) =>
             `<option value="${productEscape(value)}">${productEscape(label)}</option>`
         ).join("");
     }
 
-    if (PRODUCT_CATEGORY_VALUES.includes(selectedCategory)) {
-        categorySelect.value = selectedCategory;
-    } else if (!PRODUCT_CATEGORY_VALUES.includes(categorySelect.value)) {
-        categorySelect.value = "ramos";
-    }
+    const nextValue = PRODUCT_CATEGORY_VALUES.includes(selectedBeforeSync)
+        ? selectedBeforeSync
+        : "ramos";
+    select.value = nextValue;
+    return select;
+}
+
+function ensureAdminProductMetadataFields() {
+    const form = document.getElementById("adminProductForm");
+    if (!form) return;
+
+    syncAdminProductCategoryOptions();
 
     if (!document.getElementById("adminProductSizeGroup")) {
         const tagGroup = document.getElementById("adminProductTag")?.closest(".form-group");
@@ -183,97 +196,160 @@ function ensureAdminProductMetadataFields() {
     }
 }
 
-function installAdminProductMetadataOverrides() {
-    if (typeof openAdminProductForm === "function" && !openAdminProductForm.__kantuProductMetadata) {
+function populateAdminProductMetadata(product = null) {
+    ensureAdminProductMetadataFields();
+    syncAdminProductCategoryOptions(product?.category || "ramos");
+
+    const size = normalizeProductSize(product?.size);
+    document.querySelectorAll('input[name="adminProductSize"]').forEach(input => {
+        input.checked = input.value === size;
+    });
+
+    const note = document.getElementById("adminProductNote");
+    if (note) note.value = product?.note || "";
+}
+
+function readEnhancedAdminProductPayload() {
+    ensureAdminProductMetadataFields();
+
+    const name = document.getElementById("adminProductName")?.value.trim() || "";
+    const description = document.getElementById("adminProductDescription")?.value.trim() || "";
+    const price = Number(document.getElementById("adminProductPrice")?.value);
+    const stock = Number(document.getElementById("adminProductStock")?.value);
+    const category = document.getElementById("adminProductCategory")?.value || "";
+    const image = document.getElementById("adminProductImage")?.value.trim() || "";
+    const tag = document.getElementById("adminProductTag")?.value.trim() || "";
+    const note = document.getElementById("adminProductNote")?.value.trim() || "";
+    const size = normalizeProductSize(
+        document.querySelector('input[name="adminProductSize"]:checked')?.value
+    );
+
+    if (!name) throw new Error("El nombre es obligatorio.");
+    if (!Number.isFinite(price) || price <= 0) throw new Error("El precio debe ser mayor que cero.");
+    if (!Number.isInteger(stock) || stock < 0) throw new Error("El stock debe ser un número entero mayor o igual que cero.");
+    if (!PRODUCT_CATEGORY_VALUES.includes(category)) throw new Error("Selecciona una categoría válida.");
+    if (!PRODUCT_SIZES.includes(size)) throw new Error("Selecciona una talla válida.");
+    if (note.length > 300) throw new Error("La nota no puede superar los 300 caracteres.");
+    if (image && !productSafeUrl(image)) throw new Error("La URL de imagen no es válida o no es segura.");
+
+    return {
+        name,
+        description: description || null,
+        price,
+        category,
+        image: image || null,
+        tag: tag || null,
+        size,
+        note: note || null,
+        stock,
+        active: Boolean(document.getElementById("adminProductActive")?.checked)
+    };
+}
+
+async function saveEnhancedAdminProduct(event) {
+    if (event.target?.id !== "adminProductForm") return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    let payload;
+    try {
+        payload = readEnhancedAdminProductPayload();
+    } catch (error) {
+        if (typeof showAdminMessage === "function") showAdminMessage(error.message);
+        return;
+    }
+
+    const id = document.getElementById("adminProductId")?.value || "";
+    const button = document.getElementById("adminProductSaveButton");
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Guardando...";
+    }
+
+    try {
+        const query = id
+            ? supabaseClient.from("products").update(payload).eq("id", id)
+            : supabaseClient.from("products").insert(payload);
+        const { error } = await query;
+        if (error) throw error;
+
+        if (typeof loadProducts === "function") await loadProducts();
+        if (typeof switchAdminView === "function") switchAdminView("products");
+        if (typeof showAdminMessage === "function") {
+            showAdminMessage(
+                id ? "Producto actualizado correctamente." : "Producto creado correctamente.",
+                "success"
+            );
+        }
+    } catch (error) {
+        console.error("Error guardando producto:", error);
+        if (typeof showAdminMessage === "function") {
+            showAdminMessage("No pudimos guardar el producto. Revisa los datos.");
+        }
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = "Guardar producto";
+        }
+    }
+}
+
+function enhanceAdminProductCards() {
+    const cards = [...document.querySelectorAll("#adminProductsList .admin-product-card")];
+    cards.forEach((card, index) => {
+        const product = typeof adminProducts !== "undefined" ? adminProducts[index] : null;
+        if (!product) return;
+
+        const categoryLabel = card.querySelector(".admin-product-info > div > span");
+        if (categoryLabel) categoryLabel.textContent = getCategoryName(product.category);
+
+        const badges = card.querySelector(".admin-product-badges");
+        if (badges && !badges.querySelector(".admin-product-size-badge")) {
+            const badge = document.createElement("span");
+            badge.className = "admin-product-size-badge";
+            badge.textContent = `Talla ${normalizeProductSize(product.size)}`;
+            badges.appendChild(badge);
+        }
+
+        const noteText = String(product.note || "").trim();
+        const info = card.querySelector(".admin-product-info");
+        if (noteText && info && !info.querySelector(".admin-product-note")) {
+            const note = document.createElement("p");
+            note.className = "admin-product-note";
+            note.textContent = `Nota: ${noteText}`;
+            info.appendChild(note);
+        }
+    });
+}
+
+function installAdminProductEnhancements() {
+    ensureAdminProductMetadataFields();
+
+    const form = document.getElementById("adminProductForm");
+    if (form && !form.dataset.kantuEnhancedSave) {
+        form.addEventListener("submit", saveEnhancedAdminProduct, true);
+        form.dataset.kantuEnhancedSave = "true";
+    }
+
+    if (typeof openAdminProductForm === "function" && !openAdminProductForm.__kantuEnhancedProductForm) {
         const originalOpenAdminProductForm = openAdminProductForm;
         const enhancedOpenAdminProductForm = function enhancedOpenAdminProductForm(product = null) {
             ensureAdminProductMetadataFields();
             originalOpenAdminProductForm(product);
-
-            const size = normalizeProductSize(product?.size);
-            document.querySelectorAll('input[name="adminProductSize"]').forEach(input => {
-                input.checked = input.value === size;
-            });
-
-            const note = document.getElementById("adminProductNote");
-            if (note) note.value = product?.note || "";
+            populateAdminProductMetadata(product);
         };
-        enhancedOpenAdminProductForm.__kantuProductMetadata = true;
+        enhancedOpenAdminProductForm.__kantuEnhancedProductForm = true;
         openAdminProductForm = enhancedOpenAdminProductForm;
     }
 
-    if (typeof readAdminProductForm === "function" && !readAdminProductForm.__kantuProductMetadata) {
-        const enhancedReadAdminProductForm = function enhancedReadAdminProductForm() {
-            ensureAdminProductMetadataFields();
-
-            const name = document.getElementById("adminProductName").value.trim();
-            const description = document.getElementById("adminProductDescription").value.trim();
-            const price = Number(document.getElementById("adminProductPrice").value);
-            const stock = Number(document.getElementById("adminProductStock").value);
-            const category = document.getElementById("adminProductCategory").value;
-            const image = document.getElementById("adminProductImage").value.trim();
-            const tag = document.getElementById("adminProductTag").value.trim();
-            const note = document.getElementById("adminProductNote")?.value.trim() || "";
-            const size = normalizeProductSize(
-                document.querySelector('input[name="adminProductSize"]:checked')?.value
-            );
-
-            if (!name) throw new Error("El nombre es obligatorio.");
-            if (!Number.isFinite(price) || price <= 0) throw new Error("El precio debe ser mayor que cero.");
-            if (!Number.isInteger(stock) || stock < 0) throw new Error("El stock debe ser un número entero mayor o igual que cero.");
-            if (!PRODUCT_CATEGORY_VALUES.includes(category)) throw new Error("Selecciona una categoría válida.");
-            if (!PRODUCT_SIZES.includes(size)) throw new Error("Selecciona una talla válida.");
-            if (note.length > 300) throw new Error("La nota no puede superar los 300 caracteres.");
-
-            return {
-                name,
-                description: description || null,
-                price,
-                category,
-                image: image || null,
-                tag: tag || null,
-                size,
-                note: note || null,
-                stock,
-                active: document.getElementById("adminProductActive").checked
-            };
-        };
-        enhancedReadAdminProductForm.__kantuProductMetadata = true;
-        readAdminProductForm = enhancedReadAdminProductForm;
-    }
-
-    if (typeof renderAdminProducts === "function" && !renderAdminProducts.__kantuProductMetadata) {
+    if (typeof renderAdminProducts === "function" && !renderAdminProducts.__kantuEnhancedProductCards) {
         const originalRenderAdminProducts = renderAdminProducts;
         const enhancedRenderAdminProducts = function enhancedRenderAdminProducts() {
             originalRenderAdminProducts();
-
-            const cards = [...document.querySelectorAll("#adminProductsList .admin-product-card")];
-            cards.forEach((card, index) => {
-                const product = adminProducts?.[index];
-                if (!product) return;
-
-                const categoryLabel = card.querySelector(".admin-product-info > div > span");
-                if (categoryLabel) categoryLabel.textContent = getCategoryName(product.category);
-
-                const badges = card.querySelector(".admin-product-badges");
-                if (badges && !badges.querySelector(".admin-product-size-badge")) {
-                    const badge = document.createElement("span");
-                    badge.className = "admin-product-size-badge";
-                    badge.textContent = `Talla ${normalizeProductSize(product.size)}`;
-                    badges.appendChild(badge);
-                }
-
-                const noteText = String(product.note || "").trim();
-                const info = card.querySelector(".admin-product-info");
-                if (noteText && info && !info.querySelector(".admin-product-note")) {
-                    const note = document.createElement("p");
-                    note.className = "admin-product-note";
-                    note.textContent = `Nota: ${noteText}`;
-                    info.appendChild(note);
-                }
-            });
+            enhanceAdminProductCards();
         };
-        enhancedRenderAdminProducts.__kantuProductMetadata = true;
+        enhancedRenderAdminProducts.__kantuEnhancedProductCards = true;
         renderAdminProducts = enhancedRenderAdminProducts;
     }
 
@@ -394,8 +470,7 @@ function renderProducts() {
 
 function initializeCategories() {
     const categoryButtons = rebuildCategoryButtons();
-    ensureAdminProductMetadataFields();
-    installAdminProductMetadataOverrides();
+    installAdminProductEnhancements();
 
     categoryButtons.forEach(button => {
         button.addEventListener("click", () => {
