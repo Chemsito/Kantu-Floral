@@ -159,16 +159,20 @@ async function updateUserButton() {
 }
 
 function initializeAuthState() {
-    supabaseClient.auth.onAuthStateChange(async event => {
-        await updateUserButton();
+    supabaseClient.auth.onAuthStateChange(event => {
+        // Supabase recomienda no encadenar llamadas async al cliente dentro
+        // del callback de Auth. Se difieren al siguiente turno del event loop.
+        window.setTimeout(async () => {
+            await updateUserButton();
 
-        if (["SIGNED_IN", "SIGNED_OUT"].includes(event) && typeof loadCartFromSupabase === "function") {
-            await loadCartFromSupabase();
-        }
+            if (["SIGNED_IN", "SIGNED_OUT"].includes(event) && typeof loadCartFromSupabase === "function") {
+                await loadCartFromSupabase();
+            }
 
-        if (event === "SIGNED_OUT" && typeof closeAccount === "function") {
-            closeAccount();
-        }
+            if (event === "SIGNED_OUT" && typeof closeAccount === "function") {
+                closeAccount();
+            }
+        }, 0);
     });
 }
 
