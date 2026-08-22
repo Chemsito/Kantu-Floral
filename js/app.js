@@ -122,6 +122,32 @@ function initializeMobileLinks() {
 }
 
 /* =====================================================
+   CORRECCIONES DE LAYOUT
+   El selector global `header` del sitio también alcanzaba al header interno
+   de Mi cuenta y terminaba superponiéndose al botón X.
+===================================================== */
+
+function initializeModalLayoutFixes() {
+    const accountHeader = document.querySelector(".account-header");
+    if (accountHeader) {
+        accountHeader.style.position = "static";
+        accountHeader.style.top = "auto";
+        accountHeader.style.zIndex = "auto";
+        accountHeader.style.background = "transparent";
+        accountHeader.style.backdropFilter = "none";
+        accountHeader.style.borderBottom = "0";
+    }
+
+    document.querySelectorAll(".modal > .close-modal").forEach(button => {
+        button.style.zIndex = "20";
+        button.style.display = "grid";
+        button.style.placeItems = "center";
+        button.style.padding = "0";
+        button.style.lineHeight = "1";
+    });
+}
+
+/* =====================================================
    HARDENING DEL PANEL ADMIN
    - Admin solo puede cancelar pedidos pendientes/no pagados.
    - Preparación, reparto y entrega se gestionan desde staff.html para conservar
@@ -193,6 +219,7 @@ function applyAdminHardening() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    initializeModalLayoutFixes();
     applyAdminHardening();
     initializeCategories();
     initializeCart();
