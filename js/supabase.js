@@ -31,6 +31,31 @@ const KANTU_PAYMENT_METHOD_LABELS = Object.freeze({
     transferencia: "Transferencia bancaria"
 });
 
+const KANTU_MERCADO_PAGO_STATUS_DETAIL_LABELS = Object.freeze({
+    accredited: "Pago acreditado correctamente.",
+    cc_rejected_bad_filled_card_number: "El número de tarjeta fue ingresado incorrectamente.",
+    cc_rejected_bad_filled_date: "La fecha de vencimiento fue ingresada incorrectamente.",
+    cc_rejected_bad_filled_other: "Hay datos del medio de pago que deben revisarse.",
+    cc_rejected_bad_filled_security_code: "El código de seguridad fue ingresado incorrectamente.",
+    cc_rejected_call_for_authorize: "El comprador debe autorizar la operación con su banco o emisor.",
+    cc_rejected_card_disabled: "El medio de pago está deshabilitado o bloqueado para esta compra.",
+    cc_rejected_duplicated_payment: "Mercado Pago o el emisor detectó un posible pago duplicado.",
+    cc_rejected_insufficient_amount: "El medio de pago no tiene saldo o límite suficiente.",
+    cc_rejected_invalid_installments: "La cantidad de cuotas seleccionada no está disponible.",
+    cc_rejected_max_attempts: "Se alcanzó el máximo de intentos permitidos para este medio de pago.",
+    cc_rejected_blacklist: "El pago fue rechazado por controles de prevención de fraude.",
+    cc_rejected_high_risk: "Mercado Pago detectó un riesgo elevado y rechazó el pago por prevención de fraude.",
+    cc_rejected_other_reason: "El emisor rechazó el pago por un motivo no especificado; puede estar relacionado con controles de riesgo.",
+    pending_waiting_payment: "Mercado Pago está esperando que el comprador complete el pago.",
+    pending_contingency: "El pago está siendo procesado por Mercado Pago.",
+    pending_review_manual: "El pago está bajo revisión manual de Mercado Pago.",
+    pending_card_payment: "Mercado Pago está esperando la confirmación del pago con tarjeta.",
+    pending_cash_payment: "Mercado Pago está esperando la confirmación del pago en efectivo.",
+    pending_bank_transfer: "Mercado Pago está esperando la confirmación de la transferencia.",
+    refunded: "El pago fue reembolsado.",
+    charged_back: "El pago recibió un contracargo."
+});
+
 const KANTU_PROOF_STATUS_LABELS = Object.freeze({
     uploaded: "Comprobante recibido",
     verifying: "Estamos verificando tu pago",
@@ -109,6 +134,13 @@ function kantuResolveErrorMessage(error, messages, fallback) {
     const text = kantuErrorText(error);
     const key = Object.keys(messages).find(code => text.includes(code));
     return key ? messages[key] : fallback;
+}
+
+function kantuMercadoPagoStatusDetailLabel(code) {
+    const normalized = String(code || "").trim();
+    if (!normalized) return "";
+    return KANTU_MERCADO_PAGO_STATUS_DETAIL_LABELS[normalized]
+        || "Mercado Pago devolvió un detalle técnico para este pago.";
 }
 
 async function kantuFetchLatestPaymentProof(orderId) {
@@ -190,11 +222,13 @@ window.KantuCore = Object.freeze({
     renderDeliveryAddress: kantuRenderDeliveryAddress,
     errorText: kantuErrorText,
     resolveErrorMessage: kantuResolveErrorMessage,
+    mercadoPagoStatusDetailLabel: kantuMercadoPagoStatusDetailLabel,
     fetchLatestPaymentProof: kantuFetchLatestPaymentProof,
     fetchOrderPaymentContext: kantuFetchOrderPaymentContext,
     fetchOrderItemsWithProducts: kantuFetchOrderItemsWithProducts,
     orderStatusLabels: KANTU_ORDER_STATUS_LABELS,
     paymentStatusLabels: KANTU_PAYMENT_STATUS_LABELS,
     paymentMethodLabels: KANTU_PAYMENT_METHOD_LABELS,
+    mercadoPagoStatusDetailLabels: KANTU_MERCADO_PAGO_STATUS_DETAIL_LABELS,
     proofStatusLabels: KANTU_PROOF_STATUS_LABELS
 });
