@@ -12,7 +12,7 @@ const orderErrorMessages = {
     CUSTOMER_PHONE_REQUIRED:
         "Ingresa un número de teléfono.",
     DELIVERY_ADDRESS_REQUIRED:
-        "Ingresa una dirección de entrega.",
+        "Selecciona la ubicación de entrega en el mapa.",
     CART_EMPTY:
         "Tu carrito está vacío.",
     INVALID_CART:
@@ -33,6 +33,14 @@ const paymentReturnMessages = {
 };
 
 let currentPaymentOrderId = null;
+let checkoutDeliveryMap = null;
+let checkoutDeliveryMarker = null;
+let selectedDeliveryLat = null;
+let selectedDeliveryLng = null;
+let selectedDeliveryMapsUrl = null;
+let checkoutInitialGeolocationRequested = false;
+
+const CHECKOUT_DEFAULT_LOCATION = [-12.0464, -77.0428];
 
 
 function getCheckoutElement(id) {
@@ -114,6 +122,7 @@ function resetCheckoutView() {
         paymentError.textContent = "";
     }
     if (form) form.reset();
+    resetCheckoutDeliveryLocation();
 
     currentPaymentOrderId = null;
 
@@ -125,6 +134,97 @@ function resetCheckoutView() {
 
 }
 
+
+function initializeCheckoutDeliveryMap() {
+    const container = getCheckoutElement("checkoutDeliveryMap");
+    if (!container) return;
+    if (typeof L === "undefined") {
+        getCheckoutElement("checkoutLocationStatus").textContent =
+            "No pudimos cargar el mapa. Revisa tu conexión e inténtalo nuevamente.";
+        return;
+    }
+    if (!checkoutDeliveryMap) {
+        checkoutDeliveryMap = L.map(container, { zoomControl: true })
+            .setView(CHECKOUT_DEFAULT_LOCATION, 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(checkoutDeliveryMap);
+        checkoutDeliveryMap.on("click", event => {
+            setCheckoutDeliveryLocation(event.latlng.lat, event.latlng.lng, true);
+        });
+    }
+    checkoutDeliveryMap.invalidateSize();
+    if (!checkoutInitialGeolocationRequested && navigator.geolocation) {
+        checkoutInitialGeolocationRequested = true;
+        navigator.geolocation.getCurrentPosition(position => {
+            checkoutDeliveryMap?.setView([position.coords.latitude, position.coords.longitude], 15);
+        }, () => {}, { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 });
+    }
+}
+
+function setCheckoutDeliveryLocation(lat, lng, centerMap = false) {
+    selectedDeliveryLat = Number(lat);
+    selectedDeliveryLng = Number(lng);
+    selectedDeliveryMapsUrl = `https://www.google.com/maps?q=${selectedDeliveryLat.toFixed(6)},${selectedDeliveryLng.toFixed(6)}`;
+    const point = [selectedDeliveryLat, selectedDeliveryLng];
+    if (checkoutDeliveryMarker) checkoutDeliveryMarker.setLatLng(point);
+    else checkoutDeliveryMarker = L.marker(point).addTo(checkoutDeliveryMap);
+    if (centerMap) checkoutDeliveryMap.setView(point, Math.max(checkoutDeliveryMap.getZoom(), 16));
+    const status = getCheckoutElement("checkoutLocationStatus");
+    status.textContent = `Ubicación seleccionada: ${selectedDeliveryLat.toFixed(6)}, ${selectedDeliveryLng.toFixed(6)}`;
+    status.className = "checkout-location-status selected";
+    const error = getCheckoutElement("checkoutError");
+    if (error?.textContent === orderErrorMessages.DELIVERY_ADDRESS_REQUIRED) error.hidden = true;
+}
+
+function resetCheckoutDeliveryLocation() {
+    selectedDeliveryLat = null;
+    selectedDeliveryLng = null;
+    selectedDeliveryMapsUrl = null;
+    if (checkoutDeliveryMarker && checkoutDeliveryMap) checkoutDeliveryMap.removeLayer(checkoutDeliveryMarker);
+    checkoutDeliveryMarker = null;
+    const status = getCheckoutElement("checkoutLocationStatus");
+    if (status) {
+        status.textContent = "Aún no seleccionaste una ubicación.";
+        status.className = "checkout-location-status";
+    }
+}
+
+function useCurrentCheckoutLocation() {
+    const loading = getCheckoutElement("checkoutLocationLoading");
+    const button = getCheckoutElement("checkoutUseLocationButton");
+    if (!checkoutDeliveryMap) initializeCheckoutDeliveryMap();
+    if (!checkoutDeliveryMap) {
+        showCheckoutError("No pudimos cargar el mapa. Revisa tu conexión e inténtalo nuevamente.");
+        return;
+    }
+    if (!navigator.geolocation) {
+        showCheckoutError("Tu navegador no permite obtener la ubicación. Selecciona un punto en el mapa.");
+        return;
+    }
+    button.disabled = true;
+    loading.hidden = false;
+    navigator.geolocation.getCurrentPosition(position => {
+        setCheckoutDeliveryLocation(position.coords.latitude, position.coords.longitude, true);
+        button.disabled = false;
+        loading.hidden = true;
+    }, error => {
+        console.warn("No se pudo obtener geolocalización:", error);
+        showCheckoutError("No pudimos obtener tu ubicación. Puedes seleccionarla haciendo clic en el mapa.");
+        button.disabled = false;
+        loading.hidden = true;
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+}
+
+function buildCheckoutDeliveryAddress() {
+    if (!selectedDeliveryMapsUrl) return "";
+    const reference = getCheckoutElement("checkoutDeliveryReference")?.value
+        .trim().replace(/\s*\|\s*/g, " - ");
+    return reference
+        ? `${selectedDeliveryMapsUrl} | Referencia: ${reference}`
+        : selectedDeliveryMapsUrl;
+}
 
 async function fillCheckoutName(user) {
 
@@ -261,8 +361,7 @@ async function submitOrder(event) {
     const phone =
         getCheckoutElement("checkoutPhone")?.value.trim();
 
-    const address =
-        getCheckoutElement("checkoutAddress")?.value.trim();
+    const address = buildCheckoutDeliveryAddress();
 
     if (!name || !phone || !address) {
         showCheckoutError(
@@ -312,8 +411,30 @@ async function submitOrder(event) {
     saveCart();
     updateCart();
     closeCart();
-    showOrderSuccess(order.order_id, order.total);
+    openPaymentOptionsForOrder({
+        id: order.order_id,
+        total: order.total,
+        status: "pendiente",
+        payment_status: "pending"
+    });
+    if (typeof loadActiveCustomerOrder === "function") loadActiveCustomerOrder();
 
+}
+
+function openPaymentOptionsForOrder(order) {
+    const orderId = order?.id ?? order?.order_id;
+    const total = Number(order?.total);
+    if (!orderId || !Number.isFinite(total)) return false;
+    if (order?.status && order.status !== "pendiente") return false;
+    if (order?.payment_status && order.payment_status !== "pending") return false;
+
+    resetCheckoutView();
+    const checkoutModal = getCheckoutElement("checkoutModal");
+    if (!checkoutModal) return false;
+    checkoutModal.classList.add("show");
+    window.setTimeout(initializeCheckoutDeliveryMap, 0);
+    showOrderSuccess(orderId, total);
+    return true;
 }
 
 
@@ -497,6 +618,11 @@ document.addEventListener("DOMContentLoaded", () => {
             startMercadoPagoPayment
         );
     }
+
+    getCheckoutElement("checkoutUseLocationButton")?.addEventListener(
+        "click",
+        useCurrentCheckoutLocation
+    );
 
     showPaymentReturnMessage();
 

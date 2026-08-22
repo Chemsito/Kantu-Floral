@@ -310,6 +310,9 @@ function updateCart() {
     const cartTotal =
         document.getElementById("cartTotal");
 
+    const checkoutButton =
+        document.getElementById("cartCheckoutButton");
+
 
     if (!cartItems) return;
 
@@ -324,6 +327,8 @@ function updateCart() {
 
     cartCount.textContent =
         totalItems;
+
+    if (checkoutButton) checkoutButton.hidden = false;
 
 
     if (cart.length === 0) {
@@ -349,6 +354,10 @@ function updateCart() {
 
         cartTotal.textContent =
             "S/ 0.00";
+
+        if (typeof updateActiveOrderCartPresentation === "function") {
+            updateActiveOrderCartPresentation();
+        }
 
 
         return;
@@ -441,6 +450,10 @@ function updateCart() {
     cartTotal.textContent =
         `S/ ${total.toFixed(2)}`;
 
+    if (typeof updateActiveOrderCartPresentation === "function") {
+        updateActiveOrderCartPresentation();
+    }
+
 }
 
 
@@ -457,6 +470,12 @@ function openCart() {
     if (cartPanel) {
 
         cartPanel.classList.add("show");
+
+        if (cart.length === 0 && typeof renderActiveOrderInCart === "function") {
+            if (!renderActiveOrderInCart()) updateCart();
+        } else {
+            updateCart();
+        }
 
     }
 

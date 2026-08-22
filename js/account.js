@@ -46,6 +46,20 @@ function shortOrderId(id) {
     return value.length > 12 ? value.slice(0, 8).toUpperCase() : value;
 }
 
+function parseAccountDeliveryAddress(value) {
+    const text = String(value || "");
+    const match = text.match(/(https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?)/i);
+    const reference = text.match(/\|\s*Referencia:\s*(.+)$/i)?.[1]?.trim() || "";
+    return { mapsUrl: match?.[1] || "", reference, plain: match ? "" : text };
+}
+
+function renderAccountDeliveryAddress(value, linkLabel = "Ver ubicación en Google Maps") {
+    const location = parseAccountDeliveryAddress(value);
+    if (!location.mapsUrl) return escapeAccountHtml(location.plain || "No registrada");
+    return `<div class="delivery-location-block"><a href="${escapeAccountHtml(location.mapsUrl)}" target="_blank" rel="noopener noreferrer">${escapeAccountHtml(linkLabel)}</a>
+        ${location.reference ? `<small><strong>Referencia:</strong> ${escapeAccountHtml(location.reference)}</small>` : ""}</div>`;
+}
+
 function showAccountMessage(message, type = "error") {
     const element = accountElement("accountMessage");
     if (!element) return;
@@ -197,7 +211,7 @@ async function loadAccountOrders() {
             <p><span>Total</span><strong>${escapeAccountHtml(formatAccountMoney(order.total))}</strong></p>
             <p><span>Cliente</span>${escapeAccountHtml(order.customer_name || "No registrado")}</p>
             <p><span>Teléfono</span>${escapeAccountHtml(order.customer_phone || "No registrado")}</p>
-            <p class="account-order-address"><span>Dirección</span>${escapeAccountHtml(order.delivery_address || "No registrada")}</p></div>
+            <p class="account-order-address"><span>Ubicación de entrega</span>${renderAccountDeliveryAddress(order.delivery_address)}</p></div>
             <button type="button" class="account-detail-button" data-order-id="${escapeAccountHtml(order.id)}">Ver detalle</button>
         </article>`;
     }).join("");
@@ -247,8 +261,25 @@ async function openOrderDetail(orderId) {
         ${proof.verification_status === "rejected" && proof.verification_notes ? `<p class="account-payment-note"><span>Motivo del rechazo</span>${escapeAccountHtml(proof.verification_notes)}</p>` : ""}
     </div>` : `<div class="account-payment-summary"><p><span>Método de pago</span><strong>${escapeAccountHtml(paymentMethod)}</strong></p>
         <p><span>Estado de pago</span><strong>${escapeAccountHtml(paymentStatus)}</strong></p></div>`;
+    const hasActiveProof = proof && ["uploaded", "verifying", "needs_review"].includes(proof.verification_status);
+    const canContinuePayment = order.status === "pendiente"
+        && order.payment_status === "pending"
+        && !hasActiveProof
+        && proof?.verification_status !== "approved";
+    const paymentAction = canContinuePayment
+        ? `<div class="account-payment-action"><p>${proof?.verification_status === "rejected" ? "Puedes enviar un comprobante nuevo" : "Pago pendiente"}</p><button type="button" class="btn btn-primary" data-continue-payment="${escapeAccountHtml(orderId)}"${proof?.verification_status === "rejected" ? ' data-retry-manual="true"' : ""}>${proof?.verification_status === "rejected" ? "Subir nuevo comprobante" : "Continuar pago"}</button></div>`
+        : "";
+    const customerState = typeof getCustomerOrderState === "function"
+        ? getCustomerOrderState(order, proof)
+        : { key: order.status || "pending", label: accountStatusLabels[order.status] || order.status };
+    const tracker = typeof renderCustomerOrderTracker === "function"
+        ? renderCustomerOrderTracker(order)
+        : "";
     detail.innerHTML = `<h3>Detalle del pedido <span>#${escapeAccountHtml(shortOrderId(orderId))}</span></h3>
-        ${proofDetails}
+        <div class="account-order-main-state state-${escapeAccountHtml(customerState.key)}">${escapeAccountHtml(customerState.label)}</div>
+        ${tracker}
+        ${paymentAction}
+        <h4 class="account-detail-heading">Productos</h4>
         ${rows.length ? `<div class="account-order-items">${rows.map(item => {
             const product = productsById.get(String(item.product_id)) || {};
             const quantity = Number(item.quantity) || 0;
@@ -260,7 +291,44 @@ async function openOrderDetail(orderId) {
                 <strong>${escapeAccountHtml(product.name || "Producto no disponible")}</strong><span>Cantidad: ${quantity}</span>
                 <span>Precio unitario: ${escapeAccountHtml(formatAccountMoney(unitPrice))}</span></div>
                 <strong class="account-item-subtotal">${escapeAccountHtml(formatAccountMoney(quantity * unitPrice))}</strong></article>`;
-        }).join("")}</div>` : '<div class="account-empty"><p>Este pedido no tiene productos disponibles.</p></div>'}`;
+        }).join("")}</div>` : '<div class="account-empty"><p>Este pedido no tiene productos disponibles.</p></div>'}
+        <h4 class="account-detail-heading">Pago</h4>
+        ${proofDetails}
+        <h4 class="account-detail-heading">Entrega</h4>
+        <div class="account-delivery-summary">
+            <p><span>Cliente</span>${escapeAccountHtml(order.customer_name || "No registrado")}</p>
+            <p><span>Teléfono</span>${escapeAccountHtml(order.customer_phone || "No registrado")}</p>
+            <p><span>Ubicación</span>${renderAccountDeliveryAddress(order.delivery_address)}</p>
+        </div>`;
+}
+
+async function openAccountOrder(orderId) {
+    await openAccount();
+    if (!accountUser) return;
+    accountOrdersLoaded = true;
+    switchAccountTab("orders");
+    await loadAccountOrders();
+    if (orderId && accountOrders.some(order => String(order.id) === String(orderId))) {
+        await openOrderDetail(orderId);
+    }
+}
+
+function continueAccountOrderPayment(orderId, retryManual = false) {
+    const order = accountOrders.find(row => String(row.id) === String(orderId));
+    if (!order || order.status !== "pendiente" || order.payment_status !== "pending") {
+        showAccountMessage("Este pedido ya no está disponible para continuar el pago.");
+        return;
+    }
+    if (typeof openPaymentOptionsForOrder !== "function") {
+        showAccountMessage("No pudimos abrir las opciones de pago.");
+        return;
+    }
+    closeAccount();
+    if (!openPaymentOptionsForOrder(order)) {
+        showAccountMessage("No pudimos abrir las opciones de pago.");
+        return;
+    }
+    if (retryManual) window.setTimeout(() => accountElement("manualPaymentButton")?.click(), 0);
 }
 
 function initializeAccount() {
@@ -273,6 +341,10 @@ function initializeAccount() {
     accountElement("accountOrdersList").addEventListener("click", event => {
         const button = event.target.closest("[data-order-id]");
         if (button) openOrderDetail(button.dataset.orderId);
+    });
+    accountElement("accountOrderDetail").addEventListener("click", event => {
+        const button = event.target.closest("[data-continue-payment]");
+        if (button) continueAccountOrderPayment(button.dataset.continuePayment, button.dataset.retryManual === "true");
     });
     accountElement("accountLogoutButton").addEventListener("click", () => logout());
     modal.addEventListener("click", event => { if (event.target === modal) closeAccount(); });

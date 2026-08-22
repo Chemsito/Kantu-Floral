@@ -69,6 +69,20 @@ function adminShortId(id) {
     return value.length > 12 ? value.slice(0, 8).toUpperCase() : value;
 }
 
+function parseAdminDeliveryAddress(value) {
+    const text = String(value || "");
+    const match = text.match(/(https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?)/i);
+    const reference = text.match(/\|\s*Referencia:\s*(.+)$/i)?.[1]?.trim() || "";
+    return { mapsUrl: match?.[1] || "", reference, plain: match ? "" : text };
+}
+
+function renderAdminDeliveryAddress(value) {
+    const location = parseAdminDeliveryAddress(value);
+    if (!location.mapsUrl) return adminEscape(location.plain || "No registrada");
+    return `<div class="delivery-location-block"><a href="${adminEscape(location.mapsUrl)}" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+        ${location.reference ? `<small><strong>Referencia:</strong> ${adminEscape(location.reference)}</small>` : ""}</div>`;
+}
+
 function getAdminStatusErrorMessage(error) {
     const errorText = [error?.message, error?.details, error?.hint]
         .filter(Boolean)
@@ -351,7 +365,7 @@ function renderAdminOrders() {
         <p><span>Cliente</span>${adminEscape(order.customer_name || "No registrado")}</p>
         <p><span>Teléfono</span>${adminEscape(order.customer_phone || "No registrado")}</p>
         <p><span>Total</span><strong>${adminEscape(adminMoney(order.total))}</strong></p>
-        <p class="admin-wide"><span>Dirección</span>${adminEscape(order.delivery_address || "No registrada")}</p></div>
+        <p class="admin-wide"><span>Ubicación de entrega</span>${renderAdminDeliveryAddress(order.delivery_address)}</p></div>
         <div class="admin-order-actions">${statusControl}<button type="button" class="admin-link" data-admin-order-detail="${adminEscape(order.id)}">Ver detalle</button></div>
     </article>`;
     }).join("");
@@ -440,7 +454,9 @@ async function openAdminOrderDetail(orderId) {
         if (result.error) console.error("Error cargando productos del detalle:", result.error);
         productMap = new Map((result.data || []).map(product => [String(product.id), product]));
     }
-    detail.innerHTML = `<h3>Detalle del pedido #${adminEscape(adminShortId(orderId))}</h3><div class="admin-detail-items">
+    const order = adminOrders.find(row => String(row.id) === String(orderId)) || {};
+    detail.innerHTML = `<h3>Detalle del pedido #${adminEscape(adminShortId(orderId))}</h3>
+        <div class="admin-detail-location"><span>Ubicación de entrega</span>${renderAdminDeliveryAddress(order.delivery_address)}</div><div class="admin-detail-items">
         ${(items || []).map(item => {
             const product = productMap.get(String(item.product_id)) || {};
             const quantity = Number(item.quantity) || 0;

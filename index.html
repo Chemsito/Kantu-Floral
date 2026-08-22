@@ -20,6 +20,7 @@
     >
 
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 </head>
 
@@ -42,6 +43,7 @@
                 <a href="#catalogo">Catálogo</a>
                 <a href="#nosotros">Nosotros</a>
                 <a href="#contacto">Contacto</a>
+                <button type="button" class="nav-order-link" id="headerOrdersButton" hidden>Mis pedidos</button>
             </nav>
 
             <div class="header-actions">
@@ -60,6 +62,7 @@
                     title="Carrito"
                 >
                     🛒
+                    <span class="cart-button-label" id="cartButtonLabel">Carrito</span>
                     <span class="cart-count" id="cartCount">0</span>
                 </button>
 
@@ -126,6 +129,10 @@
 
             </div>
 
+        </section>
+
+        <section class="active-order-section" id="activeOrderSection" hidden aria-live="polite">
+            <div id="activeOrderCard"></div>
         </section>
 
 
@@ -898,6 +905,7 @@
 
             <button
                 class="btn btn-primary checkout-btn"
+                id="cartCheckoutButton"
                 onclick="checkout()"
             >
                 Continuar con la compra
@@ -961,7 +969,7 @@
                     <div class="form-group">
 
                         <label for="checkoutPhone">
-                            Teléfono
+                            Teléfono / WhatsApp
                         </label>
 
                         <input
@@ -973,19 +981,20 @@
 
                     </div>
 
+                    <div class="form-group checkout-location-field">
+                        <label>Ubicación de entrega</label>
+                        <p class="checkout-location-help">Haz clic en el mapa para seleccionar la ubicación exacta de entrega.</p>
+                        <div id="checkoutDeliveryMap" class="checkout-delivery-map" aria-label="Mapa para seleccionar ubicación de entrega"></div>
+                        <div class="checkout-location-actions">
+                            <button id="checkoutUseLocationButton" type="button" class="checkout-location-button">Usar mi ubicación actual</button>
+                            <span id="checkoutLocationLoading" hidden>Buscando tu ubicación...</span>
+                        </div>
+                        <p id="checkoutLocationStatus" class="checkout-location-status" role="status">Aún no seleccionaste una ubicación.</p>
+                    </div>
+
                     <div class="form-group">
-
-                        <label for="checkoutAddress">
-                            Dirección de entrega
-                        </label>
-
-                        <textarea
-                            id="checkoutAddress"
-                            rows="3"
-                            autocomplete="street-address"
-                            required
-                        ></textarea>
-
+                        <label for="checkoutDeliveryReference">Referencia adicional <span>(opcional)</span></label>
+                        <textarea id="checkoutDeliveryReference" rows="2" placeholder="Ej.: casa azul, 2do piso, frente al parque"></textarea>
                     </div>
 
                     <div class="checkout-summary">
@@ -1169,12 +1178,14 @@
     ></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script src="js/supabase.js"></script>
 <script src="js/products.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/orders.js"></script>
 <script src="js/manual-payments.js"></script>
+<script src="js/order-tracking.js"></script>
 <script src="js/account.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/auth.js"></script>

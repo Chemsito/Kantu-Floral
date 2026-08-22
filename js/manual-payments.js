@@ -51,6 +51,7 @@ function resetManualPayment() {
     stopManualPaymentPolling();
     manualPaymentOrder = null;
     manualElement("manualPaymentForm")?.reset();
+    if (manualElement("manualPaymentForm")) manualElement("manualPaymentForm").hidden = false;
     const methodInput = manualElement("manualPaymentMethod");
     if (methodInput) methodInput.value = "yape";
     selectedManualBank = "bcp";
@@ -61,7 +62,7 @@ function resetManualPayment() {
     if (manualElement("manualPaymentStatus")) manualElement("manualPaymentStatus").hidden = true;
 }
 
-function showManualPaymentPanel() {
+async function showManualPaymentPanel() {
     if (!manualPaymentOrder) return;
     manualElement("manualPaymentPanel").hidden = false;
     manualElement("manualPaymentButton").hidden = true;
@@ -71,6 +72,50 @@ function showManualPaymentPanel() {
     }).format(manualPaymentOrder.total);
     updateManualPaymentInstructions();
     clearManualPaymentMessage();
+    manualElement("manualPaymentForm").hidden = true;
+    manualElement("manualPaymentStatus").hidden = true;
+    showManualPaymentMessage("Consultando el estado del pago...", "info");
+
+    try {
+        const [proofResult, orderResult] = await Promise.all([
+            supabaseClient.from("payment_proofs")
+                .select("id, verification_status, verification_notes, uploaded_at, operation_number, payment_method")
+                .eq("order_id", manualPaymentOrder.id)
+                .order("uploaded_at", { ascending: false }).limit(1).maybeSingle(),
+            supabaseClient.from("orders").select("status, payment_status")
+                .eq("id", manualPaymentOrder.id).maybeSingle()
+        ]);
+        if (proofResult.error || orderResult.error) throw proofResult.error || orderResult.error;
+        const proof = proofResult.data;
+        const order = orderResult.data;
+        clearManualPaymentMessage();
+
+        if (!order || order.status !== "pendiente" || order.payment_status !== "pending") {
+            manualElement("mercadoPagoButton").hidden = true;
+            showManualPaymentMessage("Este pedido ya no admite un nuevo pago.");
+            return;
+        }
+
+        if (!proof) {
+            manualElement("manualPaymentForm").hidden = false;
+            return;
+        }
+
+        renderManualPaymentStatus(proof, order);
+        if (["uploaded", "verifying", "needs_review", "approved"].includes(proof.verification_status)) {
+            manualElement("mercadoPagoButton").hidden = true;
+            if (proof.verification_status !== "approved") startManualPaymentPolling();
+            return;
+        }
+
+        if (proof.verification_status === "rejected") {
+            manualElement("manualPaymentForm").hidden = false;
+            manualElement("manualPaymentFile").value = "";
+        }
+    } catch (error) {
+        console.error("Error verificando comprobantes existentes:", error);
+        showManualPaymentMessage("No pudimos verificar si ya existe un comprobante. Inténtalo nuevamente.");
+    }
 }
 
 function updateManualPaymentInstructions() {
@@ -227,6 +272,8 @@ async function submitManualPaymentProof(event) {
         showManualPaymentMessage("Comprobante recibido. Estamos verificando tu pago.", "success");
         renderManualPaymentStatus(insert.data, { status: "pendiente", payment_status: "pending" });
         manualElement("manualPaymentForm").hidden = true;
+        manualElement("mercadoPagoButton").hidden = true;
+        if (typeof loadActiveCustomerOrder === "function") loadActiveCustomerOrder();
         startManualPaymentPolling();
     } catch (error) {
         console.error("Error registrando comprobante:", error);
@@ -256,6 +303,9 @@ async function pollManualPaymentStatus() {
         if (!proofResult.data) return;
         renderManualPaymentStatus(proofResult.data, orderResult.data);
         if (proofResult.data.verification_status === "approved") stopManualPaymentPolling();
+        if (proofResult.data.verification_status === "approved" && typeof loadActiveCustomerOrder === "function") {
+            loadActiveCustomerOrder();
+        }
         if (proofResult.data.verification_status === "rejected") {
             stopManualPaymentPolling();
             manualElement("manualPaymentForm").hidden = false;

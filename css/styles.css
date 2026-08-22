@@ -1071,6 +1071,21 @@ footer {
     line-height: 1.6;
 }
 
+.checkout-location-field { margin-top: 4px; }
+.checkout-location-help { margin: 5px 0 10px; color: var(--gray); font-size: 12px; line-height: 1.45; }
+.checkout-delivery-map { width: 100%; height: 285px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--light); box-shadow: inset 0 0 0 1px rgba(141,72,96,.04); }
+.checkout-location-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.checkout-location-button { padding: 9px 12px; border: 1px solid var(--primary); border-radius: 9px; background: var(--white); color: var(--primary); font-size: 12px; font-weight: 700; }
+.checkout-location-button:disabled { opacity: .65; cursor: wait; }
+.checkout-location-actions span { color: var(--gray); font-size: 11px; }
+.checkout-location-status { margin-top: 9px; padding: 9px 11px; border-radius: 9px; background: #fff4d8; color: #84620a; font-size: 11px; }
+.checkout-location-status.selected { background: #e8f5ec; color: var(--success); }
+.delivery-location-block { display: grid; justify-items: start; gap: 6px; margin-top: 3px; }
+.delivery-location-block a { display: inline-flex; padding: 7px 10px; border: 1px solid var(--primary); border-radius: 8px; color: var(--primary); font-size: 12px; font-weight: 700; }
+.delivery-location-block small { color: var(--gray); font-size: 11px; line-height: 1.4; }
+.admin-detail-location { margin-bottom: 18px; padding: 14px; border-radius: 12px; background: var(--white); }
+.admin-detail-location > span { display: block; margin-bottom: 5px; color: var(--gray); font-size: 11px; }
+
 .mp-payment-button {
     margin-top: 20px;
     background: #009ee3;
@@ -1142,6 +1157,9 @@ body.account-open { overflow: hidden; }
 .account-payment-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; padding: 15px; border-radius: 12px; background: var(--light); font-size: 13px; }
 .account-payment-summary span { display: block; margin-bottom: 3px; color: var(--gray); font-size: 11px; }
 .account-payment-note { grid-column: 1 / -1; color: var(--danger); }
+.account-payment-action { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding: 13px 15px; border: 1px solid #ead39b; border-radius: 12px; background: #fff8e8; }
+.account-payment-action p { color: #84620a; font-weight: 700; }
+.account-payment-action .btn { padding: 9px 14px; }
 .account-order-item { display: grid; grid-template-columns: 68px 1fr auto; align-items: center; gap: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
 .account-order-item img, .account-product-placeholder { width: 68px; height: 68px; border-radius: 9px; object-fit: cover; }
 .account-product-placeholder { display: grid; place-items: center; background: var(--light); color: var(--primary); font-size: 24px; }
@@ -1274,6 +1292,7 @@ body.admin-open { overflow: hidden; }
 .manual-payment-panel select, .manual-payment-panel input { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--white); font: inherit; }
 .manual-payment-panel small { color: var(--gray); font-size: 11px; }
 .manual-payment-message.success { background: #eef8f1; color: var(--success); }
+.manual-payment-message.info { background: #e9f3ff; color: #28649c; }
 .manual-payment-status { margin-top: 13px; padding: 13px; border-radius: 10px; font-size: 13px; }
 .manual-payment-status p { margin-top: 5px; }
 .manual-payment-status.proof-approved { background: #e8f5ec; color: var(--success); }
@@ -1282,6 +1301,53 @@ body.admin-open { overflow: hidden; }
 .admin-checkbox { display: flex; align-items: center; gap: 9px; margin: 4px 0 18px; font-size: 13px; }
 .admin-checkbox input { width: auto; }
 .admin-form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* =========================
+   SEGUIMIENTO DEL PEDIDO
+========================= */
+.nav-order-link { padding: 8px 11px; border: 1px solid var(--border); border-radius: 20px; background: var(--white); color: var(--gray); font-size: 13px; font-weight: 700; }
+.nav-order-link.active { border-color: var(--primary); background: var(--light); color: var(--primary-dark); }
+.cart-button-label { display: none; font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 700; }
+.icon-button.pending-order { width: auto; padding: 0 27px 0 11px; border-radius: 22px; background: var(--light); color: var(--primary-dark); }
+.icon-button.pending-order .cart-button-label { display: inline; margin-left: 4px; }
+.active-order-section { padding: 28px 6%; background: linear-gradient(180deg, #fff 0%, var(--cream) 100%); }
+.active-order-card { max-width: 1120px; margin: 0 auto; padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--white); box-shadow: var(--shadow); }
+.active-order-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.active-order-card-heading span { color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.active-order-card-heading h2 { margin: 3px 0; font-family: "Playfair Display", serif; font-size: 27px; }
+.active-order-card-heading p { color: var(--gray); font-size: 12px; }
+.customer-order-state, .account-order-main-state { display: inline-block; padding: 9px 13px; border-radius: 20px; background: #fff4d8; color: #84620a; font-size: 13px; font-weight: 700; }
+.state-confirmado, .state-entregado { background: #e8f5ec; color: var(--success); }
+.state-preparando, .state-en_camino { background: #e9f3ff; color: #28649c; }
+.state-rejected, .state-cancelado { background: #fdebed; color: var(--danger); }
+.active-order-card-body { display: grid; grid-template-columns: minmax(220px, .8fr) 1.5fr; gap: 30px; margin-top: 22px; }
+.active-order-products { display: grid; gap: 5px; list-style: none; font-size: 13px; }
+.active-order-total { margin-top: 11px; font-size: 14px; }
+.active-order-payment, .active-order-card-body small { color: var(--gray); font-size: 12px; }
+.customer-order-tracker { display: grid; grid-template-columns: repeat(5, 1fr); margin: 0; padding: 0; list-style: none; }
+.customer-order-tracker li { position: relative; display: grid; justify-items: center; gap: 7px; color: #b6adb0; text-align: center; font-size: 11px; }
+.customer-order-tracker li::after { content: ""; position: absolute; z-index: 0; top: 11px; left: 50%; width: 100%; height: 2px; background: var(--border); }
+.customer-order-tracker li:last-child::after { display: none; }
+.customer-order-tracker li > span { z-index: 1; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--cream); font-size: 12px; }
+.customer-order-tracker li.complete, .customer-order-tracker li.current { color: var(--primary-dark); }
+.customer-order-tracker li.complete > span { background: var(--success); color: var(--white); }
+.customer-order-tracker li.complete::after { background: var(--success); }
+.customer-order-tracker li.current > span { background: var(--primary); color: var(--white); }
+.active-order-card-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.active-order-card-actions .btn { padding: 10px 16px; }
+.active-order-action { display: flex; align-items: center; gap: 10px; }
+.active-order-action p, .active-order-review-note { color: var(--gray); font-size: 12px; }
+.active-order-cart { display: grid; gap: 13px; padding: 8px 2px; }
+.active-order-cart > span { color: var(--primary); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.active-order-cart h3 { font-family: "Playfair Display", serif; font-size: 25px; }
+.active-order-cart > strong { padding: 9px 11px; border-radius: 9px; background: #fff4d8; color: #84620a; font-size: 13px; }
+.active-order-cart ul { display: grid; gap: 7px; padding: 13px 13px 13px 30px; border-radius: 10px; background: var(--light); font-size: 13px; }
+.active-order-cart .btn { width: 100%; }
+.account-order-main-state { margin-bottom: 17px; }
+.account-order-main-state + .customer-order-tracker { margin-bottom: 20px; }
+.account-detail-heading { margin: 22px 0 10px; color: var(--primary-dark); font-family: "Playfair Display", serif; font-size: 18px; }
+.account-delivery-summary { display: grid; gap: 9px; padding: 14px; border-radius: 12px; background: var(--light); font-size: 13px; }
+.account-delivery-summary span { display: block; margin-bottom: 2px; color: var(--gray); font-size: 11px; }
 
 /* =========================
    TOAST
@@ -1399,6 +1465,10 @@ body.admin-open { overflow: hidden; }
         padding: 27px 20px;
     }
 
+    .checkout-delivery-map { height: 235px; }
+    .checkout-location-actions { align-items: stretch; flex-direction: column; }
+    .checkout-location-button { width: 100%; min-height: 42px; }
+
     .account-overlay { padding: 0; align-items: stretch; }
     .account-modal { max-height: 100vh; border-radius: 0; padding: 22px 16px; }
     .account-form-grid, .account-order-data { grid-template-columns: 1fr; }
@@ -1409,6 +1479,7 @@ body.admin-open { overflow: hidden; }
     .account-item-subtotal { grid-column: 2; }
     .account-payment-summary, .admin-payment-grid { grid-template-columns: 1fr; }
     .account-payment-note { grid-column: auto; }
+    .account-payment-action { align-items: stretch; flex-direction: column; }
     .account-footer { align-items: flex-start; }
     .account-footer-actions { flex-direction: column-reverse; align-items: stretch; }
     .admin-overlay { padding: 0; align-items: stretch; }
@@ -1436,4 +1507,16 @@ body.admin-open { overflow: hidden; }
     .manual-bank-buttons { gap: 5px; }
     .manual-bank-buttons button { padding: 10px 6px; font-size: 11px; }
     .manual-bank-value { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 650px) {
+    .active-order-section { padding: 18px 12px; }
+    .active-order-card { padding: 17px; border-radius: 16px; }
+    .active-order-card-heading { align-items: flex-start; flex-direction: column; }
+    .active-order-card-body { grid-template-columns: 1fr; gap: 20px; }
+    .customer-order-tracker { grid-template-columns: 1fr; gap: 0; }
+    .customer-order-tracker li { min-height: 43px; grid-template-columns: 30px 1fr; justify-items: start; align-items: start; gap: 8px; text-align: left; }
+    .customer-order-tracker li::after { top: 23px; left: 11px; width: 2px; height: 21px; }
+    .active-order-card-actions, .active-order-action { align-items: stretch; flex-direction: column; width: 100%; }
+    .active-order-card-actions .btn { width: 100%; }
 }
