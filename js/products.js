@@ -130,9 +130,22 @@ function ensureAdminProductMetadataFields() {
     const categorySelect = document.getElementById("adminProductCategory");
     if (!form || !categorySelect) return;
 
-    categorySelect.innerHTML = PRODUCT_CATEGORIES.map(([value, label]) =>
-        `<option value="${productEscape(value)}">${productEscape(label)}</option>`
-    ).join("");
+    const selectedCategory = categorySelect.value;
+    const currentCategoryValues = [...categorySelect.options].map(option => option.value);
+    const categoriesAreCurrent = currentCategoryValues.length === PRODUCT_CATEGORY_VALUES.length
+        && currentCategoryValues.every((value, index) => value === PRODUCT_CATEGORY_VALUES[index]);
+
+    if (!categoriesAreCurrent) {
+        categorySelect.innerHTML = PRODUCT_CATEGORIES.map(([value, label]) =>
+            `<option value="${productEscape(value)}">${productEscape(label)}</option>`
+        ).join("");
+    }
+
+    if (PRODUCT_CATEGORY_VALUES.includes(selectedCategory)) {
+        categorySelect.value = selectedCategory;
+    } else if (!PRODUCT_CATEGORY_VALUES.includes(categorySelect.value)) {
+        categorySelect.value = "ramos";
+    }
 
     if (!document.getElementById("adminProductSizeGroup")) {
         const tagGroup = document.getElementById("adminProductTag")?.closest(".form-group");
@@ -238,6 +251,9 @@ function installAdminProductMetadataOverrides() {
             cards.forEach((card, index) => {
                 const product = adminProducts?.[index];
                 if (!product) return;
+
+                const categoryLabel = card.querySelector(".admin-product-info > div > span");
+                if (categoryLabel) categoryLabel.textContent = getCategoryName(product.category);
 
                 const badges = card.querySelector(".admin-product-badges");
                 if (badges && !badges.querySelector(".admin-product-size-badge")) {
