@@ -25,57 +25,37 @@ type MercadoPagoPreference = {
 
 type MercadoPagoEnvironment = "test" | "production";
 
-function jsonResponse(
-    body: Record<string, unknown>,
-    status = 200
-): Response {
+function jsonResponse(body: Record<string, unknown>, status = 200): Response {
     return new Response(JSON.stringify(body), {
         status,
-        headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json"
-        }
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
 }
 
 function requiredEnvironmentVariable(name: string): string {
     const value = Deno.env.get(name)?.trim();
-
-    if (!value) {
-        throw new Error(`MISSING_ENVIRONMENT_VARIABLE:${name}`);
-    }
-
+    if (!value) throw new Error(`MISSING_ENVIRONMENT_VARIABLE:${name}`);
     return value;
 }
 
 function getMercadoPagoEnvironment(): MercadoPagoEnvironment {
     const value = (Deno.env.get("MP_MODE") || "test").trim().toLowerCase();
-
-    if (value === "test" || value === "production") {
-        return value;
-    }
-
+    if (value === "test" || value === "production") return value;
     throw new Error("INVALID_MP_MODE");
 }
 
 function normalizeOrderId(value: unknown): string | null {
     if (typeof value === "number") {
-        return Number.isSafeInteger(value) && value > 0
-            ? String(value)
-            : null;
+        return Number.isSafeInteger(value) && value > 0 ? String(value) : null;
     }
-
     if (typeof value !== "string") return null;
-
     const normalized = value.trim();
     return /^[1-9]\d*$/.test(normalized) ? normalized : null;
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
     const text = await response.text();
-
     if (!text) return null;
-
     try {
         return JSON.parse(text);
     } catch {
@@ -84,15 +64,9 @@ async function parseResponseBody(response: Response): Promise<unknown> {
 }
 
 Deno.serve(async (request: Request): Promise<Response> => {
-    if (request.method === "OPTIONS") {
-        return new Response("ok", { headers: corsHeaders });
-    }
-
+    if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (request.method !== "POST") {
-        return jsonResponse({
-            error: "METHOD_NOT_ALLOWED",
-            message: "Método no permitido."
-        }, 405);
+        return jsonResponse({ error: "METHOD_NOT_ALLOWED", message: "Método no permitido." }, 405);
     }
 
     try {
@@ -104,118 +78,65 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const siteUrl = requiredEnvironmentVariable("SITE_URL").replace(/\/+$/, "");
 
         let parsedSiteUrl: URL;
-
         try {
             parsedSiteUrl = new URL(siteUrl);
         } catch {
-            return jsonResponse({
-                error: "INVALID_SITE_URL",
-                message: "SITE_URL no contiene una URL válida."
-            }, 500);
+            return jsonResponse({ error: "INVALID_SITE_URL", message: "SITE_URL no contiene una URL válida." }, 500);
         }
-
         if (parsedSiteUrl.protocol !== "https:") {
-            return jsonResponse({
-                error: "INVALID_SITE_URL",
-                message: "SITE_URL debe utilizar HTTPS."
-            }, 500);
+            return jsonResponse({ error: "INVALID_SITE_URL", message: "SITE_URL debe utilizar HTTPS." }, 500);
         }
 
         const authorization = request.headers.get("Authorization");
         const bearerToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
-
         if (!bearerToken) {
-            return jsonResponse({
-                error: "AUTHENTICATION_REQUIRED",
-                message: "Debes iniciar sesión para pagar el pedido."
-            }, 401);
+            return jsonResponse({ error: "AUTHENTICATION_REQUIRED", message: "Debes iniciar sesión para pagar el pedido." }, 401);
         }
 
         const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false
-            }
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
         });
-
-        const {
-            data: { user },
-            error: userError
-        } = await authClient.auth.getUser(bearerToken);
-
+        const { data: { user }, error: userError } = await authClient.auth.getUser(bearerToken);
         if (userError || !user) {
             console.error("No se pudo validar al usuario:", userError);
-
-            return jsonResponse({
-                error: "INVALID_AUTHENTICATION",
-                message: "Tu sesión no es válida o ha expirado."
-            }, 401);
+            return jsonResponse({ error: "INVALID_AUTHENTICATION", message: "Tu sesión no es válida o ha expirado." }, 401);
         }
 
         let body: RequestBody;
-
         try {
             body = await request.json();
         } catch {
-            return jsonResponse({
-                error: "INVALID_JSON",
-                message: "El cuerpo de la solicitud no es válido."
-            }, 400);
+            return jsonResponse({ error: "INVALID_JSON", message: "El cuerpo de la solicitud no es válido." }, 400);
         }
 
         const orderId = normalizeOrderId(body.order_id);
-
         if (!orderId) {
-            return jsonResponse({
-                error: "INVALID_ORDER_ID",
-                message: "El identificador del pedido no es válido."
-            }, 400);
+            return jsonResponse({ error: "INVALID_ORDER_ID", message: "El identificador del pedido no es válido." }, 400);
         }
 
         const databaseClient = createClient(supabaseUrl, serviceRoleKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false
-            }
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
         });
 
         const { data: order, error: orderError } = await databaseClient
             .from("orders")
-            .select("id, user_id, status, payment_status")
+            .select("id, user_id, status, payment_status, total, delivery_fee")
             .eq("id", orderId)
             .eq("user_id", user.id)
             .maybeSingle();
 
         if (orderError) {
             console.error("No se pudo consultar el pedido:", orderError);
-
-            return jsonResponse({
-                error: "ORDER_QUERY_FAILED",
-                message: "No pudimos consultar el pedido."
-            }, 500);
+            return jsonResponse({ error: "ORDER_QUERY_FAILED", message: "No pudimos consultar el pedido." }, 500);
         }
-
         if (!order) {
-            return jsonResponse({
-                error: "ORDER_NOT_FOUND",
-                message: "El pedido no existe o no te pertenece."
-            }, 404);
+            return jsonResponse({ error: "ORDER_NOT_FOUND", message: "El pedido no existe o no te pertenece." }, 404);
         }
-
         if (order.status !== "pendiente") {
-            return jsonResponse({
-                error: "INVALID_ORDER_STATUS",
-                message: "Solo se pueden pagar pedidos pendientes."
-            }, 409);
+            return jsonResponse({ error: "INVALID_ORDER_STATUS", message: "Solo se pueden pagar pedidos pendientes." }, 409);
         }
-
         if (order.payment_status !== "pending") {
-            return jsonResponse({
-                error: "INVALID_PAYMENT_STATUS",
-                message: "Este pedido no está disponible para pago."
-            }, 409);
+            return jsonResponse({ error: "INVALID_PAYMENT_STATUS", message: "Este pedido no está disponible para pago." }, 409);
         }
 
         const { data: orderItems, error: orderItemsError } = await databaseClient
@@ -223,80 +144,44 @@ Deno.serve(async (request: Request): Promise<Response> => {
             .select("product_id, quantity, unit_price")
             .eq("order_id", orderId)
             .returns<OrderItem[]>();
-
         if (orderItemsError) {
             console.error("No se pudieron consultar los productos del pedido:", orderItemsError);
-
-            return jsonResponse({
-                error: "ORDER_ITEMS_QUERY_FAILED",
-                message: "No pudimos consultar los productos del pedido."
-            }, 500);
+            return jsonResponse({ error: "ORDER_ITEMS_QUERY_FAILED", message: "No pudimos consultar los productos del pedido." }, 500);
         }
-
         if (!orderItems?.length) {
-            return jsonResponse({
-                error: "ORDER_ITEMS_EMPTY",
-                message: "El pedido no contiene productos."
-            }, 409);
+            return jsonResponse({ error: "ORDER_ITEMS_EMPTY", message: "El pedido no contiene productos." }, 409);
         }
 
         for (const item of orderItems) {
             const quantity = Number(item.quantity);
             const unitPrice = Number(item.unit_price);
-
             if (!Number.isSafeInteger(quantity) || quantity <= 0) {
-                return jsonResponse({
-                    error: "INVALID_ORDER_ITEM_QUANTITY",
-                    message: "Uno de los productos tiene una cantidad inválida."
-                }, 409);
+                return jsonResponse({ error: "INVALID_ORDER_ITEM_QUANTITY", message: "Uno de los productos tiene una cantidad inválida." }, 409);
             }
-
             if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-                return jsonResponse({
-                    error: "INVALID_ORDER_ITEM_PRICE",
-                    message: "Uno de los productos tiene un precio histórico inválido."
-                }, 409);
+                return jsonResponse({ error: "INVALID_ORDER_ITEM_PRICE", message: "Uno de los productos tiene un precio histórico inválido." }, 409);
             }
         }
 
-        const productIds = [
-            ...new Set(orderItems.map(item => String(item.product_id)))
-        ];
-
+        const productIds = [...new Set(orderItems.map(item => String(item.product_id)))];
         const { data: products, error: productsError } = await databaseClient
             .from("products")
             .select("id, name, image")
             .in("id", productIds)
             .returns<Product[]>();
-
         if (productsError) {
             console.error("No se pudieron consultar los productos:", productsError);
-
-            return jsonResponse({
-                error: "PRODUCTS_QUERY_FAILED",
-                message: "No pudimos consultar los productos del pedido."
-            }, 500);
+            return jsonResponse({ error: "PRODUCTS_QUERY_FAILED", message: "No pudimos consultar los productos del pedido." }, 500);
         }
 
-        const productsById = new Map(
-            (products || []).map(product => [String(product.id), product])
-        );
-
-        const missingProduct = orderItems.find(
-            item => !productsById.has(String(item.product_id))
-        );
-
-        if (missingProduct) {
-            return jsonResponse({
-                error: "ORDER_PRODUCT_NOT_FOUND",
-                message: "Uno de los productos del pedido ya no existe."
-            }, 409);
+        const productsById = new Map((products || []).map(product => [String(product.id), product]));
+        if (orderItems.some(item => !productsById.has(String(item.product_id)))) {
+            return jsonResponse({ error: "ORDER_PRODUCT_NOT_FOUND", message: "Uno de los productos del pedido ya no existe." }, 409);
         }
 
         const mercadoPagoItems = orderItems.map(item => {
             const product = productsById.get(String(item.product_id))!;
             const pictureUrl = product.image?.trim();
-
             return {
                 id: String(item.product_id),
                 title: product.name,
@@ -306,6 +191,33 @@ Deno.serve(async (request: Request): Promise<Response> => {
                 ...(pictureUrl ? { picture_url: pictureUrl } : {})
             };
         });
+
+        const deliveryFee = Number(order.delivery_fee) || 0;
+        if (deliveryFee > 0) {
+            mercadoPagoItems.push({
+                id: "delivery",
+                title: "Delivery Kantu Floral",
+                currency_id: "PEN",
+                quantity: 1,
+                unit_price: deliveryFee
+            });
+        }
+
+        const calculatedTotalCents = Math.round(
+            mercadoPagoItems.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) * 100
+        );
+        const orderTotalCents = Math.round(Number(order.total) * 100);
+        if (!Number.isFinite(orderTotalCents) || calculatedTotalCents !== orderTotalCents) {
+            console.error("El total del pedido no coincide con productos + delivery.", {
+                orderId,
+                calculatedTotalCents,
+                orderTotalCents
+            });
+            return jsonResponse({
+                error: "ORDER_TOTAL_MISMATCH",
+                message: "El total del pedido no pudo validarse."
+            }, 409);
+        }
 
         const encodedOrderId = encodeURIComponent(orderId);
         const preferencePayload = {
@@ -320,77 +232,51 @@ Deno.serve(async (request: Request): Promise<Response> => {
             ...(user.email ? { payer: { email: user.email } } : {})
         };
 
-        const mercadoPagoResponse = await fetch(
-            "https://api.mercadopago.com/checkout/preferences",
-            {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${mercadoPagoAccessToken}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(preferencePayload)
-            }
-        );
-
+        const mercadoPagoResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${mercadoPagoAccessToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(preferencePayload)
+        });
         const mercadoPagoBody = await parseResponseBody(mercadoPagoResponse);
-
         if (!mercadoPagoResponse.ok) {
             console.error("Mercado Pago rechazó la preferencia:", {
                 status: mercadoPagoResponse.status,
                 response: mercadoPagoBody,
                 environment: mercadoPagoEnvironment
             });
-
-            return jsonResponse({
-                error: "MERCADO_PAGO_PREFERENCE_FAILED",
-                message: "No pudimos iniciar el pago con Mercado Pago."
-            }, 502);
+            return jsonResponse({ error: "MERCADO_PAGO_PREFERENCE_FAILED", message: "No pudimos iniciar el pago con Mercado Pago." }, 502);
         }
 
         const preference = mercadoPagoBody as MercadoPagoPreference;
         const checkoutUrl = mercadoPagoEnvironment === "production"
             ? preference?.init_point
             : preference?.sandbox_init_point;
-
         if (!preference?.id || !checkoutUrl) {
             console.error("Mercado Pago devolvió una respuesta incompleta:", {
                 response: mercadoPagoBody,
                 environment: mercadoPagoEnvironment
             });
-
-            return jsonResponse({
-                error: "INVALID_MERCADO_PAGO_RESPONSE",
-                message: "Mercado Pago devolvió una respuesta incompleta."
-            }, 502);
+            return jsonResponse({ error: "INVALID_MERCADO_PAGO_RESPONSE", message: "Mercado Pago devolvió una respuesta incompleta." }, 502);
         }
 
         const { data: updatedOrder, error: updateError } = await databaseClient
             .from("orders")
-            .update({
-                payment_provider: "mercadopago",
-                payment_preference_id: preference.id
-            })
+            .update({ payment_provider: "mercadopago", payment_preference_id: preference.id })
             .eq("id", orderId)
             .eq("user_id", user.id)
             .eq("status", "pendiente")
             .eq("payment_status", "pending")
             .select("id")
             .maybeSingle();
-
         if (updateError) {
             console.error("No se pudo asociar la preferencia al pedido:", updateError);
-
-            return jsonResponse({
-                error: "ORDER_PAYMENT_UPDATE_FAILED",
-                message: "La preferencia fue creada, pero no pudimos asociarla al pedido."
-            }, 500);
+            return jsonResponse({ error: "ORDER_PAYMENT_UPDATE_FAILED", message: "La preferencia fue creada, pero no pudimos asociarla al pedido." }, 500);
         }
-
         if (!updatedOrder) {
-            return jsonResponse({
-                error: "ORDER_CHANGED_DURING_PAYMENT",
-                message: "El pedido cambió mientras se preparaba el pago. Actualiza la página."
-            }, 409);
+            return jsonResponse({ error: "ORDER_CHANGED_DURING_PAYMENT", message: "El pedido cambió mientras se preparaba el pago. Actualiza la página." }, 409);
         }
 
         return jsonResponse({
@@ -403,10 +289,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
         });
     } catch (error) {
         console.error("Error inesperado creando la preferencia:", error);
-
-        return jsonResponse({
-            error: "INTERNAL_SERVER_ERROR",
-            message: "No pudimos preparar el pago."
-        }, 500);
+        return jsonResponse({ error: "INTERNAL_SERVER_ERROR", message: "No pudimos preparar el pago." }, 500);
     }
 });
