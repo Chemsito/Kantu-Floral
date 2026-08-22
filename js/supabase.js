@@ -74,6 +74,25 @@ function kantuEscapeHtml(value) {
     return element.innerHTML;
 }
 
+function kantuSafeUrl(value) {
+    const text = String(value || "").trim();
+    if (!text) return "";
+
+    try {
+        const url = new URL(text, window.location.origin);
+        if (url.protocol === "https:") return url.href;
+        if (
+            url.protocol === "http:" &&
+            ["localhost", "127.0.0.1", "::1"].includes(url.hostname)
+        ) {
+            return url.href;
+        }
+        return "";
+    } catch {
+        return "";
+    }
+}
+
 function kantuFormatMoney(value) {
     return new Intl.NumberFormat("es-PE", {
         style: "currency",
@@ -215,6 +234,7 @@ async function kantuFetchOrderItemsWithProducts(orderId) {
 window.KantuCore = Object.freeze({
     element: kantuElement,
     escapeHtml: kantuEscapeHtml,
+    safeUrl: kantuSafeUrl,
     formatMoney: kantuFormatMoney,
     formatDate: kantuFormatDate,
     shortId: kantuShortId,
