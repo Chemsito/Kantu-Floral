@@ -1,0 +1,139 @@
+.checkout-delivery-quote {
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #e5d8dd;
+    border-radius: 14px;
+    background: #fff8f9;
+}
+
+.checkout-delivery-quote-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkout-delivery-quote-heading.error { color: #9f2f2f; }
+.checkout-delivery-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 50%;
+    background: #f7e8ed;
+    font-weight: 800;
+}
+.checkout-delivery-quote-heading strong,
+.checkout-delivery-quote-heading span { display: block; }
+.checkout-delivery-quote-heading span { margin-top: 2px; color: #756d72; font-size: 12px; line-height: 1.45; }
+
+.checkout-delivery-quote-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+.checkout-delivery-quote-grid > div {
+    padding: 10px;
+    border-radius: 11px;
+    background: #fff;
+    border: 1px solid #eadfe2;
+}
+.checkout-delivery-quote-grid span,
+.checkout-delivery-quote-grid strong { display: block; }
+.checkout-delivery-quote-grid span { color: #756d72; font-size: 11px; }
+.checkout-delivery-quote-grid strong { margin-top: 4px; font-size: 13px; }
+
+.checkout-summary-separator {
+    height: 1px;
+    margin: 2px 0;
+    background: #eadfe2;
+}
+.checkout-summary-subtotal { font-weight: 600; }
+.checkout-delivery-line {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #eadfe2;
+}
+.checkout-delivery-line > span strong,
+.checkout-delivery-line > span small { display: block; }
+.checkout-delivery-line > span small { margin-top: 2px; color: #756d72; font-size: 11px; font-weight: 400; }
+.checkout-price-note {
+    margin: 2px 0 0;
+    color: #756d72;
+    font-size: 11px;
+    line-height: 1.45;
+}
+.checkout-price-note.success { color: #47765c; font-weight: 600; }
+
+.checkout-ready-label { display: block; margin-bottom: 14px; }
+.checkout-payment-breakdown {
+    overflow: hidden;
+    border: 1px solid #eadfe2;
+    border-radius: 14px;
+    background: #fffaf7;
+}
+.checkout-payment-breakdown > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eadfe2;
+}
+.checkout-payment-breakdown > div:last-child { border-bottom: 0; }
+.checkout-payment-breakdown .total {
+    background: #f7eeee;
+    color: #693247;
+    font-size: 16px;
+}
+
+.account-order-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.account-order-actions-row .account-detail-button,
+.account-receipt-button {
+    margin-top: 0;
+}
+.account-receipt-button {
+    border: 1px solid #eadfe2;
+    border-radius: 10px;
+    background: #fff;
+    color: #693247;
+    padding: 10px 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.account-price-breakdown {
+    margin: 12px 0 18px;
+    overflow: hidden;
+    border: 1px solid #eadfe2;
+    border-radius: 14px;
+    background: #fffaf7;
+}
+.account-price-breakdown > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eadfe2;
+}
+.account-price-breakdown > div:last-child { border-bottom: 0; }
+.account-price-breakdown span { color: #756d72; }
+.account-price-breakdown .total { background: #f7eeee; color: #693247; font-weight: 800; }
+.account-receipt-note {
+    margin-top: 10px;
+    color: #756d72;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+    .checkout-delivery-quote-grid { grid-template-columns: 1fr; }
+    .account-order-actions-row { flex-direction: column; }
+    .account-order-actions-row button { width: 100%; }
+}
