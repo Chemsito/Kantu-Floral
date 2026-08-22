@@ -1,0 +1,206 @@
+/* =====================================================
+   KANTU FLORAL · TALLAS Y NOTAS DE PRODUCTO
+===================================================== */
+
+.product-size-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.product-size-title {
+    color: var(--gray);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.product-size-scale {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid rgba(167, 124, 59, .22);
+    border-radius: 999px;
+    background: rgba(255,255,255,.82);
+}
+
+.product-size-pill {
+    min-width: 27px;
+    height: 27px;
+    display: grid;
+    place-items: center;
+    padding: 0 6px;
+    border-radius: 999px;
+    color: #9a8a85;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.product-size-pill.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 10px rgba(159,52,78,.18);
+}
+
+.product-note {
+    margin: 9px 0 0 !important;
+    padding: 8px 10px;
+    border-left: 2px solid var(--gold-soft);
+    border-radius: 0 8px 8px 0;
+    background: rgba(248,217,221,.24);
+    color: #745f59 !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+}
+
+.product-note strong {
+    color: var(--primary-dark);
+}
+
+.admin-product-field-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.admin-size-options {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: white;
+}
+
+.admin-size-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.admin-size-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.admin-size-option span {
+    min-width: 38px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    padding: 0 9px;
+    border-radius: 999px;
+    color: var(--gray);
+    font-size: 12px;
+    font-weight: 700;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.admin-size-option input:checked + span {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 5px 12px rgba(159,52,78,.16);
+}
+
+.admin-size-option input:focus-visible + span {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+#adminProductSizeGroup small,
+#adminProductNoteGroup small {
+    display: block;
+    margin-top: 7px;
+    color: var(--gray);
+    font-size: 11px;
+}
+
+#adminProductNote {
+    width: 100%;
+    min-height: 76px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    outline: none;
+    resize: vertical;
+    background: var(--white);
+    font: inherit;
+    font-size: 13px;
+}
+
+#adminProductNote:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(196,71,98,.08);
+}
+
+.admin-product-size-badge {
+    border-color: rgba(196,71,98,.20) !important;
+    background: #fff2f4 !important;
+    color: var(--primary-dark) !important;
+}
+
+.admin-product-note {
+    margin: 8px 0 0;
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+    .product-size-row {
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .product-size-scale {
+        max-width: 100%;
+    }
+
+    .product-size-pill {
+        min-width: 30px;
+        height: 30px;
+        font-size: 10px;
+    }
+
+    .admin-size-options {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .admin-size-option {
+        flex: 1;
+    }
+
+    .admin-size-option span {
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+    }
+
+    #adminProductNote {
+        min-height: 92px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 390px) {
+    .product-size-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .product-size-scale {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .product-size-pill {
+        flex: 1;
+    }
+}
