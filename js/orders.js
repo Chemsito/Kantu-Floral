@@ -1,7 +1,5 @@
 /* =====================================================
-   KANTU FLORAL
-   orders.js
-   CHECKOUT MEDIANTE RPC DE SUPABASE
+   KANTU FLORAL - CHECKOUT Y PEDIDOS
 ===================================================== */
 
 const KANTU_ORDERS = window.KantuCore;
@@ -12,6 +10,10 @@ const orderErrorMessages = {
     CUSTOMER_NAME_REQUIRED: "Ingresa tu nombre completo.",
     CUSTOMER_PHONE_REQUIRED: "Ingresa un número de teléfono.",
     DELIVERY_ADDRESS_REQUIRED: "Selecciona la ubicación de entrega en el mapa.",
+    DELIVERY_COORDINATES_REQUIRED: "Selecciona nuevamente la ubicación de entrega.",
+    INVALID_DELIVERY_COORDINATES: "La ubicación seleccionada no es válida.",
+    DELIVERY_OUT_OF_RANGE: "La ubicación está fuera de nuestra zona de reparto actual.",
+    DELIVERY_PRICING_NOT_CONFIGURED: "No pudimos calcular el delivery. Inténtalo nuevamente.",
     CART_EMPTY: "Tu carrito está vacío.",
     INVALID_CART: "No se pudo validar tu carrito. Revísalo e inténtalo nuevamente.",
     PRODUCT_NOT_AVAILABLE: "Uno de los productos ya no está disponible.",
@@ -24,15 +26,17 @@ const paymentReturnMessages = {
     failure: "El pago no se completó. Puedes intentarlo nuevamente."
 };
 
+const CHECKOUT_DEFAULT_LOCATION = [-16.4098229, -71.5223031];
+
 let currentPaymentOrderId = null;
 let checkoutDeliveryMap = null;
 let checkoutDeliveryMarker = null;
 let selectedDeliveryLat = null;
 let selectedDeliveryLng = null;
 let selectedDeliveryMapsUrl = null;
+let currentDeliveryQuote = null;
+let deliveryQuoteRequest = 0;
 let checkoutInitialGeolocationRequested = false;
-
-const CHECKOUT_DEFAULT_LOCATION = [-12.0464, -77.0428];
 
 function openCheckout(user) {
     const checkoutModal = getCheckoutElement("checkoutModal");
@@ -46,12 +50,8 @@ function openCheckout(user) {
 }
 
 function closeCheckout() {
-    const checkoutModal = getCheckoutElement("checkoutModal");
-    if (checkoutModal) checkoutModal.classList.remove("show");
-
-    if (typeof stopManualPaymentPolling === "function") {
-        stopManualPaymentPolling();
-    }
+    getCheckoutElement("checkoutModal")?.classList.remove("show");
+    if (typeof stopManualPaymentPolling === "function") stopManualPaymentPolling();
 }
 
 function resetCheckoutView() {
@@ -65,29 +65,18 @@ function resetCheckoutView() {
 
     if (formView) formView.hidden = false;
     if (successView) successView.hidden = true;
-
-    if (error) {
-        error.hidden = true;
-        error.textContent = "";
-    }
-
+    if (error) { error.hidden = true; error.textContent = ""; }
     if (loading) loading.hidden = true;
-
     if (paymentButton) {
         paymentButton.hidden = true;
         paymentButton.disabled = false;
         paymentButton.textContent = "Pagar con Mercado Pago";
     }
-
-    if (paymentError) {
-        paymentError.hidden = true;
-        paymentError.textContent = "";
-    }
-
+    if (paymentError) { paymentError.hidden = true; paymentError.textContent = ""; }
     if (form) form.reset();
+
     resetCheckoutDeliveryLocation();
     currentPaymentOrderId = null;
-
     if (typeof resetManualPayment === "function") resetManualPayment();
     setOrderButtonState(false);
 }
@@ -98,15 +87,13 @@ function initializeCheckoutDeliveryMap() {
 
     if (typeof L === "undefined") {
         const status = getCheckoutElement("checkoutLocationStatus");
-        if (status) {
-            status.textContent = "No pudimos cargar el mapa. Revisa tu conexión e inténtalo nuevamente.";
-        }
+        if (status) status.textContent = "No pudimos cargar el mapa. Revisa tu conexión e inténtalo nuevamente.";
         return;
     }
 
     if (!checkoutDeliveryMap) {
         checkoutDeliveryMap = L.map(container, { zoomControl: true })
-            .setView(CHECKOUT_DEFAULT_LOCATION, 12);
+            .setView(CHECKOUT_DEFAULT_LOCATION, 13);
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,
@@ -123,12 +110,7 @@ function initializeCheckoutDeliveryMap() {
     if (!checkoutInitialGeolocationRequested && navigator.geolocation) {
         checkoutInitialGeolocationRequested = true;
         navigator.geolocation.getCurrentPosition(
-            position => {
-                checkoutDeliveryMap?.setView(
-                    [position.coords.latitude, position.coords.longitude],
-                    15
-                );
-            },
+            position => checkoutDeliveryMap?.setView([position.coords.latitude, position.coords.longitude], 15),
             () => {},
             { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 }
         );
@@ -139,37 +121,37 @@ function setCheckoutDeliveryLocation(lat, lng, centerMap = false) {
     selectedDeliveryLat = Number(lat);
     selectedDeliveryLng = Number(lng);
     selectedDeliveryMapsUrl = `https://www.google.com/maps?q=${selectedDeliveryLat.toFixed(6)},${selectedDeliveryLng.toFixed(6)}`;
+    currentDeliveryQuote = null;
 
     const point = [selectedDeliveryLat, selectedDeliveryLng];
-
     if (checkoutDeliveryMarker) checkoutDeliveryMarker.setLatLng(point);
-    else checkoutDeliveryMarker = L.marker(point).addTo(checkoutDeliveryMap);
+    else if (checkoutDeliveryMap) checkoutDeliveryMarker = L.marker(point).addTo(checkoutDeliveryMap);
 
-    if (centerMap) {
+    if (centerMap && checkoutDeliveryMap) {
         checkoutDeliveryMap.setView(point, Math.max(checkoutDeliveryMap.getZoom(), 16));
     }
 
     const status = getCheckoutElement("checkoutLocationStatus");
     if (status) {
-        status.textContent = `Ubicación seleccionada: ${selectedDeliveryLat.toFixed(6)}, ${selectedDeliveryLng.toFixed(6)}`;
+        status.textContent = "Ubicación seleccionada. Calculando delivery...";
         status.className = "checkout-location-status selected";
     }
 
     const error = getCheckoutElement("checkoutError");
-    if (error?.textContent === orderErrorMessages.DELIVERY_ADDRESS_REQUIRED) {
-        error.hidden = true;
-    }
+    if (error?.textContent === orderErrorMessages.DELIVERY_ADDRESS_REQUIRED) error.hidden = true;
+
+    renderCheckoutSummary();
+    requestDeliveryQuote(selectedDeliveryLat, selectedDeliveryLng);
 }
 
 function resetCheckoutDeliveryLocation() {
     selectedDeliveryLat = null;
     selectedDeliveryLng = null;
     selectedDeliveryMapsUrl = null;
+    currentDeliveryQuote = null;
+    deliveryQuoteRequest += 1;
 
-    if (checkoutDeliveryMarker && checkoutDeliveryMap) {
-        checkoutDeliveryMap.removeLayer(checkoutDeliveryMarker);
-    }
-
+    if (checkoutDeliveryMarker && checkoutDeliveryMap) checkoutDeliveryMap.removeLayer(checkoutDeliveryMarker);
     checkoutDeliveryMarker = null;
 
     const status = getCheckoutElement("checkoutLocationStatus");
@@ -177,34 +159,94 @@ function resetCheckoutDeliveryLocation() {
         status.textContent = "Aún no seleccionaste una ubicación.";
         status.className = "checkout-location-status";
     }
+    renderDeliveryQuote();
+}
+
+async function requestDeliveryQuote(lat, lng) {
+    const requestId = ++deliveryQuoteRequest;
+    renderDeliveryQuote({ loading: true });
+
+    const { data, error } = await supabaseClient.rpc("quote_delivery_fee", {
+        p_delivery_lat: Number(lat),
+        p_delivery_lng: Number(lng)
+    });
+
+    if (requestId !== deliveryQuoteRequest) return;
+
+    const quote = Array.isArray(data) ? data[0] : data;
+    if (error || !quote) {
+        console.error("Error cotizando delivery:", error);
+        currentDeliveryQuote = null;
+        renderDeliveryQuote({ error: true });
+        renderCheckoutSummary();
+        return;
+    }
+
+    currentDeliveryQuote = {
+        distance_km: Number(quote.distance_km),
+        delivery_fee: Number(quote.delivery_fee),
+        estimated_minutes: Number(quote.estimated_minutes),
+        service_available: Boolean(quote.service_available)
+    };
+
+    const status = getCheckoutElement("checkoutLocationStatus");
+    if (status) {
+        status.textContent = currentDeliveryQuote.service_available
+            ? "Ubicación lista para entrega."
+            : "Esta ubicación está fuera de nuestra zona de reparto actual.";
+        status.className = `checkout-location-status ${currentDeliveryQuote.service_available ? "selected" : "error"}`;
+    }
+
+    renderDeliveryQuote();
+    renderCheckoutSummary();
+}
+
+function renderDeliveryQuote(state = {}) {
+    const box = getCheckoutElement("checkoutDeliveryQuote");
+    if (!box) return;
+
+    if (state.loading) {
+        box.hidden = false;
+        box.innerHTML = '<span>Calculando distancia y delivery...</span>';
+        return;
+    }
+    if (state.error) {
+        box.hidden = false;
+        box.innerHTML = '<span>No pudimos calcular el delivery. Selecciona nuevamente el punto.</span>';
+        return;
+    }
+    if (!currentDeliveryQuote) {
+        box.hidden = true;
+        box.innerHTML = "";
+        return;
+    }
+
+    if (!currentDeliveryQuote.service_available) {
+        box.hidden = false;
+        box.innerHTML = '<strong>Fuera de cobertura</strong><span>Selecciona otra ubicación o contáctanos por WhatsApp.</span>';
+        return;
+    }
+
+    box.hidden = false;
+    box.innerHTML = `<div><span>Distancia estimada</span><strong>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.distance_km.toFixed(1))} km</strong></div>
+        <div><span>Delivery</span><strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(currentDeliveryQuote.delivery_fee))}</strong></div>
+        <div><span>Tiempo de reparto estimado</span><strong>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.estimated_minutes)} min aprox.</strong></div>`;
 }
 
 function useCurrentCheckoutLocation() {
     const loading = getCheckoutElement("checkoutLocationLoading");
     const button = getCheckoutElement("checkoutUseLocationButton");
-
     if (!checkoutDeliveryMap) initializeCheckoutDeliveryMap();
 
-    if (!checkoutDeliveryMap) {
-        showCheckoutError("No pudimos cargar el mapa. Revisa tu conexión e inténtalo nuevamente.");
-        return;
-    }
-
-    if (!navigator.geolocation) {
-        showCheckoutError("Tu navegador no permite obtener la ubicación. Selecciona un punto en el mapa.");
-        return;
-    }
+    if (!checkoutDeliveryMap) return showCheckoutError("No pudimos cargar el mapa. Revisa tu conexión e inténtalo nuevamente.");
+    if (!navigator.geolocation) return showCheckoutError("Tu navegador no permite obtener la ubicación. Selecciona un punto en el mapa.");
 
     if (button) button.disabled = true;
     if (loading) loading.hidden = false;
 
     navigator.geolocation.getCurrentPosition(
         position => {
-            setCheckoutDeliveryLocation(
-                position.coords.latitude,
-                position.coords.longitude,
-                true
-            );
+            setCheckoutDeliveryLocation(position.coords.latitude, position.coords.longitude, true);
             if (button) button.disabled = false;
             if (loading) loading.hidden = true;
         },
@@ -220,14 +262,10 @@ function useCurrentCheckoutLocation() {
 
 function buildCheckoutDeliveryAddress() {
     if (!selectedDeliveryMapsUrl) return "";
-
     const reference = getCheckoutElement("checkoutDeliveryReference")?.value
         .trim()
         .replace(/\s*\|\s*/g, " - ");
-
-    return reference
-        ? `${selectedDeliveryMapsUrl} | Referencia: ${reference}`
-        : selectedDeliveryMapsUrl;
+    return reference ? `${selectedDeliveryMapsUrl} | Referencia: ${reference}` : selectedDeliveryMapsUrl;
 }
 
 async function fillCheckoutName(user) {
@@ -241,13 +279,8 @@ async function fillCheckoutName(user) {
     }
 
     const { data: profile, error } = await supabaseClient
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-
-    if (error || !profile) return;
-    nameInput.value = profile.full_name || "";
+        .from("profiles").select("full_name").eq("id", user.id).maybeSingle();
+    if (!error && profile) nameInput.value = profile.full_name || "";
 }
 
 function renderCheckoutSummary() {
@@ -255,41 +288,45 @@ function renderCheckoutSummary() {
     const totalElement = getCheckoutElement("checkoutTotal");
     if (!summary || !totalElement) return;
 
-    let estimatedTotal = 0;
-
-    summary.innerHTML = cart.map(item => {
+    let subtotal = 0;
+    const rows = cart.map(item => {
         const product = products.find(currentProduct => currentProduct.id === item.id);
         if (!product) return "";
-
-        const subtotal = Number(product.price) * item.quantity;
-        estimatedTotal += subtotal;
-
+        const itemSubtotal = Number(product.price) * item.quantity;
+        subtotal += itemSubtotal;
         return `<div class="checkout-summary-item">
             <span>${KANTU_ORDERS.escapeHtml(product.name)} x${Number(item.quantity) || 0}</span>
-            <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(subtotal))}</strong>
+            <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(itemSubtotal))}</strong>
         </div>`;
-    }).join("");
+    });
 
-    totalElement.textContent = KANTU_ORDERS.formatMoney(estimatedTotal);
+    const deliveryFee = currentDeliveryQuote?.service_available
+        ? Number(currentDeliveryQuote.delivery_fee) || 0
+        : 0;
+    rows.push(`<div class="checkout-summary-item checkout-delivery-line">
+        <span>Delivery</span>
+        <strong>${currentDeliveryQuote?.service_available
+            ? KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(deliveryFee))
+            : "Selecciona ubicación"}</strong>
+    </div>`);
+
+    summary.innerHTML = rows.join("");
+    totalElement.textContent = KANTU_ORDERS.formatMoney(subtotal + deliveryFee);
 }
 
 function getOrderErrorMessage(error) {
     const fallback = "No se pudo crear el pedido. Inténtalo nuevamente.";
     const resolved = KANTU_ORDERS.resolveErrorMessage(error, orderErrorMessages, fallback);
-
     if (resolved !== fallback) return resolved;
-
     if (KANTU_ORDERS.errorText(error).includes("INVALID_CART_OR_INSUFFICIENT_STOCK")) {
         return "Uno de los productos no está disponible o no tiene stock suficiente.";
     }
-
     return fallback;
 }
 
 function setOrderButtonState(isLoading) {
     const button = getCheckoutElement("confirmOrderButton");
     if (!button) return;
-
     button.disabled = isLoading;
     button.textContent = isLoading ? "Procesando pedido..." : "Confirmar pedido";
 }
@@ -297,7 +334,6 @@ function setOrderButtonState(isLoading) {
 function showCheckoutError(message) {
     const error = getCheckoutElement("checkoutError");
     if (!error) return;
-
     error.textContent = message;
     error.hidden = false;
 }
@@ -309,16 +345,16 @@ async function submitOrder(event) {
     const phone = getCheckoutElement("checkoutPhone")?.value.trim();
     const address = buildCheckoutDeliveryAddress();
 
-    if (!name || !phone || !address) {
-        showCheckoutError(
-            !name
-                ? orderErrorMessages.CUSTOMER_NAME_REQUIRED
-                : !phone
-                    ? orderErrorMessages.CUSTOMER_PHONE_REQUIRED
-                    : orderErrorMessages.DELIVERY_ADDRESS_REQUIRED
-        );
+    if (!name || !phone || !address || selectedDeliveryLat == null || selectedDeliveryLng == null) {
+        showCheckoutError(!name
+            ? orderErrorMessages.CUSTOMER_NAME_REQUIRED
+            : !phone
+                ? orderErrorMessages.CUSTOMER_PHONE_REQUIRED
+                : orderErrorMessages.DELIVERY_ADDRESS_REQUIRED);
         return;
     }
+    if (!currentDeliveryQuote) return showCheckoutError("Espera un momento mientras calculamos el delivery.");
+    if (!currentDeliveryQuote.service_available) return showCheckoutError(orderErrorMessages.DELIVERY_OUT_OF_RANGE);
 
     const loading = getCheckoutElement("checkoutLoading");
     setOrderButtonState(true);
@@ -327,23 +363,17 @@ async function submitOrder(event) {
     const { data, error } = await supabaseClient.rpc("create_order", {
         p_customer_name: name,
         p_customer_phone: phone,
-        p_delivery_address: address
+        p_delivery_address: address,
+        p_delivery_lat: selectedDeliveryLat,
+        p_delivery_lng: selectedDeliveryLng
     });
 
     setOrderButtonState(false);
     if (loading) loading.hidden = true;
-
-    if (error) {
-        showCheckoutError(getOrderErrorMessage(error));
-        return;
-    }
+    if (error) return showCheckoutError(getOrderErrorMessage(error));
 
     const order = Array.isArray(data) ? data[0] : data;
-
-    if (!order?.order_id) {
-        showCheckoutError("El pedido no devolvió un identificador válido.");
-        return;
-    }
+    if (!order?.order_id) return showCheckoutError("El pedido no devolvió un identificador válido.");
 
     cart = [];
     saveCart();
@@ -357,24 +387,19 @@ async function submitOrder(event) {
         payment_status: "pending"
     });
 
-    if (typeof loadActiveCustomerOrder === "function") {
-        loadActiveCustomerOrder();
-    }
+    if (typeof loadActiveCustomerOrder === "function") loadActiveCustomerOrder();
 }
 
 function openPaymentOptionsForOrder(order) {
     const orderId = order?.id ?? order?.order_id;
     const total = Number(order?.total);
-
     if (!orderId || !Number.isFinite(total)) return false;
     if (order?.status && order.status !== "pendiente") return false;
     if (order?.payment_status && order.payment_status !== "pending") return false;
 
     resetCheckoutView();
-
     const checkoutModal = getCheckoutElement("checkoutModal");
     if (!checkoutModal) return false;
-
     checkoutModal.classList.add("show");
     showOrderSuccess(orderId, total);
     return true;
@@ -389,36 +414,25 @@ function showOrderSuccess(orderId, total) {
 
     if (formView) formView.hidden = true;
     if (successView) successView.hidden = false;
-
     if (message) {
         message.innerHTML = `Pedido <strong>#${KANTU_ORDERS.escapeHtml(orderId)}</strong> listo para pagar.<br>`
-            + `Total definitivo: <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(total))}</strong>`;
+            + `Total definitivo con delivery: <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(total))}</strong>`;
     }
 
     currentPaymentOrderId = String(orderId);
-
-    if (typeof setManualPaymentOrder === "function") {
-        setManualPaymentOrder(orderId, total);
-    }
-
+    if (typeof setManualPaymentOrder === "function") setManualPaymentOrder(orderId, total);
     if (paymentButton) {
         paymentButton.hidden = false;
         paymentButton.disabled = false;
         paymentButton.textContent = "Pagar con Mercado Pago";
     }
-
-    if (paymentError) {
-        paymentError.hidden = true;
-        paymentError.textContent = "";
-    }
+    if (paymentError) { paymentError.hidden = true; paymentError.textContent = ""; }
 }
 
 async function getPaymentFunctionErrorMessage(error) {
     const fallback = "No pudimos preparar el pago. Inténtalo nuevamente.";
     const response = error?.context;
-
     if (!(response instanceof Response)) return fallback;
-
     try {
         const body = await response.clone().json();
         return body?.message || fallback;
@@ -434,20 +448,12 @@ async function startMercadoPagoPayment() {
 
     button.disabled = true;
     button.textContent = "Preparando pago...";
-
-    if (paymentError) {
-        paymentError.hidden = true;
-        paymentError.textContent = "";
-    }
+    if (paymentError) { paymentError.hidden = true; paymentError.textContent = ""; }
 
     try {
-        const { data, error } = await supabaseClient.functions.invoke(
-            "create-mp-preference",
-            {
-                body: { order_id: String(currentPaymentOrderId) }
-            }
-        );
-
+        const { data, error } = await supabaseClient.functions.invoke("create-mp-preference", {
+            body: { order_id: String(currentPaymentOrderId) }
+        });
         if (error) {
             if (paymentError) {
                 paymentError.textContent = await getPaymentFunctionErrorMessage(error);
@@ -457,7 +463,6 @@ async function startMercadoPagoPayment() {
         }
 
         const paymentUrl = data?.sandbox_init_point || data?.init_point;
-
         if (!paymentUrl) {
             if (paymentError) {
                 paymentError.textContent = "Mercado Pago no devolvió una dirección de pago válida.";
@@ -465,11 +470,9 @@ async function startMercadoPagoPayment() {
             }
             return;
         }
-
         window.location.href = paymentUrl;
     } catch (error) {
         console.error("Error inesperado preparando pago:", error);
-
         if (paymentError) {
             paymentError.textContent = "No pudimos conectar con Mercado Pago. Inténtalo nuevamente.";
             paymentError.hidden = false;
@@ -485,18 +488,14 @@ function showPaymentReturnMessage() {
     const message = Object.prototype.hasOwnProperty.call(paymentReturnMessages, paymentStatus)
         ? paymentReturnMessages[paymentStatus]
         : null;
-
     if (message && typeof showToast === "function") showToast(message);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     const checkoutModal = getCheckoutElement("checkoutModal");
-    if (checkoutModal) {
-        checkoutModal.addEventListener("click", event => {
-            if (event.target === checkoutModal) closeCheckout();
-        });
-    }
-
+    checkoutModal?.addEventListener("click", event => {
+        if (event.target === checkoutModal) closeCheckout();
+    });
     getCheckoutElement("mercadoPagoButton")?.addEventListener("click", startMercadoPagoPayment);
     getCheckoutElement("checkoutUseLocationButton")?.addEventListener("click", useCurrentCheckoutLocation);
     showPaymentReturnMessage();

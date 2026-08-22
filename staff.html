@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fff8f4">
+    <title>Operaciones | Kantu Floral</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/staff.css">
+</head>
+<body>
+    <header class="staff-header">
+        <a class="staff-brand" href="index.html">
+            <span class="staff-brand-mark">✿</span>
+            <span><strong>Kantu Floral</strong><small>Operaciones</small></span>
+        </a>
+        <div class="staff-header-actions">
+            <span id="staffIdentity" class="staff-identity"></span>
+            <button id="staffRefresh" type="button" class="staff-secondary-button">Actualizar</button>
+            <button id="staffLogout" type="button" class="staff-secondary-button">Salir</button>
+        </div>
+    </header>
+
+    <main class="staff-shell">
+        <section id="staffAccess" class="staff-access">
+            <div class="staff-loader"></div>
+            <h1>Preparando tu panel</h1>
+            <p>Estamos verificando tu acceso.</p>
+        </section>
+
+        <section id="staffDenied" class="staff-access" hidden>
+            <span class="staff-access-icon">🔒</span>
+            <h1>Acceso para el equipo</h1>
+            <p>Esta página está disponible para floristas, delivery y administradores.</p>
+            <a class="staff-primary-button" href="index.html">Volver a la tienda</a>
+        </section>
+
+        <div id="staffApp" hidden>
+            <section class="staff-hero">
+                <div>
+                    <span id="staffRoleEyebrow" class="staff-eyebrow">Equipo Kantu</span>
+                    <h1 id="staffTitle">Pedidos de hoy</h1>
+                    <p id="staffSubtitle">Prioriza los pedidos que más tiempo llevan esperando.</p>
+                </div>
+                <div id="staffClock" class="staff-clock"></div>
+            </section>
+
+            <section id="staffStats" class="staff-stats" aria-label="Resumen operativo"></section>
+
+            <section class="staff-section">
+                <div class="staff-section-heading">
+                    <div>
+                        <span class="staff-eyebrow">En vivo</span>
+                        <h2>Cola de pedidos</h2>
+                    </div>
+                    <span class="staff-auto-refresh">Se actualiza automáticamente</span>
+                </div>
+                <p id="staffMessage" class="staff-message" role="status" hidden></p>
+                <div id="staffOrdersLoading" class="staff-loading-row">Cargando pedidos...</div>
+                <div id="staffOrdersEmpty" class="staff-empty" hidden>
+                    <span>✿</span>
+                    <h3>No hay pedidos pendientes para tu rol</h3>
+                    <p>Cuando haya un pedido listo para ti aparecerá aquí automáticamente.</p>
+                </div>
+                <div id="staffOrders" class="staff-orders"></div>
+            </section>
+
+            <section id="staffTeamSection" class="staff-section" hidden>
+                <div class="staff-section-heading">
+                    <div>
+                        <span class="staff-eyebrow">Administrador</span>
+                        <h2>Personal y permisos</h2>
+                        <p>Los trabajadores crean una cuenta normal y aquí puedes asignarles su rol.</p>
+                    </div>
+                    <button id="staffTeamRefresh" type="button" class="staff-secondary-button">Actualizar personal</button>
+                </div>
+                <div id="staffTeamLoading" class="staff-loading-row" hidden>Cargando personal...</div>
+                <div id="staffTeam" class="staff-team"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/staff.js"></script>
+</body>
+</html>
