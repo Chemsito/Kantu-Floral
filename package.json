@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "check": "npm run check:js",
+    "check:js": "node --check js/supabase.js && node --check js/products.js && node --check js/cart.js && node --check js/orders.js && node --check js/manual-payments.js && node --check js/order-tracking.js && node --check js/account.js && node --check js/admin.js && node --check js/auth.js && node --check js/app.js"
+  },
   "devDependencies": {
     "supabase": "^2.115.0"
   }
