@@ -6,7 +6,10 @@
 const KANTU_CART = window.KantuCore;
 const CART_GUEST_KEY = "kantuCart:guest";
 const CART_LEGACY_KEY = "kantuCart";
+const CART_LEGACY_GUEST_MARKER = "kantuCart:guest:migratedLegacy";
+
 let activeCartStorageKey = CART_GUEST_KEY;
+let cartLoadPromise = null;
 
 function normalizeCartRows(rows) {
     if (!Array.isArray(rows)) return [];
@@ -33,9 +36,16 @@ function readStoredCart(key) {
 }
 
 function migrateLegacyCart() {
-    if (!localStorage.getItem(CART_GUEST_KEY) && localStorage.getItem(CART_LEGACY_KEY)) {
-        localStorage.setItem(CART_GUEST_KEY, localStorage.getItem(CART_LEGACY_KEY));
+    const legacy = readStoredCart(CART_LEGACY_KEY);
+
+    if (legacy.length && !localStorage.getItem(CART_GUEST_KEY)) {
+        localStorage.setItem(CART_GUEST_KEY, JSON.stringify(legacy));
+        // El formato antiguo no indicaba si pertenecía a un invitado o a una
+        // cuenta. Mientras no haya una nueva edición invitada, se reconcilia
+        // por MAX para evitar duplicar un carrito que ya está en Supabase.
+        localStorage.setItem(CART_LEGACY_GUEST_MARKER, "1");
     }
+
     localStorage.removeItem(CART_LEGACY_KEY);
     return readStoredCart(CART_GUEST_KEY);
 }
@@ -55,18 +65,26 @@ function setCartStorageScope(userId = null) {
     activeCartStorageKey = userId ? getUserCartKey(userId) : CART_GUEST_KEY;
 }
 
-function mergeAuthenticatedCart(remoteRows, localRows, guestRows) {
+function markGuestCartAsCurrent() {
+    if (activeCartStorageKey === CART_GUEST_KEY) {
+        localStorage.removeItem(CART_LEGACY_GUEST_MARKER);
+    }
+}
+
+function mergeAuthenticatedCart(remoteRows, localRows, guestRows, guestCameFromLegacy = false) {
     const merged = new Map();
 
-    // Remoto y caché del mismo usuario representan el mismo carrito: conservar
-    // la mayor cantidad evita duplicarlo al reconciliar dos copias.
+    // Remoto y caché del mismo usuario son dos copias del mismo carrito.
     [...normalizeCartRows(remoteRows), ...normalizeCartRows(localRows)].forEach(item => {
         merged.set(item.id, Math.max(merged.get(item.id) || 0, item.quantity));
     });
 
-    // El carrito invitado sí representa productos añadidos antes de iniciar sesión.
     normalizeCartRows(guestRows).forEach(item => {
-        merged.set(item.id, (merged.get(item.id) || 0) + item.quantity);
+        const existing = merged.get(item.id) || 0;
+        merged.set(
+            item.id,
+            guestCameFromLegacy ? Math.max(existing, item.quantity) : existing + item.quantity
+        );
     });
 
     return [...merged.entries()].map(([id, quantity]) => ({ id, quantity }));
@@ -97,13 +115,13 @@ async function syncCartRowsToSupabase(user, rows) {
    CARGAR / RECONCILIAR CARRITO
 ===================================================== */
 
-async function loadCartFromSupabase() {
+async function performCartLoad() {
     const user = await getCartCurrentUser();
 
     if (!user) {
         setCartStorageScope();
         cart = readStoredCart(CART_GUEST_KEY);
-        saveCart();
+        saveCart({ preserveLegacyMarker: true });
         updateCart();
         return;
     }
@@ -124,32 +142,69 @@ async function loadCartFromSupabase() {
 
     const userLocalCart = readStoredCart(activeCartStorageKey);
     const guestCart = readStoredCart(CART_GUEST_KEY);
-    cart = mergeAuthenticatedCart(data || [], userLocalCart, guestCart);
+    const guestCameFromLegacy = localStorage.getItem(CART_LEGACY_GUEST_MARKER) === "1";
+
+    cart = mergeAuthenticatedCart(
+        data || [],
+        userLocalCart,
+        guestCart,
+        guestCameFromLegacy
+    );
 
     const synced = await syncCartRowsToSupabase(user, cart);
     saveCart();
 
     if (synced && guestCart.length) {
         localStorage.removeItem(CART_GUEST_KEY);
+        localStorage.removeItem(CART_LEGACY_GUEST_MARKER);
     }
 
     updateCart();
+}
+
+async function loadCartFromSupabase() {
+    if (!cartLoadPromise) {
+        cartLoadPromise = performCartLoad().finally(() => {
+            cartLoadPromise = null;
+        });
+    }
+
+    await cartLoadPromise;
+
+    // Si la sesión cambió mientras se hacía la carga, repetimos una vez con
+    // el ámbito correcto en vez de dejar el carrito de otra sesión visible.
+    const user = await getCartCurrentUser();
+    const expectedKey = user ? getUserCartKey(user.id) : CART_GUEST_KEY;
+    if (activeCartStorageKey !== expectedKey && !cartLoadPromise) {
+        return loadCartFromSupabase();
+    }
+}
+
+async function ensureCartSessionReady() {
+    const user = await getCartCurrentUser();
+    const expectedKey = user ? getUserCartKey(user.id) : CART_GUEST_KEY;
+
+    if (activeCartStorageKey !== expectedKey || cartLoadPromise) {
+        await loadCartFromSupabase();
+    }
+
+    return getCartCurrentUser();
 }
 
 /* =====================================================
    PERSISTENCIA REMOTA
 ===================================================== */
 
-async function saveItemToSupabase(productId, quantity) {
-    const user = await getCartCurrentUser();
-    if (!user) return;
+async function saveItemToSupabase(productId, quantity, user = null) {
+    const currentUser = user || await getCartCurrentUser();
+    if (!currentUser) return;
 
-    setCartStorageScope(user.id);
+    setCartStorageScope(currentUser.id);
 
     const { error } = await supabaseClient
         .from("cart_items")
         .upsert({
-            user_id: user.id,
+            user_id: currentUser.id,
             product_id: productId,
             quantity
         }, { onConflict: "user_id,product_id" });
@@ -157,14 +212,14 @@ async function saveItemToSupabase(productId, quantity) {
     if (error) console.error("Error guardando carrito:", error);
 }
 
-async function removeItemFromSupabase(productId) {
-    const user = await getCartCurrentUser();
-    if (!user) return;
+async function removeItemFromSupabase(productId, user = null) {
+    const currentUser = user || await getCartCurrentUser();
+    if (!currentUser) return;
 
     const { error } = await supabaseClient
         .from("cart_items")
         .delete()
-        .eq("user_id", user.id)
+        .eq("user_id", currentUser.id)
         .eq("product_id", productId);
 
     if (error) console.error("Error eliminando item:", error);
@@ -174,7 +229,8 @@ async function removeItemFromSupabase(productId) {
    OPERACIONES DEL CARRITO
 ===================================================== */
 
-function addToCart(productId) {
+async function addToCart(productId) {
+    const user = await ensureCartSessionReady();
     const product = products.find(row => Number(row.id) === Number(productId));
     if (!product) return;
 
@@ -195,15 +251,17 @@ function addToCart(productId) {
     if (existing) existing.quantity += 1;
     else cart.push({ id, quantity: 1 });
 
+    markGuestCartAsCurrent();
     saveCart();
     updateCart();
 
     const currentItem = cart.find(item => item.id === id);
-    saveItemToSupabase(id, currentItem.quantity);
+    if (user) await saveItemToSupabase(id, currentItem.quantity, user);
     showToast(`${product.name} fue agregado al carrito.`);
 }
 
-function changeQuantity(productId, amount) {
+async function changeQuantity(productId, amount) {
+    const user = await ensureCartSessionReady();
     const id = Number(productId);
     const item = cart.find(row => row.id === id);
     if (!item) return;
@@ -218,28 +276,32 @@ function changeQuantity(productId, amount) {
     }
 
     item.quantity = nextQuantity;
+    markGuestCartAsCurrent();
 
     if (item.quantity <= 0) {
         cart = cart.filter(row => row.id !== id);
-        removeItemFromSupabase(id);
-    } else {
-        saveItemToSupabase(id, item.quantity);
+        if (user) await removeItemFromSupabase(id, user);
+    } else if (user) {
+        await saveItemToSupabase(id, item.quantity, user);
     }
 
     saveCart();
     updateCart();
 }
 
-function removeFromCart(productId) {
+async function removeFromCart(productId) {
+    const user = await ensureCartSessionReady();
     const id = Number(productId);
     cart = cart.filter(item => item.id !== id);
-    removeItemFromSupabase(id);
+    markGuestCartAsCurrent();
+    if (user) await removeItemFromSupabase(id, user);
     saveCart();
     updateCart();
 }
 
-function saveCart() {
+function saveCart({ preserveLegacyMarker = false } = {}) {
     localStorage.setItem(activeCartStorageKey, JSON.stringify(normalizeCartRows(cart)));
+    if (!preserveLegacyMarker) markGuestCartAsCurrent();
 }
 
 /* =====================================================
@@ -327,12 +389,13 @@ function closeCart() {
 }
 
 async function checkout() {
+    const user = await ensureCartSessionReady();
+
     if (cart.length === 0) {
         showToast("Tu carrito está vacío.");
         return;
     }
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
         closeCart();
         openAuth("login");
