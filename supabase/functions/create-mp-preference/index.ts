@@ -23,6 +23,8 @@ type MercadoPagoPreference = {
     sandbox_init_point?: string;
 };
 
+type MercadoPagoEnvironment = "test" | "production";
+
 function jsonResponse(
     body: Record<string, unknown>,
     status = 200
@@ -44,6 +46,16 @@ function requiredEnvironmentVariable(name: string): string {
     }
 
     return value;
+}
+
+function getMercadoPagoEnvironment(): MercadoPagoEnvironment {
+    const value = (Deno.env.get("MP_MODE") || "test").trim().toLowerCase();
+
+    if (value === "test" || value === "production") {
+        return value;
+    }
+
+    throw new Error("INVALID_MP_MODE");
 }
 
 function normalizeOrderId(value: unknown): string | null {
@@ -88,6 +100,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const supabaseAnonKey = requiredEnvironmentVariable("SUPABASE_ANON_KEY");
         const serviceRoleKey = requiredEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY");
         const mercadoPagoAccessToken = requiredEnvironmentVariable("MP_ACCESS_TOKEN");
+        const mercadoPagoEnvironment = getMercadoPagoEnvironment();
         const siteUrl = requiredEnvironmentVariable("SITE_URL").replace(/\/+$/, "");
 
         let parsedSiteUrl: URL;
@@ -160,7 +173,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
             }, 400);
         }
 
-        // Este cliente y su clave existen únicamente dentro de la Edge Function.
         const databaseClient = createClient(supabaseUrl, serviceRoleKey, {
             auth: {
                 persistSession: false,
@@ -185,7 +197,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
             }, 500);
         }
 
-        // No se revela si el pedido existe pero pertenece a otro usuario.
         if (!order) {
             return jsonResponse({
                 error: "ORDER_NOT_FOUND",
@@ -326,7 +337,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
         if (!mercadoPagoResponse.ok) {
             console.error("Mercado Pago rechazó la preferencia:", {
                 status: mercadoPagoResponse.status,
-                response: mercadoPagoBody
+                response: mercadoPagoBody,
+                environment: mercadoPagoEnvironment
             });
 
             return jsonResponse({
@@ -336,13 +348,15 @@ Deno.serve(async (request: Request): Promise<Response> => {
         }
 
         const preference = mercadoPagoBody as MercadoPagoPreference;
+        const checkoutUrl = mercadoPagoEnvironment === "production"
+            ? preference?.init_point
+            : preference?.sandbox_init_point;
 
-        if (
-            !preference?.id ||
-            !preference.init_point ||
-            !preference.sandbox_init_point
-        ) {
-            console.error("Mercado Pago devolvió una respuesta incompleta:", mercadoPagoBody);
+        if (!preference?.id || !checkoutUrl) {
+            console.error("Mercado Pago devolvió una respuesta incompleta:", {
+                response: mercadoPagoBody,
+                environment: mercadoPagoEnvironment
+            });
 
             return jsonResponse({
                 error: "INVALID_MERCADO_PAGO_RESPONSE",
@@ -382,7 +396,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
         return jsonResponse({
             preference_id: preference.id,
             init_point: preference.init_point,
-            sandbox_init_point: preference.sandbox_init_point
+            ...(mercadoPagoEnvironment === "test" && preference.sandbox_init_point
+                ? { sandbox_init_point: preference.sandbox_init_point }
+                : {}),
+            environment: mercadoPagoEnvironment
         });
     } catch (error) {
         console.error("Error inesperado creando la preferencia:", error);
