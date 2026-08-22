@@ -236,7 +236,10 @@
             if (!product) return;
 
             const category = card.querySelector(".admin-product-info > div > span");
-            if (category) category.textContent = categoryLabel(product.category);
+            const label = categoryLabel(product.category);
+            if (category && category.textContent !== label) {
+                category.textContent = label;
+            }
         });
     }
 
@@ -273,8 +276,13 @@
                 });
             });
 
-            const observer = new MutationObserver(decorateAdminCards);
-            observer.observe(list, { childList: true, subtree: true });
+            // Observar solo reemplazos directos de la lista. Observar todo el subárbol
+            // provocaba un bucle: decorar una categoría disparaba otra mutación y la
+            // página podía quedarse consumiendo CPU en "Cargando productos...".
+            const observer = new MutationObserver(() => {
+                queueMicrotask(decorateAdminCards);
+            });
+            observer.observe(list, { childList: true, subtree: false });
         }
     }
 
