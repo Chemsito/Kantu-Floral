@@ -38,10 +38,38 @@ let currentDeliveryQuote = null;
 let deliveryQuoteRequest = 0;
 let checkoutInitialGeolocationRequested = false;
 
+function ensureCustomerExperienceStyles() {
+    if (document.querySelector('link[data-kantu-customer-experience]')) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "css/customer-experience.css";
+    link.dataset.kantuCustomerExperience = "true";
+    document.head.appendChild(link);
+}
+
+function ensureCheckoutDeliveryQuoteBox() {
+    let box = getCheckoutElement("checkoutDeliveryQuote");
+    if (box) return box;
+
+    const status = getCheckoutElement("checkoutLocationStatus");
+    if (!status?.parentElement) return null;
+
+    box = document.createElement("div");
+    box.id = "checkoutDeliveryQuote";
+    box.className = "checkout-delivery-quote";
+    box.hidden = true;
+    box.setAttribute("role", "status");
+    box.setAttribute("aria-live", "polite");
+    status.insertAdjacentElement("afterend", box);
+    return box;
+}
+
 function openCheckout(user) {
     const checkoutModal = getCheckoutElement("checkoutModal");
     if (!checkoutModal) return;
 
+    ensureCustomerExperienceStyles();
+    ensureCheckoutDeliveryQuoteBox();
     resetCheckoutView();
     renderCheckoutSummary();
     fillCheckoutName(user);
@@ -133,7 +161,7 @@ function setCheckoutDeliveryLocation(lat, lng, centerMap = false) {
 
     const status = getCheckoutElement("checkoutLocationStatus");
     if (status) {
-        status.textContent = "Ubicación seleccionada. Calculando delivery...";
+        status.textContent = "Ubicación seleccionada. Calculando costo de delivery...";
         status.className = "checkout-location-status selected";
     }
 
@@ -160,6 +188,7 @@ function resetCheckoutDeliveryLocation() {
         status.className = "checkout-location-status";
     }
     renderDeliveryQuote();
+    renderCheckoutSummary();
 }
 
 async function requestDeliveryQuote(lat, lng) {
@@ -192,7 +221,7 @@ async function requestDeliveryQuote(lat, lng) {
     const status = getCheckoutElement("checkoutLocationStatus");
     if (status) {
         status.textContent = currentDeliveryQuote.service_available
-            ? "Ubicación lista para entrega."
+            ? "Ubicación lista para entrega. El delivery ya está incluido en el total."
             : "Esta ubicación está fuera de nuestra zona de reparto actual.";
         status.className = `checkout-location-status ${currentDeliveryQuote.service_available ? "selected" : "error"}`;
     }
@@ -202,19 +231,27 @@ async function requestDeliveryQuote(lat, lng) {
 }
 
 function renderDeliveryQuote(state = {}) {
-    const box = getCheckoutElement("checkoutDeliveryQuote");
+    const box = ensureCheckoutDeliveryQuoteBox();
     if (!box) return;
 
     if (state.loading) {
         box.hidden = false;
-        box.innerHTML = '<span>Calculando distancia y delivery...</span>';
+        box.innerHTML = `<div class="checkout-delivery-quote-heading">
+            <span class="checkout-delivery-icon">🛵</span>
+            <div><strong>Calculando tu delivery</strong><span>Estamos estimando distancia, costo y tiempo de reparto.</span></div>
+        </div>`;
         return;
     }
+
     if (state.error) {
         box.hidden = false;
-        box.innerHTML = '<span>No pudimos calcular el delivery. Selecciona nuevamente el punto.</span>';
+        box.innerHTML = `<div class="checkout-delivery-quote-heading error">
+            <span class="checkout-delivery-icon">!</span>
+            <div><strong>No pudimos calcular el delivery</strong><span>Selecciona nuevamente tu ubicación en el mapa.</span></div>
+        </div>`;
         return;
     }
+
     if (!currentDeliveryQuote) {
         box.hidden = true;
         box.innerHTML = "";
@@ -223,14 +260,23 @@ function renderDeliveryQuote(state = {}) {
 
     if (!currentDeliveryQuote.service_available) {
         box.hidden = false;
-        box.innerHTML = '<strong>Fuera de cobertura</strong><span>Selecciona otra ubicación o contáctanos por WhatsApp.</span>';
+        box.innerHTML = `<div class="checkout-delivery-quote-heading error">
+            <span class="checkout-delivery-icon">!</span>
+            <div><strong>Fuera de cobertura</strong><span>Selecciona otra ubicación o contáctanos por WhatsApp.</span></div>
+        </div>`;
         return;
     }
 
     box.hidden = false;
-    box.innerHTML = `<div><span>Distancia estimada</span><strong>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.distance_km.toFixed(1))} km</strong></div>
-        <div><span>Delivery</span><strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(currentDeliveryQuote.delivery_fee))}</strong></div>
-        <div><span>Tiempo de reparto estimado</span><strong>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.estimated_minutes)} min aprox.</strong></div>`;
+    box.innerHTML = `<div class="checkout-delivery-quote-heading">
+            <span class="checkout-delivery-icon">🛵</span>
+            <div><strong>Delivery calculado según tu ubicación</strong><span>Este importe se suma de forma transparente antes de pagar.</span></div>
+        </div>
+        <div class="checkout-delivery-quote-grid">
+            <div><span>Distancia estimada</span><strong>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.distance_km.toFixed(1))} km</strong></div>
+            <div><span>Costo de delivery</span><strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(currentDeliveryQuote.delivery_fee))}</strong></div>
+            <div><span>Tiempo estimado</span><strong>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.estimated_minutes)} min aprox.</strong></div>
+        </div>`;
 }
 
 function useCurrentCheckoutLocation() {
@@ -300,15 +346,30 @@ function renderCheckoutSummary() {
         </div>`;
     });
 
-    const deliveryFee = currentDeliveryQuote?.service_available
-        ? Number(currentDeliveryQuote.delivery_fee) || 0
-        : 0;
-    rows.push(`<div class="checkout-summary-item checkout-delivery-line">
-        <span>Delivery</span>
-        <strong>${currentDeliveryQuote?.service_available
-            ? KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(deliveryFee))
-            : "Selecciona ubicación"}</strong>
+    rows.push(`<div class="checkout-summary-separator"></div>`);
+    rows.push(`<div class="checkout-summary-item checkout-summary-subtotal">
+        <span>Subtotal de productos</span>
+        <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(subtotal))}</strong>
     </div>`);
+
+    const quoteAvailable = Boolean(currentDeliveryQuote?.service_available);
+    const deliveryFee = quoteAvailable ? Number(currentDeliveryQuote.delivery_fee) || 0 : 0;
+    const deliveryLabel = quoteAvailable
+        ? KANTU_ORDERS.formatMoney(deliveryFee)
+        : selectedDeliveryLat != null
+            ? "Calculando..."
+            : "Selecciona ubicación";
+
+    rows.push(`<div class="checkout-summary-item checkout-delivery-line">
+        <span><strong>Delivery</strong>${quoteAvailable ? `<small>${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.distance_km.toFixed(1))} km · ${KANTU_ORDERS.escapeHtml(currentDeliveryQuote.estimated_minutes)} min aprox.</small>` : ""}</span>
+        <strong>${KANTU_ORDERS.escapeHtml(deliveryLabel)}</strong>
+    </div>`);
+
+    if (!quoteAvailable) {
+        rows.push(`<p class="checkout-price-note">El total final aparecerá cuando selecciones la ubicación de entrega.</p>`);
+    } else {
+        rows.push(`<p class="checkout-price-note success">✓ El total de abajo ya incluye el delivery.</p>`);
+    }
 
     summary.innerHTML = rows.join("");
     totalElement.textContent = KANTU_ORDERS.formatMoney(subtotal + deliveryFee);
@@ -383,6 +444,10 @@ async function submitOrder(event) {
     openPaymentOptionsForOrder({
         id: order.order_id,
         total: order.total,
+        subtotal: order.subtotal,
+        delivery_fee: order.delivery_fee,
+        delivery_distance_km: order.delivery_distance_km,
+        estimated_delivery_minutes: order.estimated_delivery_minutes,
         status: "pendiente",
         payment_status: "pending"
     });
@@ -401,11 +466,15 @@ function openPaymentOptionsForOrder(order) {
     const checkoutModal = getCheckoutElement("checkoutModal");
     if (!checkoutModal) return false;
     checkoutModal.classList.add("show");
-    showOrderSuccess(orderId, total);
+    showOrderSuccess({ ...order, id: orderId, total });
     return true;
 }
 
-function showOrderSuccess(orderId, total) {
+function showOrderSuccess(order) {
+    const orderId = order?.id ?? order?.order_id;
+    const total = Number(order?.total) || 0;
+    const subtotal = Number(order?.subtotal);
+    const deliveryFee = Number(order?.delivery_fee);
     const formView = getCheckoutElement("checkoutFormView");
     const successView = getCheckoutElement("checkoutSuccess");
     const message = getCheckoutElement("checkoutSuccessMessage");
@@ -415,8 +484,13 @@ function showOrderSuccess(orderId, total) {
     if (formView) formView.hidden = true;
     if (successView) successView.hidden = false;
     if (message) {
-        message.innerHTML = `Pedido <strong>#${KANTU_ORDERS.escapeHtml(orderId)}</strong> listo para pagar.<br>`
-            + `Total definitivo con delivery: <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(total))}</strong>`;
+        const hasBreakdown = Number.isFinite(subtotal) && Number.isFinite(deliveryFee);
+        message.innerHTML = `<span class="checkout-ready-label">Pedido <strong>#${KANTU_ORDERS.escapeHtml(orderId)}</strong> listo para pagar.</span>
+            ${hasBreakdown ? `<div class="checkout-payment-breakdown">
+                <div><span>Productos</span><strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(subtotal))}</strong></div>
+                <div><span>Delivery</span><strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(deliveryFee))}</strong></div>
+                <div class="total"><span>Total a pagar</span><strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(total))}</strong></div>
+            </div>` : `Total definitivo con delivery: <strong>${KANTU_ORDERS.escapeHtml(KANTU_ORDERS.formatMoney(total))}</strong>`}`;
     }
 
     currentPaymentOrderId = String(orderId);
@@ -492,6 +566,8 @@ function showPaymentReturnMessage() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    ensureCustomerExperienceStyles();
+    ensureCheckoutDeliveryQuoteBox();
     const checkoutModal = getCheckoutElement("checkoutModal");
     checkoutModal?.addEventListener("click", event => {
         if (event.target === checkoutModal) closeCheckout();
