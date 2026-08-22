@@ -61,6 +61,102 @@
     color: var(--primary-dark);
 }
 
+/* =====================================================
+   ALINEACIÓN DE TARJETAS DEL CATÁLOGO
+   Cada bloque ocupa una fila fija del layout para que categoría, nombre,
+   descripción, talla, nota y precio queden a la misma altura aunque los
+   productos tengan textos diferentes o se agreguen nuevos productos.
+===================================================== */
+
+@media (min-width: 769px) {
+    .products-grid {
+        align-items: stretch;
+    }
+
+    .product-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .product-image {
+        flex: 0 0 auto;
+    }
+
+    .product-info {
+        flex: 1 1 auto;
+        display: grid;
+        grid-template-rows:
+            16px
+            58px
+            92px
+            38px
+            52px
+            auto;
+        align-content: stretch;
+        row-gap: 0;
+    }
+
+    .product-category {
+        grid-row: 1;
+        align-self: start;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-info h3 {
+        grid-row: 2;
+        align-self: start;
+        margin: 7px 0 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        line-height: 1.2;
+    }
+
+    .product-info > p:not(.product-note) {
+        grid-row: 3;
+        align-self: start;
+        min-height: 0;
+        margin: 5px 0 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 5;
+        overflow: hidden;
+    }
+
+    .product-size-row {
+        grid-row: 4;
+        align-self: center;
+        margin-top: 0;
+    }
+
+    .product-note {
+        grid-row: 5;
+        align-self: start;
+        min-height: 44px;
+        max-height: 48px;
+        margin-top: 4px !important;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .product-bottom {
+        grid-row: 6;
+        align-self: end;
+        width: 100%;
+        margin-top: 0;
+        padding-top: 12px;
+    }
+
+    /* Cuando no hay nota, la fila 5 queda vacía y conserva exactamente
+       el mismo espacio, por lo que el precio nunca sube respecto a otras tarjetas. */
+}
+
 .admin-product-field-label {
     display: block;
     margin-bottom: 8px;
