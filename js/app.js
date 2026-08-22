@@ -5,6 +5,33 @@
 
 const KANTU_APP = window.KantuCore;
 
+function loadKantuBrandIdentity() {
+    if (!document.querySelector('link[data-kantu-brand="true"]')) {
+        const brandStyles = document.createElement("link");
+        brandStyles.rel = "stylesheet";
+        brandStyles.href = "css/brand.css";
+        brandStyles.dataset.kantuBrand = "true";
+        document.head.appendChild(brandStyles);
+    }
+
+    document.title = "Kantu Floral | Flores que cuentan historias";
+
+    const description = document.querySelector('meta[name="description"]');
+    if (description) {
+        description.content = "Kantu Floral - Arreglos exclusivos y flores que cuentan historias, con delivery en Arequipa.";
+    }
+
+    let themeColor = document.querySelector('meta[name="theme-color"]');
+    if (!themeColor) {
+        themeColor = document.createElement("meta");
+        themeColor.name = "theme-color";
+        document.head.appendChild(themeColor);
+    }
+    themeColor.content = "#fffaf6";
+}
+
+loadKantuBrandIdentity();
+
 function readFavoriteIds() {
     try {
         const value = JSON.parse(localStorage.getItem("kantuFavorites") || "[]");
