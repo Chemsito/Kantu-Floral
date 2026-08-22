@@ -14,7 +14,7 @@
     <header class="staff-header">
         <a class="staff-brand" href="index.html">
             <span class="staff-brand-mark">✿</span>
-            <span><strong>Kantu Floral</strong><small>Operaciones</small></span>
+            <span><strong>Kantu Floral</strong><small>Operaciones · GRUPO TENNO</small></span>
         </a>
         <div class="staff-header-actions">
             <span id="staffIdentity" class="staff-identity"></span>
@@ -25,15 +25,16 @@
 
     <main class="staff-shell">
         <section id="staffAccess" class="staff-access">
-            <div class="staff-loader"></div>
-            <h1>Preparando tu panel</h1>
-            <p>Estamos verificando tu acceso.</p>
+            <div id="staffAccessLoader" class="staff-loader"></div>
+            <h1 id="staffAccessTitle">Preparando tu panel</h1>
+            <p id="staffAccessMessage">Estamos verificando tu sesión y tus permisos.</p>
+            <button id="staffRetryAccess" type="button" class="staff-primary-button" hidden>Reintentar acceso</button>
         </section>
 
         <section id="staffDenied" class="staff-access" hidden>
             <span class="staff-access-icon">🔒</span>
             <h1>Acceso para el equipo</h1>
-            <p>Esta página está disponible para floristas, delivery y administradores.</p>
+            <p id="staffDeniedMessage">Esta página está disponible para floristas, delivery y administradores.</p>
             <a class="staff-primary-button" href="index.html">Volver a la tienda</a>
         </section>
 
@@ -41,30 +42,49 @@
             <section class="staff-hero">
                 <div>
                     <span id="staffRoleEyebrow" class="staff-eyebrow">Equipo Kantu</span>
-                    <h1 id="staffTitle">Pedidos de hoy</h1>
+                    <h1 id="staffTitle">Operaciones en vivo</h1>
                     <p id="staffSubtitle">Prioriza los pedidos que más tiempo llevan esperando.</p>
                 </div>
                 <div id="staffClock" class="staff-clock"></div>
             </section>
 
+            <p id="staffMessage" class="staff-message" role="status" hidden></p>
             <section id="staffStats" class="staff-stats" aria-label="Resumen operativo"></section>
 
-            <section class="staff-section">
+            <section id="staffPreparationSection" class="staff-section">
                 <div class="staff-section-heading">
                     <div>
-                        <span class="staff-eyebrow">En vivo</span>
-                        <h2>Cola de pedidos</h2>
+                        <span class="staff-eyebrow">Floristería</span>
+                        <h2>Cola de preparación</h2>
+                        <p>Solo Florista y Administrador pueden iniciar el armado o marcar un pedido como listo.</p>
                     </div>
-                    <span class="staff-auto-refresh">Se actualiza automáticamente</span>
+                    <span class="staff-auto-refresh">30 min por pedido · ordenado por pago</span>
                 </div>
-                <p id="staffMessage" class="staff-message" role="status" hidden></p>
-                <div id="staffOrdersLoading" class="staff-loading-row">Cargando pedidos...</div>
-                <div id="staffOrdersEmpty" class="staff-empty" hidden>
+                <div id="staffPreparationLoading" class="staff-loading-row">Cargando cola de preparación...</div>
+                <div id="staffPreparationEmpty" class="staff-empty" hidden>
                     <span>✿</span>
-                    <h3>No hay pedidos pendientes para tu rol</h3>
-                    <p>Cuando haya un pedido listo para ti aparecerá aquí automáticamente.</p>
+                    <h3>No hay ramos esperando preparación</h3>
+                    <p>Los pedidos pagados aparecerán aquí automáticamente.</p>
                 </div>
-                <div id="staffOrders" class="staff-orders"></div>
+                <div id="staffPreparationOrders" class="staff-orders"></div>
+            </section>
+
+            <section id="staffDeliverySection" class="staff-section staff-delivery-section">
+                <div class="staff-section-heading">
+                    <div>
+                        <span class="staff-eyebrow staff-eyebrow-delivery">Delivery</span>
+                        <h2>Repartos</h2>
+                        <p>Esta es la vista operativa del repartidor: pedidos listos, ubicación, WhatsApp y tiempo estimado.</p>
+                    </div>
+                    <span class="staff-auto-refresh">Listo → En camino → Entregado</span>
+                </div>
+                <div id="staffDeliveryLoading" class="staff-loading-row">Cargando repartos...</div>
+                <div id="staffDeliveryEmpty" class="staff-empty" hidden>
+                    <span>🛵</span>
+                    <h3>No hay pedidos listos para reparto</h3>
+                    <p>Cuando Floristería marque un pedido como listo aparecerá aquí.</p>
+                </div>
+                <div id="staffDeliveryOrders" class="staff-orders"></div>
             </section>
 
             <section id="staffTeamSection" class="staff-section" hidden>
@@ -72,11 +92,24 @@
                     <div>
                         <span class="staff-eyebrow">Administrador</span>
                         <h2>Personal y permisos</h2>
-                        <p>Los trabajadores crean una cuenta normal y aquí puedes asignarles su rol.</p>
+                        <p>Busca una cuenta por su correo exacto. No mostramos la lista completa de clientes.</p>
                     </div>
-                    <button id="staffTeamRefresh" type="button" class="staff-secondary-button">Actualizar personal</button>
                 </div>
-                <div id="staffTeamLoading" class="staff-loading-row" hidden>Cargando personal...</div>
+
+                <form id="staffTeamSearchForm" class="staff-team-search">
+                    <label for="staffTeamEmail">Correo del trabajador</label>
+                    <div class="staff-team-search-row">
+                        <input id="staffTeamEmail" type="email" autocomplete="off" placeholder="persona@correo.com" required>
+                        <button id="staffTeamSearchButton" type="submit" class="staff-primary-button">Buscar</button>
+                    </div>
+                    <small>El trabajador primero debe crear una cuenta normal en Kantu Floral.</small>
+                </form>
+
+                <div id="staffTeamLoading" class="staff-loading-row" hidden>Buscando usuario...</div>
+                <div id="staffTeamEmpty" class="staff-empty compact" hidden>
+                    <h3>No encontramos una cuenta con ese correo</h3>
+                    <p>Revisa el correo o pídele al trabajador que se registre primero.</p>
+                </div>
                 <div id="staffTeam" class="staff-team"></div>
             </section>
         </div>
