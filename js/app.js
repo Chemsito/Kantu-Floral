@@ -123,23 +123,25 @@ function initializeMobileLinks() {
 
 /* =====================================================
    HARDENING DEL PANEL ADMIN
-   - Un pedido pendiente no puede confirmarse manualmente.
-   - Un pedido pagado no ofrece cancelación sin flujo de reembolso.
+   - Admin solo puede cancelar pedidos pendientes/no pagados.
+   - Preparación, reparto y entrega se gestionan desde staff.html para conservar
+     sus timestamps operativos.
    - Ventas suma únicamente pagos aprobados.
 ===================================================== */
 
 function applyAdminHardening() {
     if (typeof ADMIN_ALLOWED_TRANSITIONS !== "undefined") {
         ADMIN_ALLOWED_TRANSITIONS.pendiente = ["cancelado"];
-        ADMIN_ALLOWED_TRANSITIONS.confirmado = ["preparando"];
-        ADMIN_ALLOWED_TRANSITIONS.preparando = ["en_camino"];
-        ADMIN_ALLOWED_TRANSITIONS.en_camino = ["entregado"];
+        ADMIN_ALLOWED_TRANSITIONS.confirmado = [];
+        ADMIN_ALLOWED_TRANSITIONS.preparando = [];
+        ADMIN_ALLOWED_TRANSITIONS.en_camino = [];
     }
 
     if (typeof ADMIN_STATUS_ERROR_MESSAGES !== "undefined") {
         ADMIN_STATUS_ERROR_MESSAGES.PAYMENT_FLOW_REQUIRED = "La confirmación del pedido debe realizarla un pago aprobado.";
         ADMIN_STATUS_ERROR_MESSAGES.PAID_ORDER_CANNOT_BE_CANCELLED = "Un pedido pagado no puede cancelarse sin gestionar primero su reembolso.";
         ADMIN_STATUS_ERROR_MESSAGES.PAYMENT_NOT_APPROVED = "El pedido no puede avanzar porque el pago no está aprobado.";
+        ADMIN_STATUS_ERROR_MESSAGES.OPERATIONAL_FLOW_REQUIRED = "Preparación, reparto y entrega se actualizan desde el portal operativo.";
     }
 
     if (typeof loadAdminDashboard === "function") {
