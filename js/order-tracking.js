@@ -60,6 +60,7 @@ async function fetchActiveCustomerOrder() {
     const ordersResult = await supabaseClient
         .from("orders")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
 
