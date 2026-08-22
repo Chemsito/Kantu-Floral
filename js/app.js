@@ -5,6 +5,18 @@
 
 const KANTU_APP = window.KantuCore;
 
+function loadAdminProductManager() {
+    if (document.querySelector('script[data-kantu-admin-products="true"]')) return;
+
+    const script = document.createElement("script");
+    script.src = "js/admin-product-manager.js";
+    script.async = false;
+    script.dataset.kantuAdminProducts = "true";
+    document.head.appendChild(script);
+}
+
+loadAdminProductManager();
+
 function loadKantuBrandIdentity() {
     if (!document.querySelector('link[data-kantu-brand="true"]')) {
         const brandStyles = document.createElement("link");
