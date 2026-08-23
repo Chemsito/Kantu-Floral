@@ -1,6 +1,7 @@
 /* =====================================================
    KANTU FLORAL
    cart.js
+   Carrito local + Supabase con sincronización verificable
 ===================================================== */
 
 const KANTU_CART = window.KantuCore;
@@ -10,6 +11,7 @@ const CART_LEGACY_GUEST_MARKER = "kantuCart:guest:migratedLegacy";
 
 let activeCartStorageKey = CART_GUEST_KEY;
 let cartLoadPromise = null;
+let cartSyncState = "idle";
 
 function normalizeCartRows(rows) {
     if (!Array.isArray(rows)) return [];
@@ -26,6 +28,10 @@ function normalizeCartRows(rows) {
     return [...byId.entries()].map(([id, quantity]) => ({ id, quantity }));
 }
 
+function cloneCart(rows = cart) {
+    return normalizeCartRows(rows).map(item => ({ ...item }));
+}
+
 function readStoredCart(key) {
     try {
         return normalizeCartRows(JSON.parse(localStorage.getItem(key) || "[]"));
@@ -40,9 +46,6 @@ function migrateLegacyCart() {
 
     if (legacy.length && !localStorage.getItem(CART_GUEST_KEY)) {
         localStorage.setItem(CART_GUEST_KEY, JSON.stringify(legacy));
-        // El formato antiguo no indicaba si pertenecía a un invitado o a una
-        // cuenta. Mientras no haya una nueva edición invitada, se reconcilia
-        // por MAX para evitar duplicar un carrito que ya está en Supabase.
         localStorage.setItem(CART_LEGACY_GUEST_MARKER, "1");
     }
 
@@ -71,10 +74,39 @@ function markGuestCartAsCurrent() {
     }
 }
 
+function ensureCartSyncStatus() {
+    const panel = document.getElementById("cartPanel");
+    if (!panel) return null;
+
+    let status = document.getElementById("cartSyncStatus");
+    if (status) return status;
+
+    status = document.createElement("p");
+    status.id = "cartSyncStatus";
+    status.className = "cart-sync-status";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    status.hidden = true;
+
+    const header = panel.querySelector(".cart-header");
+    if (header) header.insertAdjacentElement("afterend", status);
+    else panel.prepend(status);
+    return status;
+}
+
+function setCartSyncState(state, message = "") {
+    cartSyncState = state;
+    const status = ensureCartSyncStatus();
+    if (!status) return;
+
+    status.className = `cart-sync-status ${state}`;
+    status.textContent = message;
+    status.hidden = !message;
+}
+
 function mergeAuthenticatedCart(remoteRows, localRows, guestRows, guestCameFromLegacy = false) {
     const merged = new Map();
 
-    // Remoto y caché del mismo usuario son dos copias del mismo carrito.
     [...normalizeCartRows(remoteRows), ...normalizeCartRows(localRows)].forEach(item => {
         merged.set(item.id, Math.max(merged.get(item.id) || 0, item.quantity));
     });
@@ -91,7 +123,8 @@ function mergeAuthenticatedCart(remoteRows, localRows, guestRows, guestCameFromL
 }
 
 async function syncCartRowsToSupabase(user, rows) {
-    if (!user || !rows.length) return true;
+    if (!user) return true;
+    if (!rows.length) return true;
 
     const payload = rows.map(item => ({
         user_id: user.id,
@@ -99,15 +132,21 @@ async function syncCartRowsToSupabase(user, rows) {
         quantity: item.quantity
     }));
 
+    setCartSyncState("syncing", "Sincronizando carrito...");
     const { error } = await supabaseClient
         .from("cart_items")
         .upsert(payload, { onConflict: "user_id,product_id" });
 
     if (error) {
         console.error("Error sincronizando carrito:", error);
+        setCartSyncState("error", "No pudimos sincronizar tu carrito. Revisa tu conexión e inténtalo otra vez.");
         return false;
     }
 
+    setCartSyncState("synced", "Carrito sincronizado.");
+    window.setTimeout(() => {
+        if (cartSyncState === "synced") setCartSyncState("idle");
+    }, 1400);
     return true;
 }
 
@@ -122,11 +161,13 @@ async function performCartLoad() {
         setCartStorageScope();
         cart = readStoredCart(CART_GUEST_KEY);
         saveCart({ preserveLegacyMarker: true });
+        setCartSyncState("idle");
         updateCart();
-        return;
+        return true;
     }
 
     setCartStorageScope(user.id);
+    setCartSyncState("syncing", "Cargando tu carrito...");
 
     const { data, error } = await supabaseClient
         .from("cart_items")
@@ -136,8 +177,9 @@ async function performCartLoad() {
     if (error) {
         console.error("Error cargando carrito:", error);
         cart = readStoredCart(activeCartStorageKey);
+        setCartSyncState("error", "No pudimos verificar tu carrito guardado. Revisa tu conexión.");
         updateCart();
-        return;
+        return false;
     }
 
     const userLocalCart = readStoredCart(activeCartStorageKey);
@@ -160,6 +202,7 @@ async function performCartLoad() {
     }
 
     updateCart();
+    return synced;
 }
 
 async function loadCartFromSupabase() {
@@ -169,15 +212,15 @@ async function loadCartFromSupabase() {
         });
     }
 
-    await cartLoadPromise;
+    const synced = await cartLoadPromise;
 
-    // Si la sesión cambió mientras se hacía la carga, repetimos una vez con
-    // el ámbito correcto en vez de dejar el carrito de otra sesión visible.
     const user = await getCartCurrentUser();
     const expectedKey = user ? getUserCartKey(user.id) : CART_GUEST_KEY;
     if (activeCartStorageKey !== expectedKey && !cartLoadPromise) {
         return loadCartFromSupabase();
     }
+
+    return synced;
 }
 
 async function ensureCartSessionReady() {
@@ -197,9 +240,10 @@ async function ensureCartSessionReady() {
 
 async function saveItemToSupabase(productId, quantity, user = null) {
     const currentUser = user || await getCartCurrentUser();
-    if (!currentUser) return;
+    if (!currentUser) return true;
 
     setCartStorageScope(currentUser.id);
+    setCartSyncState("syncing", "Guardando cambio...");
 
     const { error } = await supabaseClient
         .from("cart_items")
@@ -209,20 +253,48 @@ async function saveItemToSupabase(productId, quantity, user = null) {
             quantity
         }, { onConflict: "user_id,product_id" });
 
-    if (error) console.error("Error guardando carrito:", error);
+    if (error) {
+        console.error("Error guardando carrito:", error);
+        setCartSyncState("error", "No pudimos guardar el cambio del carrito.");
+        return false;
+    }
+
+    setCartSyncState("synced", "Cambio guardado.");
+    window.setTimeout(() => {
+        if (cartSyncState === "synced") setCartSyncState("idle");
+    }, 1200);
+    return true;
 }
 
 async function removeItemFromSupabase(productId, user = null) {
     const currentUser = user || await getCartCurrentUser();
-    if (!currentUser) return;
+    if (!currentUser) return true;
 
+    setCartSyncState("syncing", "Guardando cambio...");
     const { error } = await supabaseClient
         .from("cart_items")
         .delete()
         .eq("user_id", currentUser.id)
         .eq("product_id", productId);
 
-    if (error) console.error("Error eliminando item:", error);
+    if (error) {
+        console.error("Error eliminando item:", error);
+        setCartSyncState("error", "No pudimos guardar el cambio del carrito.");
+        return false;
+    }
+
+    setCartSyncState("synced", "Cambio guardado.");
+    window.setTimeout(() => {
+        if (cartSyncState === "synced") setCartSyncState("idle");
+    }, 1200);
+    return true;
+}
+
+function rollbackCart(previousCart, message) {
+    cart = cloneCart(previousCart);
+    saveCart();
+    updateCart();
+    showToast(message);
 }
 
 /* =====================================================
@@ -248,6 +320,7 @@ async function addToCart(productId) {
         return;
     }
 
+    const previousCart = cloneCart();
     if (existing) existing.quantity += 1;
     else cart.push({ id, quantity: 1 });
 
@@ -256,7 +329,14 @@ async function addToCart(productId) {
     updateCart();
 
     const currentItem = cart.find(item => item.id === id);
-    if (user) await saveItemToSupabase(id, currentItem.quantity, user);
+    if (user) {
+        const persisted = await saveItemToSupabase(id, currentItem.quantity, user);
+        if (!persisted) {
+            rollbackCart(previousCart, "No pudimos agregar el producto porque el carrito no se sincronizó.");
+            return;
+        }
+    }
+
     showToast(`${product.name} fue agregado al carrito.`);
 }
 
@@ -275,14 +355,21 @@ async function changeQuantity(productId, amount) {
         return;
     }
 
+    const previousCart = cloneCart();
     item.quantity = nextQuantity;
     markGuestCartAsCurrent();
 
+    let persisted = true;
     if (item.quantity <= 0) {
         cart = cart.filter(row => row.id !== id);
-        if (user) await removeItemFromSupabase(id, user);
+        if (user) persisted = await removeItemFromSupabase(id, user);
     } else if (user) {
-        await saveItemToSupabase(id, item.quantity, user);
+        persisted = await saveItemToSupabase(id, item.quantity, user);
+    }
+
+    if (!persisted) {
+        rollbackCart(previousCart, "No pudimos actualizar la cantidad porque el carrito no se sincronizó.");
+        return;
     }
 
     saveCart();
@@ -292,11 +379,19 @@ async function changeQuantity(productId, amount) {
 async function removeFromCart(productId) {
     const user = await ensureCartSessionReady();
     const id = Number(productId);
+    const previousCart = cloneCart();
+
     cart = cart.filter(item => item.id !== id);
     markGuestCartAsCurrent();
-    if (user) await removeItemFromSupabase(id, user);
     saveCart();
     updateCart();
+
+    if (user) {
+        const persisted = await removeItemFromSupabase(id, user);
+        if (!persisted) {
+            rollbackCart(previousCart, "No pudimos eliminar el producto porque el carrito no se sincronizó.");
+        }
+    }
 }
 
 function saveCart({ preserveLegacyMarker = false } = {}) {
@@ -318,12 +413,13 @@ function updateCart() {
 
     const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
     cartCount.textContent = totalItems;
+    cartCount.setAttribute("aria-label", `${totalItems} productos en el carrito`);
     if (checkoutButton) checkoutButton.hidden = false;
 
     if (cart.length === 0) {
         cartItems.innerHTML = `
             <div class="empty-cart">
-                <span>🌷</span>
+                <span aria-hidden="true">🌷</span>
                 <h3>Tu carrito está vacío</h3>
                 <p>Agrega flores para comenzar.</p>
             </div>
@@ -355,13 +451,13 @@ function updateCart() {
                 <div class="cart-item-info">
                     <h4>${KANTU_CART.escapeHtml(product.name || "Producto")}</h4>
                     <div class="cart-item-price">S/ ${price.toFixed(2)}</div>
-                    <div class="quantity-controls">
-                        <button onclick="changeQuantity(${item.id}, -1)" aria-label="Disminuir cantidad">−</button>
-                        <span>${item.quantity}</span>
-                        <button onclick="changeQuantity(${item.id}, 1)" aria-label="Aumentar cantidad">+</button>
+                    <div class="quantity-controls" aria-label="Cantidad de ${KANTU_CART.escapeHtml(product.name || "producto")}">
+                        <button type="button" onclick="changeQuantity(${item.id}, -1)" aria-label="Disminuir cantidad">−</button>
+                        <span aria-live="polite">${item.quantity}</span>
+                        <button type="button" onclick="changeQuantity(${item.id}, 1)" aria-label="Aumentar cantidad">+</button>
                     </div>
                 </div>
-                <button class="remove-item" onclick="removeFromCart(${item.id})" title="Eliminar producto">🗑</button>
+                <button type="button" class="remove-item" onclick="removeFromCart(${item.id})" aria-label="Eliminar ${KANTU_CART.escapeHtml(product.name || "producto")}">🗑</button>
             </div>
         `;
     }).join("");
@@ -377,6 +473,7 @@ function openCart() {
     if (!cartPanel) return;
 
     cartPanel.classList.add("show");
+    cartPanel.setAttribute("aria-hidden", "false");
     if (cart.length === 0 && typeof renderActiveOrderInCart === "function") {
         if (!renderActiveOrderInCart()) updateCart();
     } else {
@@ -385,7 +482,9 @@ function openCart() {
 }
 
 function closeCart() {
-    document.getElementById("cartPanel")?.classList.remove("show");
+    const panel = document.getElementById("cartPanel");
+    panel?.classList.remove("show");
+    panel?.setAttribute("aria-hidden", "true");
 }
 
 async function checkout() {
@@ -403,11 +502,26 @@ async function checkout() {
         return;
     }
 
+    if (cartSyncState === "error") {
+        const recovered = await loadCartFromSupabase();
+        if (!recovered || cartSyncState === "error") {
+            showToast("No podemos iniciar el pedido hasta sincronizar tu carrito. Revisa tu conexión.");
+            return;
+        }
+    }
+
     openCheckout(user);
 }
 
 function initializeCart() {
+    const panel = document.getElementById("cartPanel");
+    panel?.setAttribute("role", "dialog");
+    panel?.setAttribute("aria-modal", "true");
+    panel?.setAttribute("aria-label", "Carrito de compras");
+    panel?.setAttribute("aria-hidden", "true");
+
     document.getElementById("cartButton")?.addEventListener("click", openCart);
+    ensureCartSyncStatus();
     updateCart();
     loadCartFromSupabase();
 }
