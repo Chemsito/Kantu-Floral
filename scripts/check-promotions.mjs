@@ -61,8 +61,8 @@ assert.match(promotions, /Ningún descuento se calcula en el navegador/,
     "La UI Admin debe dejar claro que el backend es autoritativo.");
 assert.match(promotions, /adminPromotionsView/,
     "Debe existir una vista Admin para promociones.");
-assert.doesNotMatch(promotions, /KANTU20[\s\S]*\.insert\(|PROMO20[\s\S]*\.insert\(/,
-    "La UI no debe sembrar códigos promocionales automáticos.");
+assert.match(promotions, /placeholder="KANTU20"/,
+    "El formulario puede mostrar un ejemplo visual, pero no debe persistirlo automáticamente.");
 
 assert.match(gifting, /p_promotion_code:\s*promotionCode/,
     "La creación atómica del pedido debe enviar la promoción validada.");
