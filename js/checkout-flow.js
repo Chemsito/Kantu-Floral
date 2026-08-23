@@ -145,9 +145,23 @@
         details.append(summary, referenceGroup);
     }
 
+    function normalizeSchedulePlacement(wrapper) {
+        const schedule = el("checkoutScheduleSection");
+        const address = el("checkoutDeliveryAddressGroup");
+        if (!wrapper || !schedule) return;
+        schedule.querySelector(".checkout-section-heading")?.setAttribute("hidden", "");
+        if (schedule.parentElement !== wrapper) {
+            if (address?.parentElement === wrapper) wrapper.insertBefore(schedule, address);
+            else wrapper.appendChild(schedule);
+        }
+    }
+
     function ensureDeliverySection(form) {
         let wrapper = el("checkoutDeliveryFlowSection");
-        if (wrapper) return wrapper;
+        if (wrapper) {
+            normalizeSchedulePlacement(wrapper);
+            return wrapper;
+        }
 
         const schedule = el("checkoutScheduleSection");
         const address = el("checkoutDeliveryAddressGroup");
@@ -241,7 +255,8 @@
         if (!item) return;
         item.classList.toggle("complete", complete);
         item.classList.toggle("active", active);
-        item.setAttribute("aria-current", active ? "step" : "false");
+        if (active) item.setAttribute("aria-current", "step");
+        else item.removeAttribute("aria-current");
     }
 
     function updateProgress() {
@@ -268,6 +283,16 @@
         });
     }
 
+    function observeLateFields(form) {
+        if (form.dataset.checkoutFlowObserver === "true") return;
+        form.dataset.checkoutFlowObserver = "true";
+        new MutationObserver(() => {
+            simplifyGiftSection();
+            normalizeSchedulePlacement(el("checkoutDeliveryFlowSection"));
+            updateProgress();
+        }).observe(form, { childList: true, subtree: true });
+    }
+
     function simplify() {
         const form = el("checkoutForm");
         if (!form) return false;
@@ -278,6 +303,7 @@
         ensureReviewSection(form);
         patchOrderButtonState();
         bindProgressEvents(form);
+        observeLateFields(form);
         form.classList.add("checkout-simplified");
         const button = el("confirmOrderButton");
         if (button && !button.disabled) button.textContent = "Crear pedido y elegir pago";
