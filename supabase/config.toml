@@ -5,3 +5,11 @@ verify_jwt = true
 
 [functions.mercadopago-webhook]
 verify_jwt = false
+
+# Funciones públicas por diseño: implementan autenticación propia mediante
+# token opaco de pedido, hash SHA-256 server-side y rate limiting.
+[functions.guest-checkout]
+verify_jwt = false
+
+[functions.create-guest-mp-preference]
+verify_jwt = false
