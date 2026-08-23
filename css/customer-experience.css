@@ -132,8 +132,46 @@
     line-height: 1.5;
 }
 
+.customer-order-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.customer-cancel-order {
+    border: 1px solid #d98b92 !important;
+    background: #fff !important;
+    color: #a53649 !important;
+}
+
+.customer-cancel-order:hover:not(:disabled) {
+    background: #fff2f3 !important;
+    border-color: #be5363 !important;
+}
+
+.customer-cancel-order:disabled {
+    opacity: .58;
+    cursor: wait;
+}
+
+.checkout-cancel-order {
+    margin-top: 10px;
+}
+
 @media (max-width: 520px) {
     .checkout-delivery-quote-grid { grid-template-columns: 1fr; }
     .account-order-actions-row { flex-direction: column; }
     .account-order-actions-row button { width: 100%; }
+    .customer-order-action-group {
+        width: 100%;
+        flex-direction: column;
+    }
+    .customer-order-action-group > button,
+    .customer-order-action-group > .active-order-action {
+        width: 100%;
+    }
+    .customer-order-action-group > .active-order-action .btn {
+        width: 100%;
+    }
 }
