@@ -6,17 +6,17 @@
 
 const KANTU_APP = window.KantuCore;
 
-function loadAdminProductManager() {
-    if (document.querySelector('script[data-kantu-admin-products="true"]')) return;
+function loadCustomerExperienceModules() {
+    if (document.querySelector('script[data-kantu-experience-loader="true"]')) return;
 
     const script = document.createElement("script");
-    script.src = "js/admin-product-manager.js";
+    script.src = "js/experience-loader.js";
     script.async = false;
-    script.dataset.kantuAdminProducts = "true";
+    script.dataset.kantuExperienceLoader = "true";
     document.head.appendChild(script);
 }
 
-loadAdminProductManager();
+loadCustomerExperienceModules();
 
 function loadKantuBrandIdentity() {
     const styles = [
@@ -26,7 +26,8 @@ function loadKantuBrandIdentity() {
     ];
 
     styles.forEach(([href, key]) => {
-        if (document.querySelector(`link[data-${key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}="true"]`)) return;
+        const selectorKey = key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+        if (document.querySelector(`link[data-${selectorKey}="true"]`)) return;
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = href;
@@ -148,8 +149,13 @@ function initializeFavorites() {
         }
 
         currentCategory = "todos";
-        document.querySelectorAll(".category-btn").forEach(button => button.classList.remove("active"));
-        document.querySelector('[data-category="todos"]')?.classList.add("active");
+        document.querySelectorAll(".category-btn").forEach(button => {
+            button.classList.remove("active");
+            button.setAttribute("aria-pressed", "false");
+        });
+        const all = document.querySelector('[data-category="todos"]');
+        all?.classList.add("active");
+        all?.setAttribute("aria-pressed", "true");
         document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
         showFavoriteProducts();
     });
@@ -181,7 +187,7 @@ function showFavoriteProducts() {
                 <div class="product-image">
                     ${imageMarkup}
                     <span class="product-tag">Favorito</span>
-                    <button type="button" class="favorite active" onclick="toggleFavorite(${id})" aria-label="Eliminar ${KANTU_APP.escapeHtml(product.name || "producto")} de favoritos">♥</button>
+                    <button type="button" class="favorite active" onclick="toggleFavorite(${id})" aria-pressed="true" aria-label="Eliminar de favoritos: ${KANTU_APP.escapeHtml(product.name || "Producto")}">♥</button>
                 </div>
                 <div class="product-info">
                     <span class="product-category">${KANTU_APP.escapeHtml(getCategoryName(product.category))}</span>
@@ -232,8 +238,6 @@ function initializeMobileMenu() {
     const nav = document.querySelector("header nav");
     if (!originalButton || !nav) return;
 
-    // El HTML legado tenía un onclick inline. Se elimina para garantizar una
-    // única fuente de eventos y evitar el doble toggle del menú móvil.
     originalButton.removeAttribute("onclick");
     originalButton.type = "button";
     originalButton.setAttribute("aria-controls", "siteNavigation");
@@ -274,19 +278,30 @@ function closeVisibleOverlay(overlay) {
     overlay.classList.remove("show");
 }
 
-function initializeAccessibleOverlays() {
-    document.querySelectorAll(".modal-overlay").forEach(overlay => {
-        if (!overlay.hasAttribute("role")) overlay.setAttribute("role", "dialog");
-        if (!overlay.hasAttribute("aria-modal")) overlay.setAttribute("aria-modal", "true");
-        overlay.setAttribute("aria-hidden", overlay.classList.contains("show") ? "false" : "true");
-
-        overlay.querySelectorAll(".close-modal").forEach(button => {
-            if (!button.getAttribute("aria-label")) button.setAttribute("aria-label", "Cerrar ventana");
-        });
+function configureAccessibleOverlay(overlay) {
+    if (!(overlay instanceof HTMLElement) || !overlay.classList.contains("modal-overlay")) return;
+    if (!overlay.hasAttribute("role")) overlay.setAttribute("role", "dialog");
+    if (!overlay.hasAttribute("aria-modal")) overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-hidden", overlay.classList.contains("show") ? "false" : "true");
+    overlay.querySelectorAll(".close-modal").forEach(button => {
+        if (!button.getAttribute("aria-label")) button.setAttribute("aria-label", "Cerrar ventana");
     });
+}
+
+function initializeAccessibleOverlays() {
+    document.querySelectorAll(".modal-overlay").forEach(configureAccessibleOverlay);
 
     const observer = new MutationObserver(records => {
         records.forEach(record => {
+            if (record.type === "childList") {
+                record.addedNodes.forEach(node => {
+                    if (!(node instanceof Element)) return;
+                    if (node.matches?.(".modal-overlay")) configureAccessibleOverlay(node);
+                    node.querySelectorAll?.(".modal-overlay").forEach(configureAccessibleOverlay);
+                });
+                return;
+            }
+
             const overlay = record.target;
             if (!(overlay instanceof HTMLElement) || !overlay.classList.contains("modal-overlay")) return;
             const isOpen = overlay.classList.contains("show");
@@ -306,6 +321,7 @@ function initializeAccessibleOverlays() {
     document.querySelectorAll(".modal-overlay").forEach(overlay => {
         observer.observe(overlay, { attributes: true, attributeFilter: ["class"] });
     });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     document.addEventListener("keydown", event => {
         const openOverlays = [...document.querySelectorAll(".modal-overlay.show")];
@@ -343,76 +359,42 @@ function initializeAccessibleOverlays() {
     });
 }
 
-/* =====================================================
-   HARDENING DEL PANEL ADMIN
-   Compatibilidad temporal hasta mover completamente esta política a admin.js.
-===================================================== */
+function initializeCheckoutMapKeyboard() {
+    const map = document.getElementById("checkoutDeliveryMap");
+    if (!map || map.dataset.kantuKeyboardReady === "true") return;
 
-function applyAdminHardening() {
-    if (typeof ADMIN_ALLOWED_TRANSITIONS !== "undefined") {
-        ADMIN_ALLOWED_TRANSITIONS.pendiente = ["cancelado"];
-        ADMIN_ALLOWED_TRANSITIONS.confirmado = [];
-        ADMIN_ALLOWED_TRANSITIONS.preparando = [];
-        ADMIN_ALLOWED_TRANSITIONS.en_camino = [];
+    map.dataset.kantuKeyboardReady = "true";
+    map.tabIndex = 0;
+    map.setAttribute("role", "application");
+    map.setAttribute(
+        "aria-label",
+        "Mapa de entrega. Usa las flechas para mover el mapa y pulsa Enter para seleccionar el centro."
+    );
+
+    let hint = document.getElementById("checkoutMapKeyboardHint");
+    if (!hint) {
+        hint = document.createElement("small");
+        hint.id = "checkoutMapKeyboardHint";
+        hint.className = "checkout-map-keyboard-hint";
+        hint.textContent = "Teclado: enfoca el mapa, muévelo con las flechas y pulsa Enter para elegir el centro.";
+        map.insertAdjacentElement("afterend", hint);
     }
 
-    if (typeof ADMIN_STATUS_ERROR_MESSAGES !== "undefined") {
-        ADMIN_STATUS_ERROR_MESSAGES.PAYMENT_FLOW_REQUIRED = "La confirmación del pedido debe realizarla un pago aprobado.";
-        ADMIN_STATUS_ERROR_MESSAGES.PAID_ORDER_CANNOT_BE_CANCELLED = "Un pedido pagado no puede cancelarse sin gestionar primero su reembolso.";
-        ADMIN_STATUS_ERROR_MESSAGES.PAYMENT_NOT_APPROVED = "El pedido no puede avanzar porque el pago no está aprobado.";
-        ADMIN_STATUS_ERROR_MESSAGES.OPERATIONAL_FLOW_REQUIRED = "Preparación, reparto y entrega se actualizan desde el portal operativo.";
-    }
+    map.addEventListener("keydown", event => {
+        if (!['Enter', ' '].includes(event.key)) return;
+        if (typeof checkoutDeliveryMap === "undefined" || !checkoutDeliveryMap) return;
+        if (typeof setCheckoutDeliveryLocation !== "function") return;
 
-    if (typeof loadAdminDashboard === "function") {
-        loadAdminDashboard = async function hardenedLoadAdminDashboard() {
-            const loading = adminElement("adminDashboardLoading");
-            const grid = adminElement("adminStatsGrid");
-            loading.hidden = false;
-            grid.innerHTML = "";
-
-            const [ordersResult, productsResult] = await Promise.all([
-                supabaseClient.from("orders").select("status, total, payment_status"),
-                supabaseClient.from("products").select("active, stock")
-            ]);
-
-            loading.hidden = true;
-
-            if (ordersResult.error || productsResult.error) {
-                console.error("Error cargando dashboard:", ordersResult.error || productsResult.error);
-                showAdminMessage("No pudimos cargar las estadísticas del panel.");
-                return;
-            }
-
-            const orders = ordersResult.data || [];
-            const productRows = productsResult.data || [];
-            const paidSales = orders
-                .filter(order => order.payment_status === "approved" && order.status !== "cancelado")
-                .reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-
-            const stats = [
-                ["Total de pedidos", orders.length, "all"],
-                ...ADMIN_STATUSES.map(status => [
-                    ADMIN_STATUS_LABELS[status],
-                    orders.filter(order => order.status === status).length,
-                    status
-                ]),
-                ["Ventas pagadas", adminMoney(paidSales), "sales"],
-                ["Productos activos", productRows.filter(product => product.active).length, "products"],
-                ["Stock bajo", productRows.filter(product => Number(product.stock) <= 5).length, "stock"]
-            ];
-
-            grid.innerHTML = stats.map(([label, value, kind]) =>
-                `<article class="admin-stat-card stat-${kind}">
-                    <span>${adminEscape(label)}</span>
-                    <strong>${adminEscape(value)}</strong>
-                </article>`
-            ).join("");
-        };
-    }
+        event.preventDefault();
+        const center = checkoutDeliveryMap.getCenter();
+        setCheckoutDeliveryLocation(center.lat, center.lng, true);
+    });
 }
 
 /* =====================================================
    REINTENTOS SEGUROS DE MERCADO PAGO
+   Adaptador temporal entre orders/account mientras el flujo se migra a un
+   controlador de pagos dedicado.
 ===================================================== */
 
 function applyMercadoPagoRetrySupport() {
@@ -733,7 +715,6 @@ function initializeCustomerExperienceListeners() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    applyAdminHardening();
     initializeAccessibleOverlays();
     initializeCategories();
     initializeCart();
@@ -741,6 +722,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initializeFavorites();
     initializeMobileMenu();
     initializeMobileLinks();
+    initializeCheckoutMapKeyboard();
     initializeCustomerExperienceListeners();
     await loadProducts();
 });
