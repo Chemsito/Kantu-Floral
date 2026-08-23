@@ -24,7 +24,7 @@ assert.doesNotMatch(app, /stopImmediatePropagation\(\)/, "No se debe bloquear gl
 assert.doesNotMatch(app, /initializeModalDismissalPolicy/, "La política antigua que impedía cerrar modales no debe volver.");
 
 assert.match(products, /KantuProductConfig/, "La configuración de productos debe exponerse desde una fuente autoritativa.");
-assert.match(products, /aria-pressed=\\?/, "Las categorías/favoritos deben mantener estado accesible.");
+assert.match(products, /aria-pressed=/, "Las categorías/favoritos deben mantener estado accesible.");
 assert.match(products, /favoriteAction/, "El texto accesible de favoritos debe cambiar según su estado.");
 
 assert.match(webhook, /@supabase\/supabase-js@2\.112\.3/, "La Edge Function debe fijar la versión exacta de Supabase JS.");
