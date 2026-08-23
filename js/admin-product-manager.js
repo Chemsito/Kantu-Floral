@@ -18,11 +18,16 @@
         window.supabaseClient = supabaseClient;
     }
 
-    if (document.querySelector('script[data-kantu-customer-ux="true"]')) return;
+    function loadScriptOnce(src, dataAttribute, dataValue) {
+        if (document.querySelector(`script[${dataAttribute}="${dataValue}"]`)) return;
 
-    const script = document.createElement("script");
-    script.src = "js/customer-ux.js";
-    script.async = false;
-    script.dataset.kantuCustomerUx = "true";
-    document.head.appendChild(script);
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = false;
+        script.setAttribute(dataAttribute, dataValue);
+        document.head.appendChild(script);
+    }
+
+    loadScriptOnce("js/customer-ux.js", "data-kantu-customer-ux", "true");
+    loadScriptOnce("js/sakura.js", "data-kantu-sakura", "true");
 })();
