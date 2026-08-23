@@ -1,0 +1,313 @@
+/* Kantu Floral - comercio y operación */
+
+.checkout-upsell-section {
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid rgba(139, 47, 69, 0.14);
+    border-radius: 16px;
+    background: #fffaf7;
+}
+
+.checkout-upsell-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 12px;
+}
+
+.checkout-upsell-heading strong {
+    display: block;
+    color: #4b3038;
+    font-size: 15px;
+}
+
+.checkout-upsell-heading small {
+    display: block;
+    margin-top: 3px;
+    color: #786d70;
+}
+
+.checkout-upsell-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.checkout-upsell-item {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #eadedb;
+    border-radius: 13px;
+    background: #fff;
+}
+
+.checkout-upsell-item img,
+.checkout-upsell-placeholder {
+    width: 58px;
+    height: 58px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #f8ecec;
+}
+
+.checkout-upsell-placeholder {
+    display: grid;
+    place-items: center;
+    color: #b26a7d;
+    font-size: 24px;
+}
+
+.checkout-upsell-info {
+    min-width: 0;
+}
+
+.checkout-upsell-info strong {
+    display: block;
+    overflow: hidden;
+    color: #4b3038;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.checkout-upsell-info span {
+    display: block;
+    margin: 2px 0 7px;
+    color: #8b2f45;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.checkout-upsell-add {
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 9px;
+    background: #8b2f45;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.checkout-upsell-add:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.catalog-featured-strip {
+    margin: 18px 0;
+    padding: 14px 16px;
+    border: 1px solid rgba(139, 47, 69, 0.13);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff9f6, #fff1f4);
+}
+
+.catalog-featured-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.catalog-featured-heading strong {
+    color: #4b3038;
+    font-family: "Playfair Display", Georgia, serif;
+}
+
+.catalog-featured-heading span {
+    color: #7d6f73;
+    font-size: 11px;
+}
+
+.catalog-featured-items {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    scrollbar-width: thin;
+}
+
+.catalog-featured-items a {
+    flex: 0 0 auto;
+    min-width: 165px;
+    padding: 9px 11px;
+    border: 1px solid rgba(139, 47, 69, 0.13);
+    border-radius: 11px;
+    background: #fff;
+    color: #59474c;
+    text-decoration: none;
+}
+
+.catalog-featured-items a span,
+.catalog-featured-items a strong {
+    display: block;
+}
+
+.catalog-featured-items a span {
+    max-width: 180px;
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.catalog-featured-items a strong {
+    margin-top: 3px;
+    color: #8b2f45;
+    font-size: 12px;
+}
+
+.commerce-overview-card,
+.inventory-ledger-card {
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid #eadedb;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.commerce-overview-card h4,
+.inventory-ledger-card h4 {
+    margin: 0;
+    color: #4a3439;
+}
+
+.commerce-overview-card > p,
+.inventory-ledger-card > p {
+    margin: 4px 0 16px;
+    color: #7a6e71;
+    font-size: 13px;
+}
+
+.commerce-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.commerce-metric {
+    padding: 12px;
+    border-radius: 13px;
+    background: #fff8f5;
+}
+
+.commerce-metric span {
+    display: block;
+    color: #786d70;
+    font-size: 11px;
+}
+
+.commerce-metric strong {
+    display: block;
+    margin-top: 3px;
+    color: #4b3038;
+    font-size: 18px;
+}
+
+.commerce-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.commerce-panel {
+    padding: 14px;
+    border: 1px solid #eee3df;
+    border-radius: 13px;
+}
+
+.commerce-panel h5 {
+    margin: 0 0 10px;
+    color: #523940;
+    font-size: 13px;
+}
+
+.commerce-attention-list,
+.commerce-top-list,
+.inventory-ledger-list {
+    display: grid;
+    gap: 8px;
+}
+
+.commerce-attention-item,
+.commerce-top-item,
+.inventory-ledger-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 10px;
+    border-radius: 10px;
+    background: #faf7f5;
+    color: #5f5155;
+    font-size: 12px;
+}
+
+.commerce-attention-item.urgent {
+    background: #fff0f1;
+    color: #922c3b;
+}
+
+.commerce-attention-item.warning {
+    background: #fff7e9;
+    color: #7e5a22;
+}
+
+.commerce-top-item strong,
+.inventory-ledger-item strong {
+    color: #4b3038;
+}
+
+.commerce-empty {
+    margin: 0;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f4fbf5;
+    color: #3e704f;
+    font-size: 12px;
+}
+
+.admin-featured-toggle {
+    border: 1px solid #e2cbc9 !important;
+    background: #fff9f6 !important;
+    color: #8b2f45 !important;
+}
+
+.admin-featured-toggle.active {
+    border-color: #c88b9a !important;
+    background: #f7e3e9 !important;
+    font-weight: 700;
+}
+
+.inventory-ledger-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+}
+
+.inventory-ledger-item .positive { color: #2f7650; }
+.inventory-ledger-item .negative { color: #a2313c; }
+
+.inventory-source {
+    color: #84777b;
+    font-size: 10px;
+}
+
+@media (max-width: 860px) {
+    .commerce-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .commerce-columns { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .checkout-upsell-list { grid-template-columns: 1fr; }
+    .commerce-metrics-grid { grid-template-columns: 1fr; }
+    .catalog-featured-heading { align-items: flex-start; flex-direction: column; }
+}
