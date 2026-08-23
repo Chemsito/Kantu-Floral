@@ -7,8 +7,9 @@ const cart = read("js/cart.js");
 const products = read("js/products.js");
 const app = read("js/app.js");
 const auth = read("js/auth.js");
-const orderMigration = read("supabase/migrations/20260822200500_harden_admin_order_transitions.sql");
-const operationalMigration = read("supabase/migrations/20260822203000_lock_admin_status_to_unpaid_cancellation.sql");
+const mpPreference = read("supabase/functions/create-mp-preference/index.ts");
+const orderMigration = read("supabase/migrations/20260822200533_harden_admin_order_transitions.sql");
+const operationalMigration = read("supabase/migrations/20260822201426_lock_admin_status_to_unpaid_cancellation.sql");
 
 assert.match(cart, /onConflict:\s*["']user_id,product_id["']/, "El carrito debe resolver upserts por user_id + product_id.");
 assert.match(cart, /KANTU_CART\.escapeHtml/, "El carrito debe escapar contenido de productos.");
@@ -23,6 +24,19 @@ assert.match(app, /ADMIN_ALLOWED_TRANSITIONS\.pendiente = \["cancelado"\]/, "Adm
 assert.match(app, /ADMIN_ALLOWED_TRANSITIONS\.confirmado = \[\]/, "Admin no debe saltarse el portal operativo desde confirmado.");
 assert.match(app, /ADMIN_ALLOWED_TRANSITIONS\.preparando = \[\]/, "Admin no debe saltarse timestamps de preparación.");
 assert.match(app, /ADMIN_ALLOWED_TRANSITIONS\.en_camino = \[\]/, "Admin no debe saltarse timestamps de reparto.");
+assert.match(app, /retryableStatuses = new Set\(\["pending", "rejected", "cancelled"\]\)/,
+  "El frontend debe permitir reintentar Mercado Pago tras rechazo o cancelación.");
+assert.match(app, /resetManualPayment\(\)/,
+  "Un reintento de Mercado Pago rechazado/cancelado no debe habilitar pagos manuales fuera del estado pending.");
+
+assert.match(mpPreference, /RETRYABLE_PAYMENT_STATUSES = new Set\(\["pending", "rejected", "cancelled"\]\)/,
+  "La Edge Function debe aceptar reintentos de pagos rechazados o cancelados.");
+assert.match(mpPreference, /\.select\("id, name, image, stock, active"\)/,
+  "La preferencia debe volver a consultar stock y disponibilidad antes de enviar al cliente a pagar.");
+assert.match(mpPreference, /stock < requiredQuantity/,
+  "La preferencia debe bloquear checkout cuando el stock actual sea insuficiente.");
+assert.match(mpPreference, /\.eq\("payment_status", order\.payment_status\)/,
+  "La asociación de una nueva preferencia debe usar control optimista sobre el estado observado.");
 
 assert.match(auth, /KANTU_MIN_PASSWORD_LENGTH = 8/, "La contraseña mínima del frontend debe ser de al menos 8 caracteres.");
 assert.doesNotMatch(auth, /Usuario conectado:/, "No se debe registrar el correo del usuario al iniciar sesión.");
