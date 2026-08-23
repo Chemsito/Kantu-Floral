@@ -20,21 +20,54 @@
     <link rel="canonical" href="https://chemsito.github.io/Kantu-Floral/producto.html">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/brand.css" data-kantu-brand="true">
+    <link rel="stylesheet" href="css/mobile.css" data-kantu-mobile="true">
+    <link rel="stylesheet" href="css/stabilization.css" data-kantu-stabilization="true">
     <link rel="stylesheet" href="css/product-detail.css">
 
     <title>Producto | Kantu Floral</title>
 </head>
-<body>
-    <header class="product-page-header">
-        <a class="product-page-brand" href="index.html" aria-label="Volver a Kantu Floral">
-            <span class="product-page-brand-mark" aria-hidden="true">✿</span>
-            <span>
-                <strong>Kantu Floral</strong>
-                <small>Flores que cuentan historias · GRUPO TENNO</small>
-            </span>
-        </a>
-        <a class="product-page-back" href="index.html#catalogo">← Volver al catálogo</a>
+<body class="product-detail-page">
+    <header class="site-header product-detail-site-header">
+        <div class="navbar">
+            <a href="index.html#inicio" class="logo" aria-label="Kantu Floral, ir al inicio">
+                <div class="logo-icon" aria-hidden="true">✿</div>
+                <div class="logo-text">Kantu Floral</div>
+            </a>
+
+            <nav id="siteNavigation" aria-label="Navegación principal">
+                <a href="index.html#inicio">Inicio</a>
+                <a href="index.html#catalogo">Catálogo</a>
+                <a href="index.html#nosotros">Nosotros</a>
+                <a href="index.html#contacto">Contacto</a>
+                <button type="button" class="nav-order-link" id="headerOrdersButton" hidden>Mis pedidos</button>
+            </nav>
+
+            <div class="header-actions">
+                <button type="button" class="icon-button" id="favoritesButton" title="Favoritos" aria-label="Ver productos favoritos">♡</button>
+
+                <button type="button" class="icon-button" id="cartButton" title="Carrito" aria-label="Abrir carrito">
+                    <span aria-hidden="true">🛒</span>
+                    <span class="cart-button-label" id="cartButtonLabel">Carrito</span>
+                    <span class="cart-count" id="cartCount" aria-live="polite">0</span>
+                </button>
+
+                <button type="button" class="user-button" id="loginButton">Iniciar sesión</button>
+
+                <button
+                    type="button"
+                    class="icon-button mobile-menu"
+                    aria-controls="siteNavigation"
+                    aria-expanded="false"
+                    aria-label="Abrir menú de navegación"
+                >
+                    <span aria-hidden="true">☰</span>
+                </button>
+            </div>
+        </div>
     </header>
 
     <main class="product-page-shell" id="productDetailRoot">
