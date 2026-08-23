@@ -27,40 +27,39 @@ body {
     opacity: .76;
 }
 
-/* Pétalos: capa independiente por encima del contenido, sin bloquear clics. */
+/* Pétalos: capa flotante propia, por encima del catálogo pero sin bloquear interacción. */
 .sakura-petals-overlay {
     position: fixed;
     inset: 0;
-    z-index: 40;
+    z-index: 90;
     overflow: hidden;
-    pointer-events: none;
+    pointer-events: none !important;
     user-select: none;
-    contain: layout paint;
+    isolation: isolate;
 }
 
 .sakura-petals {
     position: absolute;
-    inset: -14vh 0 0;
+    inset: 0;
+    display: block !important;
     overflow: hidden;
+    pointer-events: none !important;
 }
 
 .sakura-petal {
     position: absolute;
-    top: -10vh;
-    left: var(--left);
-    width: var(--size);
-    height: calc(var(--size) * 1.34);
+    top: -32px;
+    display: block;
+    pointer-events: none !important;
     border-radius: 72% 18% 70% 32%;
-    background: linear-gradient(145deg, rgba(255,255,255,.98) 0%, rgba(255,205,221,.97) 44%, rgba(223,101,139,.94) 100%);
-    border: 1px solid rgba(204, 92, 126, .16);
+    background: linear-gradient(145deg, #fff 0%, #ffd3df 38%, #ea7698 100%);
+    border: 1px solid rgba(190, 70, 108, .24);
     box-shadow:
-        inset 1px 1px 2px rgba(255,255,255,.9),
-        0 3px 9px rgba(159,63,91,.16);
-    opacity: var(--opacity);
+        inset 1px 1px 2px rgba(255,255,255,.95),
+        0 4px 12px rgba(155,52,84,.20);
     transform-origin: 50% 42%;
-    will-change: transform;
-    animation: sakura-fall var(--duration) linear infinite;
-    animation-delay: var(--delay);
+    will-change: transform, opacity;
+    backface-visibility: visible;
 }
 
 .sakura-petal::after {
@@ -71,29 +70,39 @@ body {
     width: 30%;
     height: 54%;
     border-radius: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,0));
+    background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,0));
     transform: rotate(-18deg);
 }
 
-.sakura-petals-overlay.paused .sakura-petal {
+/* Fallback CSS: se usa solo si Web Animations API no está disponible. */
+.sakura-petal.sakura-css-fallback {
+    left: var(--left);
+    width: var(--size);
+    height: calc(var(--size) * 1.34);
+    opacity: var(--opacity);
+    animation: sakura-fall var(--duration) linear infinite;
+    animation-delay: var(--delay);
+}
+
+.sakura-petals-overlay.paused .sakura-petal.sakura-css-fallback {
     animation-play-state: paused;
 }
 
 @keyframes sakura-fall {
     0% {
-        transform: translate3d(0, -12vh, 0) rotate(0deg) rotateY(0deg);
+        transform: translate3d(0, -8vh, 0) rotate(0deg);
     }
-    24% {
-        transform: translate3d(var(--x1), 28vh, 0) rotate(110deg) rotateY(65deg);
+    25% {
+        transform: translate3d(var(--x1), 28vh, 0) rotate(105deg);
     }
     52% {
-        transform: translate3d(var(--x2), 62vh, 0) rotate(225deg) rotateY(145deg);
+        transform: translate3d(var(--x2), 60vh, 0) rotate(220deg);
     }
     78% {
-        transform: translate3d(var(--x3), 92vh, 0) rotate(330deg) rotateY(225deg);
+        transform: translate3d(var(--x3), 90vh, 0) rotate(330deg);
     }
     100% {
-        transform: translate3d(var(--x4), 126vh, 0) rotate(var(--spin)) rotateY(320deg);
+        transform: translate3d(var(--x4), 116vh, 0) rotate(var(--spin));
     }
 }
 
@@ -130,13 +139,13 @@ body > footer {
     }
 
     .sakura-petals-overlay {
-        z-index: 35;
+        z-index: 80;
     }
 
     .sakura-petal {
         box-shadow:
-            inset 1px 1px 2px rgba(255,255,255,.86),
-            0 2px 7px rgba(159,63,91,.13);
+            inset 1px 1px 2px rgba(255,255,255,.9),
+            0 3px 9px rgba(155,52,84,.16);
     }
 
     #catalogo.section {
@@ -145,8 +154,9 @@ body > footer {
     }
 }
 
+/* Reducir movimiento ya no elimina la escena: JS disminuye cantidad y velocidad. */
 @media (prefers-reduced-motion: reduce) {
-    .sakura-petals {
-        display: none;
+    .sakura-petal {
+        box-shadow: inset 1px 1px 2px rgba(255,255,255,.9), 0 2px 7px rgba(155,52,84,.12);
     }
 }
