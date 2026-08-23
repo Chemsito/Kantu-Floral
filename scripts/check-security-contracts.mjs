@@ -8,6 +8,7 @@ const hardening = read("supabase/migrations/20260822155818_harden_permissions_in
 const staffOps = read("supabase/migrations/20260822181000_staff_operations_and_delivery_pricing.sql");
 const staffQueues = read("supabase/migrations/20260822185224_staff_search_and_role_specific_queues.sql");
 const leastPrivilege = read("supabase/migrations/20260822235932_reduce_nonpayment_table_privileges.sql");
+const paymentLeastPrivilege = read("supabase/migrations/20260823000933_reduce_payment_and_delivery_table_privileges.sql");
 
 // Frontend credentials: only a publishable key may be shipped to the browser.
 assert.match(
@@ -46,6 +47,13 @@ assert.doesNotMatch(leastPrivilege, /grant[^;]*\btruncate\b/i,
   "Ningún cliente web debe recibir privilegio TRUNCATE.");
 assert.doesNotMatch(leastPrivilege, /grant[^;]*\btrigger\b/i,
   "Ningún cliente web debe recibir privilegio TRIGGER.");
+
+assert.match(paymentLeastPrivilege, /revoke all on table public\.payment_proofs from anon, authenticated;/i);
+assert.match(paymentLeastPrivilege, /grant select, insert on table public\.payment_proofs to authenticated;/i);
+assert.match(paymentLeastPrivilege, /revoke all on table public\.delivery_pricing_settings from anon, authenticated;/i);
+assert.match(paymentLeastPrivilege, /grant select, update on table public\.delivery_pricing_settings to authenticated;/i);
+assert.doesNotMatch(paymentLeastPrivilege, /grant[^;]*\b(delete|truncate|trigger|references)\b/i,
+  "Las tablas de pagos/delivery no deben otorgar privilegios destructivos al cliente web.");
 
 // SECURITY DEFINER RPCs are intentionally callable by authenticated users only,
 // so every privileged implementation must perform an explicit server-side
