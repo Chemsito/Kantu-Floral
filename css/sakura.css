@@ -8,7 +8,8 @@ body {
     background: transparent !important;
 }
 
-.sakura-scene {
+/* Ramas decorativas: siempre detrás de la interfaz. */
+.sakura-background {
     position: fixed;
     inset: 0;
     z-index: 0;
@@ -26,6 +27,17 @@ body {
     opacity: .76;
 }
 
+/* Pétalos: capa independiente por encima del contenido, sin bloquear clics. */
+.sakura-petals-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    contain: layout paint;
+}
+
 .sakura-petals {
     position: absolute;
     inset: -14vh 0 0;
@@ -39,8 +51,11 @@ body {
     width: var(--size);
     height: calc(var(--size) * 1.34);
     border-radius: 72% 18% 70% 32%;
-    background: linear-gradient(145deg, rgba(255,255,255,.96) 0%, rgba(255,218,229,.94) 42%, rgba(235,137,162,.88) 100%);
-    box-shadow: inset 1px 1px 2px rgba(255,255,255,.85), 0 3px 8px rgba(173,77,104,.10);
+    background: linear-gradient(145deg, rgba(255,255,255,.98) 0%, rgba(255,205,221,.97) 44%, rgba(223,101,139,.94) 100%);
+    border: 1px solid rgba(204, 92, 126, .16);
+    box-shadow:
+        inset 1px 1px 2px rgba(255,255,255,.9),
+        0 3px 9px rgba(159,63,91,.16);
     opacity: var(--opacity);
     transform-origin: 50% 42%;
     will-change: transform;
@@ -56,11 +71,11 @@ body {
     width: 30%;
     height: 54%;
     border-radius: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,0));
+    background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,0));
     transform: rotate(-18deg);
 }
 
-.sakura-scene.paused .sakura-petal {
+.sakura-petals-overlay.paused .sakura-petal {
     animation-play-state: paused;
 }
 
@@ -82,7 +97,7 @@ body {
     }
 }
 
-/* El contenido queda por encima del decorado sin bloquear clics. */
+/* El contenido queda por encima del fondo estático. */
 body > header,
 body > main,
 body > footer {
@@ -90,7 +105,7 @@ body > footer {
     z-index: 1;
 }
 
-/* Permite que el fondo se perciba sin sacrificar legibilidad del catalogo. */
+/* Permite que el fondo se perciba sin sacrificar legibilidad del catálogo. */
 #catalogo.section {
     background: rgba(255, 250, 248, .76) !important;
     backdrop-filter: blur(1.2px);
@@ -114,8 +129,14 @@ body > footer {
         opacity: .56;
     }
 
+    .sakura-petals-overlay {
+        z-index: 35;
+    }
+
     .sakura-petal {
-        box-shadow: inset 1px 1px 2px rgba(255,255,255,.8);
+        box-shadow:
+            inset 1px 1px 2px rgba(255,255,255,.86),
+            0 2px 7px rgba(159,63,91,.13);
     }
 
     #catalogo.section {
