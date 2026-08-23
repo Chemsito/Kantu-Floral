@@ -1,0 +1,45 @@
+/* Kantu Floral - reglas avanzadas de promociones */
+
+.promotion-rules-group {
+    margin: 4px 0;
+    padding: 16px;
+    border: 1px solid #eadbd7;
+    border-radius: 14px;
+    background: #fffaf8;
+}
+
+.promotion-rules-group legend {
+    padding: 0 7px;
+    color: #583c44;
+    font-weight: 700;
+}
+
+.promotion-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.promotion-rule-wide {
+    grid-column: 1 / -1;
+}
+
+.promotion-rules-group select[multiple] {
+    min-height: 132px;
+}
+
+.promotion-rules-group small {
+    display: block;
+    margin-top: 5px;
+    color: #7e7073;
+    font-size: 11px;
+}
+
+@media (max-width: 680px) {
+    .promotion-rules-grid {
+        grid-template-columns: 1fr;
+    }
+    .promotion-rule-wide {
+        grid-column: auto;
+    }
+}
