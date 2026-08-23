@@ -39,6 +39,7 @@ deno check --no-config \
 - La confirmación de Mercado Pago solo puede ejecutar `confirm_paid_order` mediante `service_role`.
 - Los comprobantes manuales se guardan en un bucket privado y se validan mediante políticas de Storage/RLS.
 - Los totales de Mercado Pago se reconstruyen desde los precios históricos del pedido más el delivery antes de abrir Checkout Pro.
+- Justo antes de crear la preferencia de Mercado Pago se vuelve a validar que los productos sigan activos y exista stock suficiente.
 - Un pago rechazado o cancelado puede reintentarse con Mercado Pago; un pago ya aprobado no puede reemplazarse por otro `payment_id`.
 
 ## Migraciones
