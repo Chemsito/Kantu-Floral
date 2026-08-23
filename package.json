@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "check": "npm run check:js && npm run check:hardening && npm run check:security && npm run check:stabilization && npm run check:deployment && npm run check:gifting && npm run check:commerce && npm run check:promotions && npm run check:promotion-rules && npm run check:delivery-availability && npm run check:scheduled-operations && npm run check:occasion-reminders",
-    "check:js": "node --check js/supabase.js && node --check js/products.js && node --check js/cart.js && node --check js/orders.js && node --check js/checkout-gifting.js && node --check js/promotions.js && node --check js/promotion-rules.js && node --check js/delivery-availability.js && node --check js/scheduled-operations.js && node --check js/occasion-reminders.js && node --check js/manual-payments.js && node --check js/order-tracking.js && node --check js/account.js && node --check js/admin.js && node --check js/admin-image-upload.js && node --check js/admin-schedule.js && node --check js/order-gifting-ui.js && node --check js/product-detail.js && node --check js/commerce-ops.js && node --check js/experience-loader.js && node --check js/customer-ux.js && node --check js/sakura.js && node --check js/auth.js && node --check js/app.js && node --check js/staff.js && node --check js/staff-realtime.js",
+    "check": "npm run check:js && npm run check:hardening && npm run check:security && npm run check:stabilization && npm run check:deployment && npm run check:gifting && npm run check:commerce && npm run check:promotions && npm run check:promotion-rules && npm run check:delivery-availability && npm run check:scheduled-operations && npm run check:occasion-reminders && npm run check:favorites-sync",
+    "check:js": "node --check js/supabase.js && node --check js/products.js && node --check js/cart.js && node --check js/orders.js && node --check js/checkout-gifting.js && node --check js/promotions.js && node --check js/promotion-rules.js && node --check js/delivery-availability.js && node --check js/scheduled-operations.js && node --check js/occasion-reminders.js && node --check js/favorites-sync.js && node --check js/manual-payments.js && node --check js/order-tracking.js && node --check js/account.js && node --check js/admin.js && node --check js/admin-image-upload.js && node --check js/admin-schedule.js && node --check js/order-gifting-ui.js && node --check js/product-detail.js && node --check js/commerce-ops.js && node --check js/experience-loader.js && node --check js/customer-ux.js && node --check js/sakura.js && node --check js/auth.js && node --check js/app.js && node --check js/staff.js && node --check js/staff-realtime.js",
     "check:hardening": "node scripts/check-hardening.mjs",
     "check:security": "node scripts/check-security-contracts.mjs",
     "check:stabilization": "node scripts/check-stabilization.mjs",
@@ -12,7 +12,8 @@
     "check:promotion-rules": "node scripts/check-promotion-rules.mjs",
     "check:delivery-availability": "node scripts/check-delivery-availability.mjs",
     "check:scheduled-operations": "node scripts/check-scheduled-operations.mjs",
-    "check:occasion-reminders": "node scripts/check-occasion-reminders.mjs"
+    "check:occasion-reminders": "node scripts/check-occasion-reminders.mjs",
+    "check:favorites-sync": "node scripts/check-favorites-sync.mjs"
   },
   "devDependencies": {
     "supabase": "^2.115.0"
