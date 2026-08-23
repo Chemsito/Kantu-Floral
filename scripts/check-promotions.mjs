@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20260823215000_add_server_side_promotions.sql", "utf8");
+const cleanup = fs.readFileSync("supabase/migrations/20260823215500_cleanup_untracked_coupon_engine.sql", "utf8");
 const promotions = fs.readFileSync("js/promotions.js", "utf8");
 const gifting = fs.readFileSync("js/checkout-gifting.js", "utf8");
 const loader = fs.readFileSync("js/experience-loader.js", "utf8");
@@ -32,6 +33,21 @@ assert.match(migration, /create or replace function public\.kantu_promotions_hea
     "El bloque debe contar con health check privado.");
 assert.match(migration, /revoke all on function public\.kantu_promotions_health_check\(\) from public, anon, authenticated/i,
     "El health check de promociones no debe exponerse al cliente.");
+
+assert.match(cleanup, /LEGACY_COUPONS_NOT_EMPTY/,
+    "La limpieza del drift debe abortar antes de borrar cupones históricos.");
+assert.match(cleanup, /LEGACY_COUPON_ORDERS_NOT_EMPTY/,
+    "La limpieza no debe borrar columnas históricas si ya fueron utilizadas.");
+assert.match(cleanup, /drop function if exists public\.select_checkout_coupon\(text\)/i,
+    "Debe retirarse el RPC duplicado de cupones.");
+assert.match(cleanup, /drop table if exists public\.checkout_coupon_selections/i,
+    "Debe retirarse la selección persistida del motor duplicado.");
+assert.match(cleanup, /drop table if exists public\.coupons/i,
+    "Debe existir un único catálogo de promociones versionado.");
+assert.match(cleanup, /language sql\s+security invoker[\s\S]*null::text/i,
+    "La firma histórica de create_order debe volver a ser un wrapper invoker sin cupón implícito.");
+assert.match(cleanup, /duplicate_coupon_engine_absent/,
+    "El health check debe detectar la reaparición del motor duplicado.");
 
 assert.match(promotions, /quote_promotion_code/,
     "La interfaz debe cotizar el código en Supabase.");
