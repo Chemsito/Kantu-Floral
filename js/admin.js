@@ -2,13 +2,21 @@
 
 const KANTU_ADMIN = window.KantuCore;
 const ADMIN_STATUSES = ["pendiente", "confirmado", "preparando", "en_camino", "entregado", "cancelado"];
-const ADMIN_CATEGORIES = ["ramos", "arreglos", "rosas", "especiales"];
+const ADMIN_CATEGORIES = window.KantuProductConfig?.categoryValues || [
+    "tulipanes", "girasoles", "ramos", "rosas", "box", "canasta", "flores", "complementos", "cajas", "ramos_buchones"
+];
 const ADMIN_STATUS_LABELS = KANTU_ADMIN.orderStatusLabels;
+
+/*
+ * El panel administrativo no debe saltarse el flujo de pago ni el portal
+ * operativo. Admin puede cancelar únicamente un pedido pendiente/no pagado.
+ * Preparación, reparto y entrega viven en staff.html para conservar timestamps.
+ */
 const ADMIN_ALLOWED_TRANSITIONS = {
-    pendiente: ["confirmado", "cancelado"],
-    confirmado: ["preparando", "cancelado"],
-    preparando: ["en_camino", "cancelado"],
-    en_camino: ["entregado"],
+    pendiente: ["cancelado"],
+    confirmado: [],
+    preparando: [],
+    en_camino: [],
     entregado: [],
     cancelado: []
 };
@@ -22,7 +30,11 @@ const ADMIN_STATUS_ERROR_MESSAGES = {
     INVALID_STATUS_TRANSITION: "Ese cambio de estado no está permitido.",
     ORDER_ITEMS_EMPTY: "El pedido no contiene productos y no puede procesarse.",
     ORDER_PRODUCT_NOT_FOUND: "Uno de los productos del pedido ya no existe.",
-    INSUFFICIENT_STOCK: "No hay stock suficiente para confirmar este pedido."
+    INSUFFICIENT_STOCK: "No hay stock suficiente para confirmar este pedido.",
+    PAYMENT_FLOW_REQUIRED: "La confirmación del pedido debe realizarla un pago aprobado.",
+    PAID_ORDER_CANNOT_BE_CANCELLED: "Un pedido pagado no puede cancelarse sin gestionar primero su reembolso.",
+    PAYMENT_NOT_APPROVED: "El pedido no puede avanzar porque el pago no está aprobado.",
+    OPERATIONAL_FLOW_REQUIRED: "Preparación, reparto y entrega se actualizan desde el portal operativo."
 };
 const ADMIN_PROOF_STATUS_LABELS = {
     uploaded: "Recibido",
@@ -366,7 +378,7 @@ async function loadAdminDashboard() {
     grid.innerHTML = "";
 
     const [ordersResult, productsResult] = await Promise.all([
-        supabaseClient.from("orders").select("status, total"),
+        supabaseClient.from("orders").select("status, total, payment_status"),
         supabaseClient.from("products").select("active, stock")
     ]);
 
@@ -380,6 +392,9 @@ async function loadAdminDashboard() {
 
     const orders = ordersResult.data || [];
     const productRows = productsResult.data || [];
+    const paidSales = orders
+        .filter(order => order.payment_status === "approved" && order.status !== "cancelado")
+        .reduce((sum, order) => sum + (Number(order.total) || 0), 0);
     const stats = [
         ["Total de pedidos", orders.length, "all"],
         ...ADMIN_STATUSES.map(status => [
@@ -387,15 +402,7 @@ async function loadAdminDashboard() {
             orders.filter(order => order.status === status).length,
             status
         ]),
-        [
-            "Ventas no canceladas",
-            adminMoney(
-                orders
-                    .filter(order => order.status !== "cancelado")
-                    .reduce((sum, order) => sum + (Number(order.total) || 0), 0)
-            ),
-            "sales"
-        ],
+        ["Ventas pagadas", adminMoney(paidSales), "sales"],
         ["Productos activos", productRows.filter(product => product.active).length, "products"],
         ["Stock bajo", productRows.filter(product => Number(product.stock) <= 5).length, "stock"]
     ];
@@ -456,8 +463,8 @@ function renderAdminOrders() {
                     ${transitions.map(status => `<option value="${status}">${ADMIN_STATUS_LABELS[status]}</option>`).join("")}
                 </select>
             </label>`
-            : `<label class="admin-terminal-status">Estado terminal
-                <select disabled aria-label="Estado terminal: ${adminEscape(ADMIN_STATUS_LABELS[order.status] || order.status)}">
+            : `<label class="admin-terminal-status">Gestionado por flujo operativo
+                <select disabled aria-label="Estado actual: ${adminEscape(ADMIN_STATUS_LABELS[order.status] || order.status)}">
                     <option>${adminEscape(ADMIN_STATUS_LABELS[order.status] || order.status)}</option>
                 </select>
             </label>`;
@@ -583,8 +590,9 @@ async function openAdminOrderDetail(orderId) {
                 const product = item.product || {};
                 const quantity = Number(item.quantity) || 0;
                 const unitPrice = Number(item.unit_price) || 0;
-                const image = product.image
-                    ? `<img src="${adminEscape(product.image)}" alt="${adminEscape(product.name || "Producto")}">`
+                const safeImage = KANTU_ADMIN.safeUrl(product.image);
+                const image = safeImage
+                    ? `<img src="${adminEscape(safeImage)}" alt="${adminEscape(product.name || "Producto")}">`
                     : '<div class="admin-image-placeholder">✿</div>';
 
                 return `<article class="admin-detail-item">
@@ -628,21 +636,31 @@ function renderAdminProducts() {
         const stock = Number(product.stock) || 0;
         const stockClass = stock === 0 ? "empty" : stock <= 5 ? "low" : "available";
         const stockLabel = stock === 0 ? "Agotado" : stock <= 5 ? "Stock bajo" : "Disponible";
-        const image = product.image
-            ? `<img src="${adminEscape(product.image)}" alt="${adminEscape(product.name)}">`
+        const safeImage = KANTU_ADMIN.safeUrl(product.image);
+        const image = safeImage
+            ? `<img src="${adminEscape(safeImage)}" alt="${adminEscape(product.name)}">`
             : '<div class="admin-image-placeholder">✿</div>';
+        const categoryLabel = typeof getCategoryName === "function"
+            ? getCategoryName(product.category)
+            : product.category;
+        const size = typeof normalizeProductSize === "function"
+            ? normalizeProductSize(product.size)
+            : String(product.size || "M");
+        const note = String(product.note || "").trim();
 
         return `<article class="admin-product-card">
             ${image}
             <div class="admin-product-info">
                 <div>
-                    <span>${adminEscape(product.category)}</span>
+                    <span>${adminEscape(categoryLabel)}</span>
                     <h4>${adminEscape(product.name)}</h4>
                 </div>
                 <p>${adminEscape(adminMoney(product.price))} · Stock: ${stock}</p>
+                ${note ? `<p class="admin-product-note">Nota: ${adminEscape(note)}</p>` : ""}
                 <div class="admin-product-badges">
                     <span class="stock-${stockClass}">${stockLabel}</span>
                     <span>${product.active ? "Activo" : "Inactivo"}</span>
+                    <span class="admin-product-size-badge">Talla ${adminEscape(size)}</span>
                     ${product.tag ? `<span>${adminEscape(product.tag)}</span>` : ""}
                 </div>
             </div>
@@ -656,6 +674,11 @@ function renderAdminProducts() {
 
 function openAdminProductForm(product = null) {
     hideAdminViews();
+    if (typeof ensureAdminProductMetadataFields === "function") ensureAdminProductMetadataFields();
+    if (typeof syncAdminProductCategoryOptions === "function") {
+        syncAdminProductCategoryOptions(product?.category || "ramos");
+    }
+
     adminElement("adminProductFormView").hidden = false;
     adminElement("adminProductForm").reset();
     adminElement("adminProductFormTitle").textContent = product ? "Editar producto" : "Nuevo producto";
@@ -668,10 +691,16 @@ function openAdminProductForm(product = null) {
     adminElement("adminProductImage").value = product?.image || "";
     adminElement("adminProductTag").value = product?.tag || "";
     adminElement("adminProductActive").checked = product ? Boolean(product.active) : true;
+
+    if (typeof populateAdminProductMetadata === "function") populateAdminProductMetadata(product);
     clearAdminMessage();
 }
 
 function readAdminProductForm() {
+    if (typeof readEnhancedAdminProductPayload === "function") {
+        return readEnhancedAdminProductPayload();
+    }
+
     const name = adminElement("adminProductName").value.trim();
     const description = adminElement("adminProductDescription").value.trim();
     const price = Number(adminElement("adminProductPrice").value);
@@ -684,6 +713,7 @@ function readAdminProductForm() {
     if (!Number.isFinite(price) || price <= 0) throw new Error("El precio debe ser mayor que cero.");
     if (!Number.isInteger(stock) || stock < 0) throw new Error("El stock debe ser un número entero mayor o igual que cero.");
     if (!ADMIN_CATEGORIES.includes(category)) throw new Error("Selecciona una categoría válida.");
+    if (image && !KANTU_ADMIN.safeUrl(image)) throw new Error("La URL de imagen no es válida o no es segura.");
 
     return {
         name,
@@ -849,10 +879,6 @@ function initializeAdmin() {
 
     modal.addEventListener("click", event => {
         if (event.target === modal) closeAdmin();
-    });
-
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && modal.classList.contains("show")) closeAdmin();
     });
 
     supabaseClient.auth.onAuthStateChange(event => {
