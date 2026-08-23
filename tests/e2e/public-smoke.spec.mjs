@@ -86,6 +86,20 @@ test.describe("Kantu Floral public stabilization", () => {
         await expect(page.locator("#checkoutSchedulePanel")).toBeHidden();
     });
 
+    test("commerce operations sidecar initializes upsell and admin intelligence containers", async ({ page }) => {
+        const pageErrors = [];
+        page.on("pageerror", error => pageErrors.push(error.message));
+
+        await page.goto("/", { waitUntil: "domcontentloaded" });
+
+        await expect(page.locator("script[data-kantu-commerce-ops='true']")).toHaveCount(1, { timeout: 15000 });
+        await expect(page.locator("#checkoutUpsellSection")).toHaveCount(1);
+        await expect(page.locator("#commerceOverviewCard")).toHaveCount(1);
+        await expect(page.locator("#inventoryLedgerCard")).toHaveCount(1);
+        await expect(page.locator("#catalogFeaturedStrip")).toHaveCount(1);
+        expect(pageErrors).toEqual([]);
+    });
+
     test("individual product page fails safely without a product id", async ({ page }) => {
         const pageErrors = [];
         page.on("pageerror", error => pageErrors.push(error.message));
