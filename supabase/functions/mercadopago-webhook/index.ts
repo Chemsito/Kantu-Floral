@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
 type WebhookBody = {
     type?: string;
@@ -27,6 +27,9 @@ const PAYMENT_STATUS_MAP: Record<string, string> = {
     refunded: "refunded",
     charged_back: "refunded"
 };
+
+const MAX_SIGNATURE_AGE_MS = 10 * 60 * 1000;
+const MAX_FUTURE_CLOCK_SKEW_MS = 60 * 1000;
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
     return new Response(JSON.stringify(body), {
@@ -72,6 +75,16 @@ function parseSignatureHeader(value: string): {
     return { timestamp, signatures };
 }
 
+function signatureTimestampIsFresh(timestamp: string): boolean {
+    if (!/^\d+$/.test(timestamp)) return false;
+    const raw = Number(timestamp);
+    if (!Number.isFinite(raw) || raw <= 0) return false;
+
+    const timestampMs = raw >= 1_000_000_000_000 ? raw : raw * 1000;
+    const age = Date.now() - timestampMs;
+    return age <= MAX_SIGNATURE_AGE_MS && age >= -MAX_FUTURE_CLOCK_SKEW_MS;
+}
+
 function hexToBytes(value: string): Uint8Array | null {
     if (value.length !== 64 || !/^[a-f0-9]{64}$/i.test(value)) return null;
 
@@ -101,7 +114,7 @@ async function validateMercadoPagoSignature(
     if (!signatureHeader || !requestId || !dataId) return false;
 
     const { timestamp, signatures } = parseSignatureHeader(signatureHeader);
-    if (!timestamp || !/^\d+$/.test(timestamp) || signatures.length === 0) {
+    if (!timestamp || !signatureTimestampIsFresh(timestamp) || signatures.length === 0) {
         return false;
     }
 
@@ -162,6 +175,34 @@ function getApprovedAt(dateApproved: string | null | undefined): string {
     return new Date().toISOString();
 }
 
+async function recordWebhookEvent(
+    databaseClient: ReturnType<typeof createClient>,
+    event: {
+        requestId: string | null;
+        dataId: string | null;
+        eventType: string | null;
+        liveMode: boolean | null;
+        result: string;
+        orderId?: string | null;
+        paymentStatus?: string | null;
+    }
+): Promise<void> {
+    try {
+        const { error } = await databaseClient.from("mercadopago_webhook_events").insert({
+            request_id: event.requestId,
+            payment_id: normalizePositiveBigint(event.dataId),
+            event_type: event.eventType,
+            live_mode: event.liveMode,
+            processing_result: event.result,
+            order_id: normalizePositiveBigint(event.orderId),
+            payment_status: event.paymentStatus || null
+        });
+        if (error) console.warn("No se pudo registrar auditoría del webhook:", error.message);
+    } catch (error) {
+        console.warn("Auditoría del webhook no disponible:", error);
+    }
+}
+
 Deno.serve(async (request: Request): Promise<Response> => {
     if (request.method !== "POST") {
         return jsonResponse({ received: true, ignored: true, reason: "METHOD_NOT_ALLOWED" });
@@ -182,23 +223,20 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
         const requestUrl = new URL(request.url);
         const queryDataId = requestUrl.searchParams.get("data.id");
-        const bodyDataId = body.data?.id === undefined
-            ? null
-            : String(body.data.id);
+        const bodyDataId = body.data?.id === undefined ? null : String(body.data.id);
         const dataId = queryDataId || bodyDataId;
+        const requestId = request.headers.get("x-request-id");
 
         const signatureIsValid = await validateMercadoPagoSignature(
             request.headers.get("x-signature"),
-            request.headers.get("x-request-id"),
+            requestId,
             dataId,
             webhookSecret
         );
 
         if (!signatureIsValid) {
-            console.warn("Webhook de Mercado Pago con firma inválida.", {
-                requestId: request.headers.get("x-request-id")
-            });
-            return jsonResponse({ error: "INVALID_SIGNATURE" }, 401);
+            console.warn("Webhook de Mercado Pago con firma inválida o expirada.", { requestId });
+            return jsonResponse({ error: "INVALID_OR_EXPIRED_SIGNATURE" }, 401);
         }
 
         const eventType =
@@ -207,21 +245,35 @@ Deno.serve(async (request: Request): Promise<Response> => {
             requestUrl.searchParams.get("type") ||
             requestUrl.searchParams.get("topic");
 
+        const databaseClient = createClient(supabaseUrl, serviceRoleKey, {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false
+            }
+        });
+
         if (eventType !== "payment") {
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "UNSUPPORTED_EVENT"
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "unsupported_event"
             });
+            return jsonResponse({ received: true, ignored: true, reason: "UNSUPPORTED_EVENT" });
         }
 
         const paymentId = normalizePositiveBigint(dataId);
         if (!paymentId) {
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "INVALID_PAYMENT_ID"
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "invalid_payment_id"
             });
+            return jsonResponse({ received: true, ignored: true, reason: "INVALID_PAYMENT_ID" });
         }
 
         const paymentResponse = await fetch(
@@ -237,8 +289,12 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
         if (!paymentResponse.ok) {
             if (paymentResponse.status === 404 && body.live_mode === false) {
-                console.info("Pago simulado no encontrado; notificación ignorada.", {
-                    paymentId
+                await recordWebhookEvent(databaseClient, {
+                    requestId,
+                    dataId,
+                    eventType,
+                    liveMode: false,
+                    result: "simulated_payment_not_found"
                 });
                 return jsonResponse({
                     received: true,
@@ -262,53 +318,41 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const paymentStatusDetail = normalizePaymentStatusDetail(payment.status_detail);
 
         if (!realPaymentId || !orderId) {
-            console.error("Pago sin identificadores válidos.", {
-                paymentId,
-                externalReference: payment.external_reference
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "invalid_payment_reference"
             });
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "INVALID_PAYMENT_REFERENCE"
-            });
+            return jsonResponse({ received: true, ignored: true, reason: "INVALID_PAYMENT_REFERENCE" });
         }
 
         if (realPaymentId !== paymentId) {
-            console.error("El ID del pago consultado no coincide.", {
-                signedPaymentId: paymentId,
-                realPaymentId
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "payment_id_mismatch",
+                orderId
             });
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "PAYMENT_ID_MISMATCH"
-            });
+            return jsonResponse({ received: true, ignored: true, reason: "PAYMENT_ID_MISMATCH" });
         }
 
-        const mappedPaymentStatus = payment.status
-            ? PAYMENT_STATUS_MAP[payment.status]
-            : undefined;
-
+        const mappedPaymentStatus = payment.status ? PAYMENT_STATUS_MAP[payment.status] : undefined;
         if (!mappedPaymentStatus) {
-            console.warn("Estado de Mercado Pago no soportado.", {
-                paymentId,
-                status: payment.status,
-                statusDetail: paymentStatusDetail
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "unsupported_payment_status",
+                orderId,
+                paymentStatus: payment.status || null
             });
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "UNSUPPORTED_PAYMENT_STATUS"
-            });
+            return jsonResponse({ received: true, ignored: true, reason: "UNSUPPORTED_PAYMENT_STATUS" });
         }
-
-        const databaseClient = createClient(supabaseUrl, serviceRoleKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false
-            }
-        });
 
         const { data: order, error: orderError } = await databaseClient
             .from("orders")
@@ -316,30 +360,23 @@ Deno.serve(async (request: Request): Promise<Response> => {
             .eq("id", orderId)
             .maybeSingle();
 
-        if (orderError) {
-            console.error("Error consultando pedido:", orderError);
-            return jsonResponse({ error: "ORDER_QUERY_FAILED" }, 500);
-        }
+        if (orderError) return jsonResponse({ error: "ORDER_QUERY_FAILED" }, 500);
 
         if (!order) {
-            console.error("No existe pedido para external_reference.", { orderId, paymentId });
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "ORDER_NOT_FOUND"
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "order_not_found",
+                orderId,
+                paymentStatus: mappedPaymentStatus
             });
+            return jsonResponse({ received: true, ignored: true, reason: "ORDER_NOT_FOUND" });
         }
 
         if (order.payment_provider !== null && order.payment_provider !== "mercadopago") {
-            console.error("El pedido pertenece a otro proveedor.", {
-                orderId,
-                provider: order.payment_provider
-            });
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "PAYMENT_PROVIDER_MISMATCH"
-            });
+            return jsonResponse({ received: true, ignored: true, reason: "PAYMENT_PROVIDER_MISMATCH" });
         }
 
         const paidAmount = decimalToCents(payment.transaction_amount);
@@ -351,12 +388,14 @@ Deno.serve(async (request: Request): Promise<Response> => {
             orderAmount === null ||
             paidAmount !== orderAmount
         ) {
-            console.error("Monto o moneda incorrectos.", {
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "amount_or_currency_mismatch",
                 orderId,
-                paymentId,
-                paymentAmount: payment.transaction_amount,
-                orderTotal: order.total,
-                currency: payment.currency_id
+                paymentStatus: mappedPaymentStatus
             });
             return jsonResponse({
                 received: true,
@@ -365,17 +404,11 @@ Deno.serve(async (request: Request): Promise<Response> => {
             });
         }
 
-        /* Nunca reemplazar el ID de un pago aprobado o confirmado. */
         if (
             (order.payment_status === "approved" || order.status === "confirmado") &&
             order.payment_id !== null &&
             String(order.payment_id) !== realPaymentId
         ) {
-            console.error("Pedido ya aprobado con otro payment_id.", {
-                orderId,
-                storedPaymentId: order.payment_id,
-                receivedPaymentId: realPaymentId
-            });
             return jsonResponse({
                 received: true,
                 ignored: true,
@@ -384,10 +417,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
             });
         }
 
-        if (
-            order.payment_status === "approved" &&
-            !["approved", "refunded"].includes(mappedPaymentStatus)
-        ) {
+        if (order.payment_status === "approved" && !["approved", "refunded"].includes(mappedPaymentStatus)) {
             return jsonResponse({ received: true, ignored: true, reason: "STALE_PAYMENT_STATUS" });
         }
 
@@ -400,16 +430,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
             order.payment_id !== null &&
             String(order.payment_id) !== realPaymentId
         ) {
-            console.error("Refund asociado a otro payment_id.", {
-                orderId,
-                storedPaymentId: order.payment_id,
-                receivedPaymentId: realPaymentId
-            });
-            return jsonResponse({
-                received: true,
-                ignored: true,
-                reason: "REFUND_PAYMENT_ID_MISMATCH"
-            });
+            return jsonResponse({ received: true, ignored: true, reason: "REFUND_PAYMENT_ID_MISMATCH" });
         }
 
         const paymentUpdate: Record<string, unknown> = {
@@ -419,9 +440,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
             payment_id: realPaymentId
         };
 
-        if (mappedPaymentStatus === "approved") {
-            paymentUpdate.paid_at = getApprovedAt(payment.date_approved);
-        }
+        if (mappedPaymentStatus === "approved") paymentUpdate.paid_at = getApprovedAt(payment.date_approved);
 
         let paymentUpdateQuery = databaseClient
             .from("orders")
@@ -434,34 +453,20 @@ Deno.serve(async (request: Request): Promise<Response> => {
             ? paymentUpdateQuery.is("payment_id", null)
             : paymentUpdateQuery.eq("payment_id", order.payment_id);
 
-        const {
-            data: updatedPaymentOrder,
-            error: paymentUpdateError
-        } = await paymentUpdateQuery
+        const { data: updatedPaymentOrder, error: paymentUpdateError } = await paymentUpdateQuery
             .select("id")
             .maybeSingle();
 
-        if (paymentUpdateError) {
-            console.error("No se pudo actualizar el estado del pago:", paymentUpdateError);
-            return jsonResponse({ error: "PAYMENT_UPDATE_FAILED" }, 500);
-        }
-
-        if (!updatedPaymentOrder) {
-            console.warn("El pedido cambió mientras se procesaba el pago.", {
-                orderId,
-                paymentId: realPaymentId
-            });
-            return jsonResponse({ error: "CONCURRENT_PAYMENT_UPDATE" }, 500);
-        }
+        if (paymentUpdateError) return jsonResponse({ error: "PAYMENT_UPDATE_FAILED" }, 500);
+        if (!updatedPaymentOrder) return jsonResponse({ error: "CONCURRENT_PAYMENT_UPDATE" }, 500);
 
         if (mappedPaymentStatus === "approved") {
             const paidAt = paymentUpdate.paid_at as string;
-            const { data: confirmation, error: confirmationError } =
-                await databaseClient.rpc("confirm_paid_order", {
-                    p_order_id: orderId,
-                    p_payment_id: realPaymentId,
-                    p_paid_at: paidAt
-                });
+            const { data: confirmation, error: confirmationError } = await databaseClient.rpc("confirm_paid_order", {
+                p_order_id: orderId,
+                p_payment_id: realPaymentId,
+                p_paid_at: paidAt
+            });
 
             if (confirmationError) {
                 const errorText = [
@@ -469,12 +474,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
                     confirmationError.details,
                     confirmationError.hint
                 ].filter(Boolean).join(" ").toUpperCase();
-
-                console.error("Pago aprobado, pero el pedido no pudo confirmarse.", {
-                    orderId,
-                    paymentId,
-                    error: confirmationError
-                });
 
                 const permanentErrors = [
                     "INSUFFICIENT_STOCK",
@@ -484,6 +483,15 @@ Deno.serve(async (request: Request): Promise<Response> => {
                 ];
 
                 if (permanentErrors.some(code => errorText.includes(code))) {
+                    await recordWebhookEvent(databaseClient, {
+                        requestId,
+                        dataId,
+                        eventType,
+                        liveMode: body.live_mode ?? null,
+                        result: "payment_recorded_order_requires_attention",
+                        orderId,
+                        paymentStatus: "approved"
+                    });
                     return jsonResponse({
                         received: true,
                         payment_recorded: true,
@@ -496,6 +504,16 @@ Deno.serve(async (request: Request): Promise<Response> => {
                 return jsonResponse({ error: "ORDER_CONFIRMATION_FAILED" }, 500);
             }
 
+            await recordWebhookEvent(databaseClient, {
+                requestId,
+                dataId,
+                eventType,
+                liveMode: body.live_mode ?? null,
+                result: "processed",
+                orderId,
+                paymentStatus: "approved"
+            });
+
             return jsonResponse({
                 received: true,
                 payment_status: "approved",
@@ -504,6 +522,16 @@ Deno.serve(async (request: Request): Promise<Response> => {
                 confirmation
             });
         }
+
+        await recordWebhookEvent(databaseClient, {
+            requestId,
+            dataId,
+            eventType,
+            liveMode: body.live_mode ?? null,
+            result: "processed",
+            orderId,
+            paymentStatus: mappedPaymentStatus
+        });
 
         return jsonResponse({
             received: true,
