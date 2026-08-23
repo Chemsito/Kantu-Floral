@@ -1,0 +1,203 @@
+/* Kantu Floral - cupones y promociones */
+
+.checkout-coupon-section {
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid rgba(139, 47, 69, 0.14);
+    border-radius: 16px;
+    background: #fff;
+}
+
+.checkout-coupon-heading strong,
+.checkout-coupon-heading small {
+    display: block;
+}
+
+.checkout-coupon-heading strong {
+    color: #4b3038;
+    font-size: 15px;
+}
+
+.checkout-coupon-heading small {
+    margin-top: 3px;
+    color: #786d70;
+    font-size: 12px;
+}
+
+.checkout-coupon-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.checkout-coupon-row input {
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid #dfd0cd;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.checkout-coupon-row button {
+    min-height: 42px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: #8b2f45;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.checkout-coupon-row button.secondary {
+    border: 1px solid #d8c5c2;
+    background: #fff8f5;
+    color: #7d3f4e;
+}
+
+.checkout-coupon-row button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.checkout-coupon-status {
+    margin: 9px 0 0;
+    padding: 9px 10px;
+    border-radius: 9px;
+    background: #f6f3f2;
+    color: #65585b;
+    font-size: 12px;
+}
+
+.checkout-coupon-status.success {
+    background: #eef8f0;
+    color: #316546;
+}
+
+.checkout-coupon-status.error {
+    background: #fff0f1;
+    color: #922c3b;
+}
+
+.checkout-coupon-summary-row {
+    color: #8b2f45;
+}
+
+.checkout-payment-breakdown .coupon-discount {
+    color: #7e4050;
+}
+
+.admin-coupon-editor {
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid #e8d8d4;
+    border-radius: 16px;
+    background: #fffaf8;
+}
+
+.admin-section-heading.compact {
+    margin-bottom: 14px;
+}
+
+.admin-coupon-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.admin-coupon-form select[multiple] {
+    min-height: 138px;
+}
+
+.admin-coupon-card {
+    padding: 16px;
+    border: 1px solid #eadedb;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.admin-coupon-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-coupon-top small,
+.admin-coupon-top strong {
+    display: block;
+}
+
+.admin-coupon-top small {
+    color: #8a7c7f;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.admin-coupon-top strong {
+    margin-top: 2px;
+    color: #4b3038;
+    font-size: 18px;
+}
+
+.admin-coupon-top > span {
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.admin-coupon-top > span.active {
+    background: #eaf7ee;
+    color: #34724d;
+}
+
+.admin-coupon-top > span.inactive {
+    background: #f4efee;
+    color: #756b6d;
+}
+
+.admin-coupon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.admin-coupon-grid p {
+    margin: 0;
+    padding: 10px;
+    border-radius: 10px;
+    background: #faf7f5;
+    color: #54484b;
+    font-size: 12px;
+}
+
+.admin-coupon-grid span,
+.admin-coupon-grid strong {
+    display: block;
+}
+
+.admin-coupon-grid span {
+    margin-bottom: 2px;
+    color: #8a7b7e;
+    font-size: 10px;
+}
+
+@media (max-width: 760px) {
+    .checkout-coupon-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .checkout-coupon-row input {
+        grid-column: 1 / -1;
+    }
+
+    .admin-coupon-form,
+    .admin-coupon-grid {
+        grid-template-columns: 1fr;
+    }
+}
