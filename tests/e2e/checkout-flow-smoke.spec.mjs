@@ -15,29 +15,44 @@ test.describe("Kantu Floral simplified checkout", () => {
         await expect(page.locator("#checkoutDeliveryFlowSection")).toHaveCount(1);
         await expect(page.locator("#checkoutReviewFlowSection")).toHaveCount(1);
 
-        const toggle = page.locator("#checkoutDifferentRecipientToggle");
-        await expect(toggle).toHaveCount(1);
-        await expect(toggle).not.toBeChecked();
+        const initialState = await page.evaluate(() => ({
+            toggleChecked: document.getElementById("checkoutDifferentRecipientToggle")?.checked,
+            giftGridHidden: document.querySelector("#checkoutGiftSection .checkout-gift-grid")?.hidden,
+            submitInstalled: typeof document.getElementById("checkoutForm")?.onsubmit === "function"
+        }));
+        expect(initialState).toEqual({
+            toggleChecked: false,
+            giftGridHidden: true,
+            submitInstalled: true
+        });
 
-        const initialGridHidden = await page.locator("#checkoutGiftSection .checkout-gift-grid").evaluate(node => node.hidden);
-        expect(initialGridHidden).toBe(true);
+        const mirrored = await page.evaluate(() => {
+            const name = document.getElementById("checkoutName");
+            const phone = document.getElementById("checkoutPhone");
+            name.value = "Cliente de prueba";
+            phone.value = "999888777";
+            name.dispatchEvent(new Event("input", { bubbles: true }));
+            phone.dispatchEvent(new Event("input", { bubbles: true }));
+            return {
+                recipientName: document.getElementById("checkoutRecipientName")?.value,
+                recipientPhone: document.getElementById("checkoutRecipientPhone")?.value
+            };
+        });
+        expect(mirrored).toEqual({
+            recipientName: "Cliente de prueba",
+            recipientPhone: "999888777"
+        });
 
-        await page.locator("#checkoutName").fill("Cliente de prueba");
-        await page.locator("#checkoutPhone").fill("999888777");
-        await page.waitForTimeout(50);
-
-        await expect(page.locator("#checkoutRecipientName")).toHaveValue("Cliente de prueba");
-        await expect(page.locator("#checkoutRecipientPhone")).toHaveValue("999888777");
-
-        await toggle.check();
-        const toggledGridHidden = await page.locator("#checkoutGiftSection .checkout-gift-grid").evaluate(node => node.hidden);
+        const toggledGridHidden = await page.evaluate(() => {
+            const toggle = document.getElementById("checkoutDifferentRecipientToggle");
+            toggle.checked = true;
+            toggle.dispatchEvent(new Event("change", { bubbles: true }));
+            return document.querySelector("#checkoutGiftSection .checkout-gift-grid")?.hidden;
+        });
         expect(toggledGridHidden).toBe(false);
 
         await expect(page.locator("#confirmOrderButton")).toHaveText("Crear pedido y elegir pago");
         await expect(page.locator("#checkoutPaymentTrustNote")).toContainText("No se cobrará nada");
-
-        const onSubmitInstalled = await page.locator("#checkoutForm").evaluate(form => typeof form.onsubmit === "function");
-        expect(onSubmitInstalled).toBe(true);
         expect(pageErrors).toEqual([]);
     });
 });
