@@ -1,66 +1,53 @@
 # Kantu Floral
 
-E-commerce de florería con catálogo, carrito, pedidos, seguimiento, panel administrativo y pagos por Mercado Pago, Yape/Plin y transferencias.
+Sitio web de Kantu Floral con catálogo, carrito, autenticación, pedidos, pagos y paneles operativos conectados a Supabase.
 
-## Stack
+## Desarrollo
 
-- Frontend estático: HTML, CSS y JavaScript
-- Backend: Supabase (Auth, Postgres, Storage, Edge Functions)
-- Pagos: Mercado Pago Checkout Pro + pagos manuales con comprobante
-- Deploy frontend: GitHub Pages
+Requisitos:
 
-## Desarrollo local
+- Node.js 20+
+- npm
+- Deno 2.x para comprobar las Edge Functions
+
+Instala dependencias:
 
 ```bash
 npm ci
+```
+
+Ejecuta las comprobaciones del repositorio:
+
+```bash
 npm run check
 ```
 
-Para Supabase CLI:
+`npm run check` valida sintaxis JavaScript, contratos de hardening y contratos de seguridad/RLS documentados en las migraciones.
+
+Para validar también las Edge Functions como lo hace GitHub Actions:
 
 ```bash
-npx supabase --version
+deno check --no-config \
+  supabase/functions/create-mp-preference/index.ts \
+  supabase/functions/mercadopago-webhook/index.ts
 ```
 
-## Estructura principal
+## Seguridad y pagos
 
-```text
-css/
-js/
-supabase/
-  functions/
-  migrations/
-index.html
-reset-password.html
-```
-
-## Edge Functions
-
-- `create-mp-preference`: requiere JWT de usuario.
-- `mercadopago-webhook`: endpoint externo; valida la firma de Mercado Pago y no usa JWT de usuario.
+- El navegador usa únicamente la publishable key de Supabase.
+- Las operaciones privilegiadas pasan por RLS/RPC o Edge Functions con validación del usuario/rol.
+- La confirmación de Mercado Pago solo puede ejecutar `confirm_paid_order` mediante `service_role`.
+- Los comprobantes manuales se guardan en un bucket privado y se validan mediante políticas de Storage/RLS.
+- Los totales de Mercado Pago se reconstruyen desde los precios históricos del pedido más el delivery antes de abrir Checkout Pro.
+- Un pago rechazado o cancelado puede reintentarse con Mercado Pago; un pago ya aprobado no puede reemplazarse por otro `payment_id`.
 
 ## Migraciones
 
-Todo cambio de esquema, RLS, índices o permisos debe quedar registrado en `supabase/migrations/` y aplicarse como migración. Evitar cambios permanentes hechos solo desde SQL Editor sin copiar después el SQL al repositorio.
+Los archivos de `supabase/migrations` deben conservar exactamente las versiones registradas en el historial remoto de Supabase. No renombres migraciones ya aplicadas ni agregues migraciones antiguas fuera de historial; crea siempre una migración nueva.
 
-El proyecto fue iniciado antes de adoptar migraciones como fuente de verdad, por lo que existe una migración histórica de `confirm_paid_order` y, desde el saneamiento del 22-08-2026, los cambios nuevos quedan registrados con la misma versión aplicada en Supabase.
+## Flujo de estados
 
-## Seguridad
-
-- Nunca guardar `service_role`, Access Tokens o secretos en frontend o Git.
-- Los comprobantes viven en el bucket privado `payment-proofs`.
-- La aprobación de pagos manuales y los cambios de inventario pasan por RPCs transaccionales.
-- El webhook de Mercado Pago consulta el pago real antes de actualizar el pedido.
-
-## Flujo de trabajo recomendado
-
-```bash
-git pull
-git status
-npm run check
-git add .
-git commit -m "descripcion"
-git push
-```
-
-`main` es la rama publicada.
+- Pedido recién creado: `pendiente` + pago `pending`.
+- Mercado Pago o aprobación manual confirma el pago y el pedido.
+- Preparación, reparto y entrega se actualizan desde el portal de staff.
+- El panel Admin no debe saltarse el flujo operativo ni cancelar pedidos pagados sin gestionar previamente el reembolso.
