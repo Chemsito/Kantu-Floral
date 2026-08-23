@@ -51,20 +51,22 @@ jobs:
       - name: Install image tools
         run: python -m pip install --quiet pymupdf pillow
 
-      - name: Download original BLUME catalog
+      - name: Resolve and download original BLUME catalog
         shell: bash
         run: |
           set -euo pipefail
-          HASH='4f92a49f88ecccf1f15c8b90c68b55229670e382'
-          ok=0
-          for host in cdnc.heyzine.com cdn.heyzine.com cdnm.heyzine.com; do
-            url="https://${host}/files/uploaded/v2/${HASH}.pdf"
-            echo "Trying ${url}"
-            if curl -A 'Mozilla/5.0' -fL --retry 2 --connect-timeout 20 "$url" -o /tmp/blume.pdf; then
-              if file /tmp/blume.pdf | grep -qi PDF; then ok=1; break; fi
-            fi
-          done
-          test "$ok" -eq 1
+          page='https://heyzine.com/flip-book/4f92a49f88.html'
+          curl -A 'Mozilla/5.0' -fL --retry 2 --connect-timeout 20 "$page" -o /tmp/flipbook.html
+          thumb=$(grep -Eo 'https://[^"'"'"' ]+/files/uploaded/v2/[^"'"'"' ]+\.pdf-thumb\.jpg' /tmp/flipbook.html | head -n1 || true)
+          if [ -z "$thumb" ]; then
+            thumb=$(grep -Eo 'https://[^"'"'"' ]+\.pdf-thumb\.jpg' /tmp/flipbook.html | head -n1 || true)
+          fi
+          test -n "$thumb"
+          pdf_url="${thumb%-thumb.jpg}"
+          echo "Resolved source PDF from flipbook metadata"
+          curl -A 'Mozilla/5.0' -fL --retry 2 --connect-timeout 20 "$pdf_url" -o /tmp/blume.pdf
+          test -s /tmp/blume.pdf
+          file /tmp/blume.pdf | grep -qi PDF
 
       - name: Regenerate 96 high quality images
         shell: bash
