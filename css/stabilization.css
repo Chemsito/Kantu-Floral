@@ -1,0 +1,85 @@
+/* KANTU FLORAL - ESTABILIZACION UX/A11Y */
+
+/* Evita que el selector global header de styles.css invada headers internos. */
+.account-header,
+.admin-header,
+.staff-header {
+    position: static;
+    top: auto;
+    z-index: auto;
+    background: transparent;
+    backdrop-filter: none;
+}
+
+.modal > .close-modal,
+.admin-header .close-modal,
+.cart-header .close-modal {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    line-height: 1;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+}
+
+.mobile-menu[aria-expanded="true"] {
+    background: var(--light, #f7eeee);
+}
+
+.cart-sync-status {
+    margin: 0;
+    padding: 9px 18px;
+    font-size: 12px;
+    line-height: 1.4;
+    border-bottom: 1px solid var(--border, #eadfe2);
+}
+
+.cart-sync-status.syncing {
+    color: var(--gray, #756d72);
+}
+
+.cart-sync-status.synced {
+    color: var(--success, #47765c);
+}
+
+.cart-sync-status.error {
+    color: var(--danger, #b74b59);
+    background: color-mix(in srgb, var(--danger, #b74b59) 8%, transparent);
+}
+
+.modal-overlay.show {
+    overscroll-behavior: contain;
+}
+
+.modal-overlay.show [aria-invalid="true"] {
+    border-color: var(--danger, #b74b59);
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
