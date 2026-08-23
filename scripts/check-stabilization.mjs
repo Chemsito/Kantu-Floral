@@ -4,17 +4,21 @@ import assert from "node:assert/strict";
 const read = path => fs.readFileSync(path, "utf8");
 
 const html = read("index.html");
+const staffHtml = read("staff.html");
 const cart = read("js/cart.js");
 const app = read("js/app.js");
 const admin = read("js/admin.js");
 const products = read("js/products.js");
 const orders = read("js/orders.js");
+const manualPayments = read("js/manual-payments.js");
+const staffRealtime = read("js/staff-realtime.js");
 const supabaseCore = read("js/supabase.js");
 const experienceLoader = read("js/experience-loader.js");
 const webhook = read("supabase/functions/mercadopago-webhook/index.ts");
 const preference = read("supabase/functions/create-mp-preference/index.ts");
 const migration = read("supabase/migrations/20260823133500_harden_webhook_audit_and_rpc_surface.sql");
 const healthMigration = read("supabase/migrations/20260823142000_add_deployment_health_check.sql");
+const realtimeMigration = read("supabase/migrations/20260823193300_enable_realtime_operations.sql");
 
 assert.match(html, /@supabase\/supabase-js@2\.112\.3/, "El cliente público debe fijar la versión exacta de Supabase JS.");
 assert.doesNotMatch(html, /mobile-menu[^>]*onclick=/s, "El botón móvil no debe conservar un onclick inline.");
@@ -59,7 +63,26 @@ assert.match(orders, /DELIVERY_ADDRESS_TEXT_REQUIRED/,
 assert.match(supabaseCore, /addressLine/,
     "El parser compartido debe preservar la dirección legible.");
 assert.match(supabaseCore, /<strong>Dirección:<\/strong>/,
-    "Cuenta, Admin y Staff deben poder renderizar la dirección legible.");
+    "Las vistas que usan el renderer compartido deben mostrar la dirección legible.");
+
+assert.match(manualPayments, /MANUAL_PAYMENT_FALLBACK_POLL_INTERVAL = 30000/,
+    "Pago manual debe conservar un polling lento como respaldo de Realtime.");
+assert.match(manualPayments, /table: "payment_proofs"/,
+    "Pago manual debe escuchar cambios del comprobante por Realtime.");
+assert.match(manualPayments, /table: "orders"/,
+    "Pago manual debe escuchar cambios del pedido por Realtime.");
+assert.match(manualPayments, /removeChannel\(manualPaymentRealtimeChannel\)/,
+    "Pago manual debe limpiar el canal Realtime al finalizar.");
+assert.match(staffHtml, /js\/staff-realtime\.js/,
+    "El portal Staff debe cargar el módulo Realtime dedicado.");
+assert.match(staffRealtime, /table: "orders"/,
+    "Staff debe reaccionar a cambios de pedidos en tiempo real.");
+assert.match(staffRealtime, /STAFF_FALLBACK_REFRESH_INTERVAL = 60000/,
+    "Staff debe mantener un refresco lento de respaldo.");
+assert.match(realtimeMigration, /alter publication supabase_realtime add table public\.orders/i,
+    "La publicación Realtime debe incluir orders.");
+assert.match(realtimeMigration, /alter publication supabase_realtime add table public\.payment_proofs/i,
+    "La publicación Realtime debe incluir payment_proofs.");
 
 assert.match(preference, /@supabase\/supabase-js@2\.112\.3/, "La función de preferencias debe fijar Supabase JS.");
 assert.match(webhook, /@supabase\/supabase-js@2\.112\.3/, "El webhook debe fijar la versión exacta de Supabase JS.");
