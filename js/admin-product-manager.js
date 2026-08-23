@@ -11,6 +11,13 @@
 (() => {
     window.KantuAdminProductManagerLoaded = true;
 
+    // El cliente ya usa una publishable key. Exponer la misma instancia en
+    // window permite que los módulos cargados dinámicamente la reutilicen sin
+    // crear sesiones paralelas ni clientes adicionales.
+    if (typeof supabaseClient !== "undefined" && !window.supabaseClient) {
+        window.supabaseClient = supabaseClient;
+    }
+
     if (document.querySelector('script[data-kantu-customer-ux="true"]')) return;
 
     const script = document.createElement("script");
