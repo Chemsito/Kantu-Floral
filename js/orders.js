@@ -9,7 +9,8 @@ const orderErrorMessages = {
     AUTHENTICATION_REQUIRED: "Tu sesión expiró. Inicia sesión para continuar.",
     CUSTOMER_NAME_REQUIRED: "Ingresa tu nombre completo.",
     CUSTOMER_PHONE_REQUIRED: "Ingresa un número de teléfono.",
-    DELIVERY_ADDRESS_REQUIRED: "Selecciona la ubicación de entrega en el mapa.",
+    DELIVERY_ADDRESS_TEXT_REQUIRED: "Ingresa la dirección de entrega.",
+    DELIVERY_ADDRESS_REQUIRED: "Marca la ubicación exacta de entrega en el mapa.",
     DELIVERY_COORDINATES_REQUIRED: "Selecciona nuevamente la ubicación de entrega.",
     INVALID_DELIVERY_COORDINATES: "La ubicación seleccionada no es válida.",
     DELIVERY_OUT_OF_RANGE: "La ubicación está fuera de nuestra zona de reparto actual.",
@@ -47,6 +48,42 @@ function ensureCustomerExperienceStyles() {
     document.head.appendChild(link);
 }
 
+function ensureCheckoutAddressFields() {
+    const locationField = document.querySelector("#checkoutForm .checkout-location-field");
+    if (!locationField) return null;
+
+    let group = getCheckoutElement("checkoutDeliveryAddressGroup");
+    if (!group) {
+        group = document.createElement("div");
+        group.id = "checkoutDeliveryAddressGroup";
+        group.className = "form-group checkout-address-text-field";
+        group.innerHTML = `
+            <label for="checkoutDeliveryAddressText">Dirección de entrega</label>
+            <input
+                id="checkoutDeliveryAddressText"
+                type="text"
+                maxlength="240"
+                autocomplete="street-address"
+                placeholder="Ej.: Av. Ejército 710, Cayma"
+                required
+                aria-describedby="checkoutDeliveryAddressHelp"
+            >
+            <small id="checkoutDeliveryAddressHelp">Escribe la dirección que verá el equipo de reparto y luego confirma el punto exacto en el mapa.</small>
+        `;
+        locationField.insertAdjacentElement("beforebegin", group);
+    }
+
+    const reference = getCheckoutElement("checkoutDeliveryReference");
+    if (reference && !reference.maxLength) reference.maxLength = 300;
+
+    const mapHelp = locationField.querySelector(".checkout-location-help");
+    if (mapHelp) {
+        mapHelp.textContent = "Después de escribir la dirección, marca el punto exacto en el mapa para calcular el delivery.";
+    }
+
+    return group;
+}
+
 function ensureCheckoutDeliveryQuoteBox() {
     let box = getCheckoutElement("checkoutDeliveryQuote");
     if (box) return box;
@@ -69,10 +106,11 @@ function openCheckout(user) {
     if (!checkoutModal) return;
 
     ensureCustomerExperienceStyles();
+    ensureCheckoutAddressFields();
     ensureCheckoutDeliveryQuoteBox();
     resetCheckoutView();
     renderCheckoutSummary();
-    fillCheckoutName(user);
+    fillCheckoutCustomerData(user);
     checkoutModal.classList.add("show");
     window.setTimeout(initializeCheckoutDeliveryMap, 0);
 }
@@ -306,27 +344,53 @@ function useCurrentCheckoutLocation() {
     );
 }
 
-function buildCheckoutDeliveryAddress() {
-    if (!selectedDeliveryMapsUrl) return "";
-    const reference = getCheckoutElement("checkoutDeliveryReference")?.value
+function normalizeCheckoutText(value, maxLength) {
+    return String(value || "")
         .trim()
-        .replace(/\s*\|\s*/g, " - ");
-    return reference ? `${selectedDeliveryMapsUrl} | Referencia: ${reference}` : selectedDeliveryMapsUrl;
+        .replace(/\s*\|\s*/g, " - ")
+        .slice(0, maxLength);
 }
 
-async function fillCheckoutName(user) {
-    const nameInput = getCheckoutElement("checkoutName");
-    if (!nameInput || !user) return;
+function buildCheckoutDeliveryAddress() {
+    const addressLine = normalizeCheckoutText(
+        getCheckoutElement("checkoutDeliveryAddressText")?.value,
+        240
+    );
+    if (!selectedDeliveryMapsUrl || !addressLine) return "";
 
-    const metadataName = user.user_metadata?.full_name || user.user_metadata?.name;
-    if (metadataName) {
-        nameInput.value = metadataName;
-        return;
-    }
+    const reference = normalizeCheckoutText(
+        getCheckoutElement("checkoutDeliveryReference")?.value,
+        300
+    );
+    return `Dirección: ${addressLine} | ${selectedDeliveryMapsUrl}${reference ? ` | Referencia: ${reference}` : ""}`;
+}
+
+async function fillCheckoutCustomerData(user) {
+    const nameInput = getCheckoutElement("checkoutName");
+    const phoneInput = getCheckoutElement("checkoutPhone");
+    const addressInput = getCheckoutElement("checkoutDeliveryAddressText");
+    if (!user) return;
+
+    const metadataName = user.user_metadata?.full_name || user.user_metadata?.name || "";
+    if (nameInput && metadataName) nameInput.value = metadataName;
 
     const { data: profile, error } = await supabaseClient
-        .from("profiles").select("full_name").eq("id", user.id).maybeSingle();
-    if (!error && profile) nameInput.value = profile.full_name || "";
+        .from("profiles")
+        .select("full_name, phone, address, district, city")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    if (error || !profile) return;
+
+    if (nameInput && !nameInput.value) nameInput.value = profile.full_name || "";
+    if (phoneInput && !phoneInput.value) phoneInput.value = profile.phone || "";
+
+    if (addressInput && !addressInput.value) {
+        addressInput.value = [profile.address, profile.district, profile.city]
+            .map(value => String(value || "").trim())
+            .filter(Boolean)
+            .join(", ");
+    }
 }
 
 function renderCheckoutSummary() {
@@ -404,15 +468,14 @@ async function submitOrder(event) {
 
     const name = getCheckoutElement("checkoutName")?.value.trim();
     const phone = getCheckoutElement("checkoutPhone")?.value.trim();
+    const addressLine = getCheckoutElement("checkoutDeliveryAddressText")?.value.trim();
     const address = buildCheckoutDeliveryAddress();
 
-    if (!name || !phone || !address || selectedDeliveryLat == null || selectedDeliveryLng == null) {
-        showCheckoutError(!name
-            ? orderErrorMessages.CUSTOMER_NAME_REQUIRED
-            : !phone
-                ? orderErrorMessages.CUSTOMER_PHONE_REQUIRED
-                : orderErrorMessages.DELIVERY_ADDRESS_REQUIRED);
-        return;
+    if (!name) return showCheckoutError(orderErrorMessages.CUSTOMER_NAME_REQUIRED);
+    if (!phone) return showCheckoutError(orderErrorMessages.CUSTOMER_PHONE_REQUIRED);
+    if (!addressLine) return showCheckoutError(orderErrorMessages.DELIVERY_ADDRESS_TEXT_REQUIRED);
+    if (!address || selectedDeliveryLat == null || selectedDeliveryLng == null) {
+        return showCheckoutError(orderErrorMessages.DELIVERY_ADDRESS_REQUIRED);
     }
     if (!currentDeliveryQuote) return showCheckoutError("Espera un momento mientras calculamos el delivery.");
     if (!currentDeliveryQuote.service_available) return showCheckoutError(orderErrorMessages.DELIVERY_OUT_OF_RANGE);
@@ -567,6 +630,7 @@ function showPaymentReturnMessage() {
 
 document.addEventListener("DOMContentLoaded", () => {
     ensureCustomerExperienceStyles();
+    ensureCheckoutAddressFields();
     ensureCheckoutDeliveryQuoteBox();
     const checkoutModal = getCheckoutElement("checkoutModal");
     checkoutModal?.addEventListener("click", event => {
