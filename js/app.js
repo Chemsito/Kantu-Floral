@@ -195,6 +195,34 @@ function initializeModalLayoutFixes() {
 }
 
 /* =====================================================
+   POLÍTICA DE CIERRE DE MODALES
+   Un clic accidental sobre el fondo difuminado o Escape no debe destruir
+   información escrita por el cliente. Las ventanas se cierran únicamente
+   mediante su X o por una acción explícita del flujo.
+===================================================== */
+
+function initializeModalDismissalPolicy() {
+    document.addEventListener("click", event => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (!target.classList.contains("modal-overlay") || !target.classList.contains("show")) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    }, true);
+
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        if (!document.querySelector(".modal-overlay.show")) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    }, true);
+}
+
+initializeModalDismissalPolicy();
+
+/* =====================================================
    HARDENING DEL PANEL ADMIN
    - Admin solo puede cancelar pedidos pendientes/no pagados.
    - Preparación, reparto y entrega se gestionan desde staff.html para conservar
@@ -362,6 +390,230 @@ function applyMercadoPagoRetrySupport() {
 
 applyMercadoPagoRetrySupport();
 
+/* =====================================================
+   MEJORAS DE EXPERIENCIA DEL CLIENTE
+===================================================== */
+
+const CUSTOMER_CANCEL_ERROR_MESSAGES = {
+    AUTHENTICATION_REQUIRED: "Tu sesión expiró. Inicia sesión nuevamente.",
+    ORDER_ID_REQUIRED: "El pedido no tiene un identificador válido.",
+    ORDER_NOT_FOUND: "No encontramos este pedido o ya no te pertenece.",
+    ORDER_NOT_CANCELLABLE: "Este pedido ya no puede cancelarse desde la web.",
+    PAYMENT_ALREADY_STARTED: "El pago ya fue iniciado. Para evitar cobros inconsistentes, este pedido ya no puede cancelarse automáticamente.",
+    ORDER_CHANGED_DURING_CANCELLATION: "El pedido cambió mientras intentábamos cancelarlo. Actualiza la página e inténtalo nuevamente."
+};
+
+function canCustomerCancelOrder(order, proof = order?.proof) {
+    if (!order) return false;
+    return order.status === "pendiente"
+        && order.payment_status === "pending"
+        && !order.payment_preference_id
+        && !order.payment_id
+        && !proof;
+}
+
+async function cancelCustomerOrder(orderId, button = null) {
+    const normalizedOrderId = String(orderId || "").trim();
+    if (!normalizedOrderId) return false;
+
+    const confirmed = window.confirm(
+        "¿Cancelar este pedido?\n\nSolo puedes hacerlo antes de iniciar el pago. Esta acción no se puede deshacer."
+    );
+    if (!confirmed) return false;
+
+    const originalText = button?.textContent;
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Cancelando...";
+    }
+
+    try {
+        const { error } = await supabaseClient.rpc("customer_cancel_order", {
+            p_order_id: normalizedOrderId
+        });
+
+        if (error) {
+            console.error("Error cancelando pedido del cliente:", error);
+            showToast(KANTU_APP.resolveErrorMessage(
+                error,
+                CUSTOMER_CANCEL_ERROR_MESSAGES,
+                "No pudimos cancelar el pedido. Inténtalo nuevamente."
+            ));
+            return false;
+        }
+
+        if (typeof currentPaymentOrderId !== "undefined"
+            && String(currentPaymentOrderId || "") === normalizedOrderId) {
+            currentPaymentOrderId = null;
+        }
+
+        showToast("Pedido cancelado correctamente.");
+        if (typeof loadActiveCustomerOrder === "function") await loadActiveCustomerOrder();
+        return true;
+    } finally {
+        if (button && button.isConnected) {
+            button.disabled = false;
+            button.textContent = originalText || "Cancelar pedido";
+        }
+    }
+}
+
+function ensureCheckoutCancellationAction(order) {
+    const successView = document.getElementById("checkoutSuccess");
+    if (!successView) return;
+
+    let button = document.getElementById("cancelPendingOrderButton");
+    if (!button) {
+        button = document.createElement("button");
+        button.id = "cancelPendingOrderButton";
+        button.type = "button";
+        button.className = "btn btn-light form-submit customer-cancel-order checkout-cancel-order";
+        button.textContent = "Cancelar pedido";
+
+        const manualButton = document.getElementById("manualPaymentButton");
+        if (manualButton) manualButton.insertAdjacentElement("afterend", button);
+        else successView.appendChild(button);
+    }
+
+    const orderId = order?.id ?? order?.order_id;
+    button.hidden = !orderId || !canCustomerCancelOrder(order);
+    button.onclick = async () => {
+        const cancelled = await cancelCustomerOrder(orderId, button);
+        if (!cancelled) return;
+        if (typeof closeCheckout === "function") closeCheckout();
+    };
+}
+
+function applyCustomerExperienceImprovements() {
+    if (typeof checkout === "function") {
+        checkout = async function improvedCheckout() {
+            const user = await ensureCartSessionReady();
+
+            if (cart.length === 0) {
+                showToast("Tu carrito está vacío.");
+                return;
+            }
+
+            if (!user) {
+                closeCart();
+                openAuth("login");
+                showToast("Inicia sesión para continuar con tu compra.");
+                return;
+            }
+
+            // En móvil el carrito ocupa toda la pantalla; debe cerrarse antes
+            // de mostrar el checkout para no tapar "Completa tu pedido".
+            closeCart();
+            openCheckout(user);
+        };
+    }
+
+    if (typeof openPaymentOptionsForOrder === "function") {
+        const originalOpenPaymentOptionsForOrder = openPaymentOptionsForOrder;
+        openPaymentOptionsForOrder = function customerOpenPaymentOptionsForOrder(order) {
+            const opened = originalOpenPaymentOptionsForOrder(order);
+            if (opened) ensureCheckoutCancellationAction(order);
+            return opened;
+        };
+    }
+
+    if (typeof getActiveOrderAction === "function") {
+        const originalGetActiveOrderAction = getActiveOrderAction;
+        getActiveOrderAction = function customerGetActiveOrderAction(order) {
+            const primaryAction = originalGetActiveOrderAction(order);
+            if (!canCustomerCancelOrder(order)) return primaryAction;
+
+            return `<div class="customer-order-action-group">
+                ${primaryAction}
+                <button type="button" class="btn btn-light customer-cancel-order" data-active-order-action="cancel">Cancelar pedido</button>
+            </div>`;
+        };
+    }
+
+    if (typeof handleActiveOrderAction === "function") {
+        const originalHandleActiveOrderAction = handleActiveOrderAction;
+        handleActiveOrderAction = async function customerHandleActiveOrderAction(action) {
+            if (action !== "cancel") return originalHandleActiveOrderAction(action);
+            if (!activeCustomerOrder || !canCustomerCancelOrder(activeCustomerOrder)) {
+                showToast("Este pedido ya no puede cancelarse desde la web.");
+                return;
+            }
+
+            const buttons = [...document.querySelectorAll('[data-active-order-action="cancel"]')];
+            buttons.forEach(button => { button.disabled = true; });
+            const cancelled = await cancelCustomerOrder(activeCustomerOrder.id);
+            buttons.forEach(button => { if (button.isConnected) button.disabled = false; });
+            if (cancelled && typeof closeCart === "function") closeCart();
+        };
+    }
+
+    if (typeof openOrderDetail === "function") {
+        const originalOpenOrderDetail = openOrderDetail;
+        openOrderDetail = async function customerOpenOrderDetail(orderId) {
+            await originalOpenOrderDetail(orderId);
+
+            const order = accountOrders.find(row => String(row.id) === String(orderId));
+            if (!order || order.status !== "pendiente" || order.payment_status !== "pending") return;
+
+            let proof = null;
+            try {
+                proof = await KANTU_APP.fetchLatestPaymentProof(orderId);
+            } catch (error) {
+                console.error("No se pudo comprobar el pago antes de mostrar cancelar:", error);
+                return;
+            }
+
+            if (!canCustomerCancelOrder(order, proof)) return;
+
+            const detail = accountElement("accountOrderDetail");
+            const actions = detail?.querySelector(".account-order-actions-row");
+            if (!actions || actions.querySelector("[data-account-cancel-order]")) return;
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "btn btn-light customer-cancel-order";
+            button.dataset.accountCancelOrder = String(orderId);
+            button.textContent = "Cancelar pedido";
+            actions.appendChild(button);
+        };
+    }
+}
+
+applyCustomerExperienceImprovements();
+
+async function syncHeroRegistrationCta() {
+    const button = [...document.querySelectorAll(".hero-buttons button")]
+        .find(candidate => candidate.textContent.trim() === "Crear cuenta");
+    if (!button || typeof getCurrentUser !== "function") return;
+
+    const user = await getCurrentUser();
+    button.hidden = Boolean(user);
+}
+
+function initializeCustomerExperienceListeners() {
+    syncHeroRegistrationCta();
+
+    supabaseClient.auth.onAuthStateChange(() => {
+        window.setTimeout(syncHeroRegistrationCta, 0);
+    });
+
+    document.addEventListener("click", async event => {
+        const button = event.target.closest?.("[data-account-cancel-order]");
+        if (!button) return;
+
+        const orderId = button.dataset.accountCancelOrder;
+        const cancelled = await cancelCustomerOrder(orderId, button);
+        if (!cancelled) return;
+
+        if (typeof loadAccountOrders === "function") {
+            accountOrdersLoaded = false;
+            await loadAccountOrders();
+            switchAccountTab("orders");
+            showAccountMessage("Pedido cancelado correctamente.", "success");
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     initializeModalLayoutFixes();
     applyAdminHardening();
@@ -371,5 +623,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     initializeFavorites();
     initializeMobileMenu();
     initializeMobileLinks();
+    initializeCustomerExperienceListeners();
     await loadProducts();
 });
