@@ -43,6 +43,10 @@ function ensureProductMetadataStyles() {
 
 ensureProductMetadataStyles();
 
+/* =====================================================
+   CATEGORÍAS
+===================================================== */
+
 function getCategoryName(category) {
     return PRODUCT_CATEGORIES.find(([value]) => value === category)?.[1] || category;
 }
@@ -64,6 +68,13 @@ function rebuildCategoryButtons() {
     currentCategory = "todos";
     return [...container.querySelectorAll(".category-btn")];
 }
+
+/* =====================================================
+   METADATOS DE PRODUCTO: TALLA Y NOTA
+   Estas helpers también son consumidas directamente por admin.js. Al tener
+   una integración explícita ya no es necesario envolver/reescribir funciones
+   del panel en tiempo de ejecución.
+===================================================== */
 
 function normalizeProductSize(value) {
     const size = String(value || "M").trim().toUpperCase();
@@ -238,126 +249,13 @@ function readEnhancedAdminProductPayload() {
     };
 }
 
-async function saveEnhancedAdminProduct(event) {
-    if (event.target?.id !== "adminProductForm") return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    let payload;
-    try {
-        payload = readEnhancedAdminProductPayload();
-    } catch (error) {
-        if (typeof showAdminMessage === "function") showAdminMessage(error.message);
-        return;
-    }
-
-    const id = document.getElementById("adminProductId")?.value || "";
-    const button = document.getElementById("adminProductSaveButton");
-    if (button) {
-        button.disabled = true;
-        button.textContent = "Guardando...";
-    }
-
-    try {
-        const query = id
-            ? supabaseClient.from("products").update(payload).eq("id", id)
-            : supabaseClient.from("products").insert(payload);
-        const { error } = await query;
-        if (error) throw error;
-
-        if (typeof loadProducts === "function") await loadProducts();
-        if (typeof switchAdminView === "function") switchAdminView("products");
-        if (typeof showAdminMessage === "function") {
-            showAdminMessage(
-                id ? "Producto actualizado correctamente." : "Producto creado correctamente.",
-                "success"
-            );
-        }
-    } catch (error) {
-        console.error("Error guardando producto:", error);
-        if (typeof showAdminMessage === "function") {
-            showAdminMessage("No pudimos guardar el producto. Revisa los datos.");
-        }
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent = "Guardar producto";
-        }
-    }
-}
-
-function enhanceAdminProductCards() {
-    const cards = [...document.querySelectorAll("#adminProductsList .admin-product-card")];
-    cards.forEach((card, index) => {
-        const product = typeof adminProducts !== "undefined" ? adminProducts[index] : null;
-        if (!product) return;
-
-        const categoryLabel = card.querySelector(".admin-product-info > div > span");
-        if (categoryLabel) categoryLabel.textContent = getCategoryName(product.category);
-
-        const badges = card.querySelector(".admin-product-badges");
-        if (badges && !badges.querySelector(".admin-product-size-badge")) {
-            const badge = document.createElement("span");
-            badge.className = "admin-product-size-badge";
-            badge.textContent = `Talla ${normalizeProductSize(product.size)}`;
-            badges.appendChild(badge);
-        }
-
-        const noteText = String(product.note || "").trim();
-        const info = card.querySelector(".admin-product-info");
-        if (noteText && info && !info.querySelector(".admin-product-note")) {
-            const note = document.createElement("p");
-            note.className = "admin-product-note";
-            note.textContent = `Nota: ${noteText}`;
-            info.appendChild(note);
-        }
-    });
-}
-
 function installAdminProductEnhancements() {
     ensureAdminProductMetadataFields();
-
-    const form = document.getElementById("adminProductForm");
-    if (form && !form.dataset.kantuEnhancedSave) {
-        form.addEventListener("submit", saveEnhancedAdminProduct, true);
-        form.dataset.kantuEnhancedSave = "true";
-    }
-
-    if (typeof openAdminProductForm === "function" && !openAdminProductForm.__kantuEnhancedProductForm) {
-        const originalOpenAdminProductForm = openAdminProductForm;
-        const enhancedOpenAdminProductForm = function enhancedOpenAdminProductForm(product = null) {
-            ensureAdminProductMetadataFields();
-            originalOpenAdminProductForm(product);
-            populateAdminProductMetadata(product);
-        };
-        enhancedOpenAdminProductForm.__kantuEnhancedProductForm = true;
-        openAdminProductForm = enhancedOpenAdminProductForm;
-    }
-
-    if (typeof renderAdminProducts === "function" && !renderAdminProducts.__kantuEnhancedProductCards) {
-        const originalRenderAdminProducts = renderAdminProducts;
-        const enhancedRenderAdminProducts = function enhancedRenderAdminProducts() {
-            originalRenderAdminProducts();
-            enhanceAdminProductCards();
-        };
-        enhancedRenderAdminProducts.__kantuEnhancedProductCards = true;
-        renderAdminProducts = enhancedRenderAdminProducts;
-    }
-
-    if (typeof showFavoriteProducts === "function" && !showFavoriteProducts.__kantuProductMetadata) {
-        const originalShowFavoriteProducts = showFavoriteProducts;
-        const enhancedShowFavoriteProducts = function enhancedShowFavoriteProducts() {
-            originalShowFavoriteProducts();
-            const favoriteProducts = typeof favorites === "undefined"
-                ? []
-                : products.filter(product => favorites.includes(Number(product.id)));
-            if (favoriteProducts.length) enhanceRenderedProductCards(favoriteProducts);
-        };
-        enhancedShowFavoriteProducts.__kantuProductMetadata = true;
-        showFavoriteProducts = enhancedShowFavoriteProducts;
-    }
 }
+
+/* =====================================================
+   CARGAR PRODUCTOS DESDE SUPABASE
+===================================================== */
 
 async function loadProducts() {
     try {
@@ -382,6 +280,10 @@ async function loadProducts() {
         showToast("Ocurrió un error al cargar el catálogo.");
     }
 }
+
+/* =====================================================
+   RENDERIZAR PRODUCTOS
+===================================================== */
 
 function renderProducts() {
     const productsGrid = document.getElementById("productsGrid");
@@ -449,6 +351,10 @@ function renderProducts() {
 
     enhanceRenderedProductCards(filteredProducts);
 }
+
+/* =====================================================
+   FILTROS
+===================================================== */
 
 function initializeCategories() {
     const categoryButtons = rebuildCategoryButtons();
