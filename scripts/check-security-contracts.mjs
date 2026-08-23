@@ -7,6 +7,7 @@ const supabaseBootstrap = read("js/supabase.js");
 const hardening = read("supabase/migrations/20260822155818_harden_permissions_indexes_and_rls.sql");
 const staffOps = read("supabase/migrations/20260822181000_staff_operations_and_delivery_pricing.sql");
 const staffQueues = read("supabase/migrations/20260822185300_staff_search_and_role_specific_queues.sql");
+const leastPrivilege = read("supabase/migrations/20260822235932_reduce_nonpayment_table_privileges.sql");
 
 // Frontend credentials: only a publishable key may be shipped to the browser.
 assert.match(
@@ -29,6 +30,22 @@ assert.match(hardening, /Users can view own cart[\s\S]*auth\.uid\(\)\) = user_id
   "El carrito debe estar aislado por usuario.");
 assert.match(hardening, /Users can view their own orders[\s\S]*user_id = \(select auth\.uid\(\)\)/,
   "Los pedidos deben estar aislados por usuario.");
+
+// Least privilege: anonymous users must not retain table mutation privileges,
+// and authenticated users only get the operations used by the application.
+assert.match(leastPrivilege, /revoke all on table public\.profiles from anon, authenticated;/i);
+assert.match(leastPrivilege, /grant select, update on table public\.profiles to authenticated;/i);
+assert.match(leastPrivilege, /revoke all on table public\.cart_items from anon, authenticated;/i);
+assert.match(leastPrivilege, /grant select, insert, update, delete on table public\.cart_items to authenticated;/i);
+assert.match(leastPrivilege, /revoke all on table public\.favorites from anon, authenticated;/i);
+assert.match(leastPrivilege, /grant select, insert, update, delete on table public\.favorites to authenticated;/i);
+assert.match(leastPrivilege, /revoke all on table public\.products from anon, authenticated;/i);
+assert.match(leastPrivilege, /grant select on table public\.products to anon;/i);
+assert.match(leastPrivilege, /grant select, insert, update, delete on table public\.products to authenticated;/i);
+assert.doesNotMatch(leastPrivilege, /grant[^;]*\btruncate\b/i,
+  "Ningún cliente web debe recibir privilegio TRUNCATE.");
+assert.doesNotMatch(leastPrivilege, /grant[^;]*\btrigger\b/i,
+  "Ningún cliente web debe recibir privilegio TRIGGER.");
 
 // SECURITY DEFINER RPCs are intentionally callable by authenticated users only,
 // so every privileged implementation must perform an explicit server-side
