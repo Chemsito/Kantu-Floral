@@ -16,7 +16,9 @@
         DELIVERY_DATE_REQUIRED_FOR_SLOT: "Selecciona una fecha para la franja horaria elegida.",
         DELIVERY_SLOT_REQUIRED: "Selecciona una franja horaria de entrega.",
         INVALID_DELIVERY_SLOT: "La franja horaria seleccionada ya no está disponible.",
-        DELIVERY_SLOT_TOO_SOON: "Esa franja ya no cumple el tiempo mínimo de anticipación. Elige otra."
+        DELIVERY_SLOT_TOO_SOON: "Esa franja ya no cumple el tiempo mínimo de anticipación. Elige otra.",
+        PROMOTION_NOT_AVAILABLE: "El código promocional ya no está disponible. Quítalo o valida otro código.",
+        PROMOTION_MINIMUM_NOT_MET: "El carrito ya no cumple la compra mínima requerida por la promoción."
     });
 
     let scheduleSettings = {
@@ -336,6 +338,7 @@
         const timing = element("checkoutDeliveryTiming")?.value || "asap";
         const requestedDate = timing === "scheduled" ? element("checkoutRequestedDate")?.value || null : null;
         const requestedSlot = timing === "scheduled" ? element("checkoutRequestedSlot")?.value || null : null;
+        const promotionCode = window.KantuPromotions?.getAppliedCode?.() || null;
 
         if (!name) return showCheckoutError("Ingresa tu nombre completo.");
         if (!phone) return showCheckoutError("Ingresa un número de teléfono.");
@@ -371,7 +374,8 @@
             p_gift_message: giftMessage || null,
             p_is_surprise: isSurprise,
             p_requested_delivery_date: requestedDate,
-            p_requested_delivery_slot: requestedSlot
+            p_requested_delivery_slot: requestedSlot,
+            p_promotion_code: promotionCode
         });
 
         setOrderButtonState(false);
@@ -393,6 +397,8 @@
             delivery_fee: order.delivery_fee,
             delivery_distance_km: order.delivery_distance_km,
             estimated_delivery_minutes: order.estimated_delivery_minutes,
+            discount_amount: order.discount_amount,
+            promotion_code: promotionCode,
             status: "pendiente",
             payment_status: "pending"
         });
