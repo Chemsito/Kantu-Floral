@@ -8,6 +8,7 @@ const staffHtml = read("staff.html");
 const cart = read("js/cart.js");
 const app = read("js/app.js");
 const admin = read("js/admin.js");
+const adminImageUpload = read("js/admin-image-upload.js");
 const products = read("js/products.js");
 const orders = read("js/orders.js");
 const manualPayments = read("js/manual-payments.js");
@@ -19,6 +20,7 @@ const preference = read("supabase/functions/create-mp-preference/index.ts");
 const migration = read("supabase/migrations/20260823133500_harden_webhook_audit_and_rpc_surface.sql");
 const healthMigration = read("supabase/migrations/20260823142000_add_deployment_health_check.sql");
 const realtimeMigration = read("supabase/migrations/20260823193300_enable_realtime_operations.sql");
+const productImageMigration = read("supabase/migrations/20260823194000_product_image_storage.sql");
 
 assert.match(html, /@supabase\/supabase-js@2\.112\.3/, "El cliente público debe fijar la versión exacta de Supabase JS.");
 assert.doesNotMatch(html, /mobile-menu[^>]*onclick=/s, "El botón móvil no debe conservar un onclick inline.");
@@ -52,6 +54,29 @@ assert.match(products, /aria-pressed=/, "Las categorías/favoritos deben mantene
 assert.match(products, /favoriteAction/, "El texto accesible de favoritos debe cambiar según su estado.");
 assert.doesNotMatch(products, /saveEnhancedAdminProduct/, "Products no debe interceptar el submit administrativo.");
 assert.match(experienceLoader, /customer-ux\.js/, "El loader de experiencia debe cargar el paquete UX.");
+assert.match(experienceLoader, /admin-image-upload\.js/,
+    "El loader de experiencia debe cargar la subida de imágenes administrativas.");
+
+assert.match(adminImageUpload, /PRODUCT_IMAGE_BUCKET = "product-images"/,
+    "Admin debe subir imágenes al bucket dedicado.");
+assert.match(adminImageUpload, /PRODUCT_IMAGE_MAX_SIZE = 5 \* 1024 \* 1024/,
+    "Las imágenes del catálogo deben limitarse a 5 MB en cliente.");
+assert.match(adminImageUpload, /"image\/webp"/,
+    "El uploader debe admitir WebP además de JPG/PNG.");
+assert.match(adminImageUpload, /\.upload\(path, file/,
+    "El uploader debe enviar el archivo a Supabase Storage.");
+assert.match(adminImageUpload, /getPublicUrl\(path\)/,
+    "El uploader debe convertir el objeto subido en una URL pública para products.image.");
+assert.match(productImageMigration, /'product-images'/,
+    "Debe existir un bucket dedicado de imágenes de producto.");
+assert.match(productImageMigration, /file_size_limit[\s\S]*5242880/,
+    "Storage debe imponer también el límite de 5 MB.");
+assert.match(productImageMigration, /image\/jpeg[\s\S]*image\/png[\s\S]*image\/webp/,
+    "Storage debe limitar los MIME permitidos.");
+assert.match(productImageMigration, /Admins can upload product images/,
+    "Solo administradores deben poder subir imágenes.");
+assert.match(productImageMigration, /public\.is_admin\(\)/,
+    "Las escrituras del bucket deben comprobar rol administrador en backend.");
 
 assert.match(orders, /checkoutDeliveryAddressText/, "Checkout debe solicitar una dirección legible además de coordenadas.");
 assert.match(orders, /Dirección: \$\{addressLine\} \| \$\{selectedDeliveryMapsUrl\}/,
