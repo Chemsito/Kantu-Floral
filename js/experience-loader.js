@@ -30,6 +30,7 @@
     loadScriptOnce("js/admin-schedule.js", "data-kantu-admin-schedule", "true");
     loadScriptOnce("js/delivery-availability.js", "data-kantu-delivery-availability", "true");
     loadScriptOnce("js/scheduled-operations.js", "data-kantu-scheduled-operations", "true");
+    loadScriptOnce("js/occasion-reminders.js", "data-kantu-occasion-reminders", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();
