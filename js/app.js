@@ -265,6 +265,103 @@ function applyAdminHardening() {
     }
 }
 
+/* =====================================================
+   REINTENTOS SEGUROS DE MERCADO PAGO
+   Un intento rechazado/cancelado puede volver a abrir Checkout Pro, pero las
+   opciones manuales se mantienen ocultas hasta que el pedido esté nuevamente
+   en estado de pago pendiente. Los webhooks siguen siendo la fuente de verdad.
+===================================================== */
+
+function applyMercadoPagoRetrySupport() {
+    const retryableStatuses = new Set(["pending", "rejected", "cancelled"]);
+
+    if (typeof showOrderSuccess === "function") {
+        const originalShowOrderSuccess = showOrderSuccess;
+
+        openPaymentOptionsForOrder = function retryableOpenPaymentOptionsForOrder(order) {
+            const orderId = order?.id ?? order?.order_id;
+            const total = Number(order?.total);
+            const paymentStatus = order?.payment_status || "pending";
+            if (!orderId || !Number.isFinite(total)) return false;
+            if (order?.status && order.status !== "pendiente") return false;
+            if (!retryableStatuses.has(paymentStatus)) return false;
+
+            resetCheckoutView();
+            const checkoutModal = getCheckoutElement("checkoutModal");
+            if (!checkoutModal) return false;
+            checkoutModal.classList.add("show");
+            originalShowOrderSuccess({ ...order, id: orderId, total });
+
+            if (paymentStatus !== "pending") {
+                if (typeof resetManualPayment === "function") resetManualPayment();
+                const paymentButton = getCheckoutElement("mercadoPagoButton");
+                if (paymentButton) {
+                    paymentButton.hidden = false;
+                    paymentButton.disabled = false;
+                    paymentButton.textContent = "Reintentar con Mercado Pago";
+                }
+            }
+
+            return true;
+        };
+    }
+
+    if (typeof continueAccountOrderPayment === "function") {
+        continueAccountOrderPayment = function retryableContinueAccountOrderPayment(orderId, retryManual = false) {
+            const order = accountOrders.find(row => String(row.id) === String(orderId));
+            const paymentStatus = order?.payment_status || "pending";
+
+            if (!order || order.status !== "pendiente" || !retryableStatuses.has(paymentStatus)) {
+                showAccountMessage("Este pedido ya no está disponible para continuar el pago.");
+                return;
+            }
+
+            if (retryManual && paymentStatus !== "pending") {
+                showAccountMessage("Este intento solo puede reintentarse con Mercado Pago.");
+                return;
+            }
+
+            closeAccount();
+
+            if (!openPaymentOptionsForOrder(order)) {
+                showAccountMessage("No pudimos abrir las opciones de pago.");
+                return;
+            }
+
+            if (retryManual) {
+                window.setTimeout(() => accountElement("manualPaymentButton")?.click(), 0);
+            }
+        };
+    }
+
+    if (typeof openOrderDetail === "function") {
+        const originalOpenOrderDetail = openOrderDetail;
+        openOrderDetail = async function retryableOpenOrderDetail(orderId) {
+            await originalOpenOrderDetail(orderId);
+
+            const order = accountOrders.find(row => String(row.id) === String(orderId));
+            if (!order || order.status !== "pendiente" || !["rejected", "cancelled"].includes(order.payment_status)) return;
+
+            const detail = accountElement("accountOrderDetail");
+            if (!detail || detail.querySelector("[data-continue-payment]")) return;
+
+            const state = detail.querySelector(".account-order-main-state");
+            if (!state) return;
+
+            const action = document.createElement("div");
+            action.className = "account-payment-action";
+            const text = order.payment_status === "cancelled"
+                ? "El intento de pago fue cancelado. Puedes iniciar uno nuevo con Mercado Pago."
+                : "El intento de pago fue rechazado. Puedes volver a intentarlo con Mercado Pago.";
+            action.innerHTML = `<p>${KANTU_APP.escapeHtml(text)}</p>
+                <button type="button" class="btn btn-primary" data-continue-payment="${KANTU_APP.escapeHtml(orderId)}">Reintentar con Mercado Pago</button>`;
+            state.insertAdjacentElement("afterend", action);
+        };
+    }
+}
+
+applyMercadoPagoRetrySupport();
+
 document.addEventListener("DOMContentLoaded", async () => {
     initializeModalLayoutFixes();
     applyAdminHardening();
