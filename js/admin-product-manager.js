@@ -29,5 +29,5 @@
     }
 
     loadScriptOnce("js/customer-ux.js", "data-kantu-customer-ux", "true");
-    loadScriptOnce("js/sakura.js?v=20260823-1124", "data-kantu-sakura", "true");
+    loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();
