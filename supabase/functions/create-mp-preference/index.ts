@@ -15,6 +15,8 @@ type Product = {
     id: string | number;
     name: string;
     image: string | null;
+    stock: number | string | null;
+    active: boolean;
 };
 
 type MercadoPagoPreference = {
@@ -168,7 +170,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const productIds = [...new Set(orderItems.map(item => String(item.product_id)))];
         const { data: products, error: productsError } = await databaseClient
             .from("products")
-            .select("id, name, image")
+            .select("id, name, image, stock, active")
             .in("id", productIds)
             .returns<Product[]>();
         if (productsError) {
@@ -179,6 +181,23 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const productsById = new Map((products || []).map(product => [String(product.id), product]));
         if (orderItems.some(item => !productsById.has(String(item.product_id)))) {
             return jsonResponse({ error: "ORDER_PRODUCT_NOT_FOUND", message: "Uno de los productos del pedido ya no existe." }, 409);
+        }
+
+        const requiredByProduct = new Map<string, number>();
+        for (const item of orderItems) {
+            const productId = String(item.product_id);
+            requiredByProduct.set(productId, (requiredByProduct.get(productId) || 0) + Number(item.quantity));
+        }
+
+        for (const [productId, requiredQuantity] of requiredByProduct) {
+            const product = productsById.get(productId)!;
+            const stock = Number(product.stock);
+            if (product.active !== true) {
+                return jsonResponse({ error: "PRODUCT_NOT_AVAILABLE", message: "Uno de los productos ya no está disponible." }, 409);
+            }
+            if (!Number.isSafeInteger(stock) || stock < requiredQuantity) {
+                return jsonResponse({ error: "INSUFFICIENT_STOCK", message: "No hay stock suficiente para completar este pedido." }, 409);
+            }
         }
 
         const mercadoPagoItems = orderItems.map(item => {
