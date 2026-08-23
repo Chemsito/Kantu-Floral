@@ -36,6 +36,10 @@ assert.match(sourceFix, /stock_decrease/,
 assert.doesNotMatch(sourceFix, /paid_order.*v_source|admin_adjustment.*v_source/,
     "El trigger no debe afirmar que una variación provino de un pago o ajuste manual sin contexto demostrable.");
 
+assert.match(module, /stock_increase:\s*"Aumento de stock"/,
+    "La interfaz debe explicar los aumentos de stock con texto legible.");
+assert.match(module, /stock_decrease:\s*"Disminución de stock"/,
+    "La interfaz debe explicar las disminuciones de stock con texto legible.");
 assert.match(module, /category === "complementos"/,
     "El upsell debe reutilizar complementos reales del catálogo.");
 assert.match(module, /await addToCart\(productId\)/,
