@@ -1,0 +1,131 @@
+/* Kantu Floral - checkout invitado */
+
+.guest-checkout-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 14px 0 18px;
+    padding: 13px 15px;
+    border: 1px solid rgba(123, 79, 64, 0.16);
+    border-radius: 14px;
+    background: rgba(255, 250, 246, 0.92);
+}
+
+.guest-checkout-banner[hidden] {
+    display: none;
+}
+
+.guest-checkout-banner div {
+    display: grid;
+    gap: 3px;
+}
+
+.guest-checkout-banner strong {
+    color: #4d3028;
+    font-size: 0.94rem;
+}
+
+.guest-checkout-banner span {
+    color: #765d54;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.guest-checkout-banner button,
+.guest-order-resume button {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: #fff;
+    color: #6b4539;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(107, 69, 57, 0.18);
+}
+
+.guest-checkout-banner button:hover,
+.guest-order-resume button:hover {
+    box-shadow: inset 0 0 0 1px rgba(107, 69, 57, 0.34);
+}
+
+.guest-checkout-banner button:focus-visible,
+.guest-order-resume button:focus-visible {
+    outline: 3px solid rgba(107, 69, 57, 0.2);
+    outline-offset: 2px;
+}
+
+.guest-order-resume {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 12px;
+    border-radius: 13px;
+    background: rgba(250, 241, 234, 0.8);
+}
+
+.guest-order-resume[hidden] {
+    display: none;
+}
+
+.guest-order-resume div {
+    display: grid;
+    gap: 2px;
+}
+
+.guest-order-resume strong {
+    color: #4d3028;
+    font-size: 0.87rem;
+}
+
+.guest-order-resume span {
+    color: #826a61;
+    font-size: 0.78rem;
+}
+
+.guest-order-status-note {
+    margin: 14px 0;
+    padding: 11px 13px;
+    border-radius: 12px;
+    background: rgba(249, 244, 239, 0.9);
+    color: #5f4b43;
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.guest-order-status-note[hidden] {
+    display: none;
+}
+
+.guest-order-status-note.pending {
+    background: rgba(252, 246, 224, 0.92);
+    color: #6f5b23;
+}
+
+.guest-order-status-note.success {
+    background: rgba(232, 247, 236, 0.94);
+    color: #315d3c;
+}
+
+.guest-order-status-note.error {
+    background: rgba(252, 235, 235, 0.94);
+    color: #7c3434;
+}
+
+@media (max-width: 640px) {
+    .guest-checkout-banner,
+    .guest-order-resume {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .guest-checkout-banner button,
+    .guest-order-resume button {
+        width: 100%;
+    }
+}
