@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#fff8f4">
+    <meta name="robots" content="noindex,nofollow">
     <title>Operaciones | Kantu Floral</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +13,8 @@
 </head>
 <body>
     <header class="staff-header">
-        <a class="staff-brand" href="index.html">
-            <span class="staff-brand-mark">✿</span>
+        <a class="staff-brand" href="index.html" aria-label="Volver a Kantu Floral">
+            <span class="staff-brand-mark" aria-hidden="true">✿</span>
             <span><strong>Kantu Floral</strong><small>Operaciones · GRUPO TENNO</small></span>
         </a>
         <div class="staff-header-actions">
@@ -24,15 +25,15 @@
     </header>
 
     <main class="staff-shell">
-        <section id="staffAccess" class="staff-access">
-            <div id="staffAccessLoader" class="staff-loader"></div>
+        <section id="staffAccess" class="staff-access" aria-live="polite">
+            <div id="staffAccessLoader" class="staff-loader" aria-hidden="true"></div>
             <h1 id="staffAccessTitle">Preparando tu panel</h1>
             <p id="staffAccessMessage">Estamos verificando tu sesión y tus permisos.</p>
             <button id="staffRetryAccess" type="button" class="staff-primary-button" hidden>Reintentar acceso</button>
         </section>
 
         <section id="staffDenied" class="staff-access" hidden>
-            <span class="staff-access-icon">🔒</span>
+            <span class="staff-access-icon" aria-hidden="true">🔒</span>
             <h1>Acceso para el equipo</h1>
             <p id="staffDeniedMessage">Esta página está disponible para floristas, delivery y administradores.</p>
             <a class="staff-primary-button" href="index.html">Volver a la tienda</a>
@@ -45,10 +46,10 @@
                     <h1 id="staffTitle">Operaciones en vivo</h1>
                     <p id="staffSubtitle">Prioriza los pedidos que más tiempo llevan esperando.</p>
                 </div>
-                <div id="staffClock" class="staff-clock"></div>
+                <div id="staffClock" class="staff-clock" aria-live="off"></div>
             </section>
 
-            <p id="staffMessage" class="staff-message" role="status" hidden></p>
+            <p id="staffMessage" class="staff-message" role="status" aria-live="polite" hidden></p>
             <section id="staffStats" class="staff-stats" aria-label="Resumen operativo"></section>
 
             <section id="staffPreparationSection" class="staff-section">
@@ -62,7 +63,7 @@
                 </div>
                 <div id="staffPreparationLoading" class="staff-loading-row">Cargando cola de preparación...</div>
                 <div id="staffPreparationEmpty" class="staff-empty" hidden>
-                    <span>✿</span>
+                    <span aria-hidden="true">✿</span>
                     <h3>No hay ramos esperando preparación</h3>
                     <p>Los pedidos pagados aparecerán aquí automáticamente.</p>
                 </div>
@@ -80,7 +81,7 @@
                 </div>
                 <div id="staffDeliveryLoading" class="staff-loading-row">Cargando repartos...</div>
                 <div id="staffDeliveryEmpty" class="staff-empty" hidden>
-                    <span>🛵</span>
+                    <span aria-hidden="true">🛵</span>
                     <h3>No hay pedidos listos para reparto</h3>
                     <p>Cuando Floristería marque un pedido como listo aparecerá aquí.</p>
                 </div>
@@ -115,7 +116,7 @@
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
     <script src="js/supabase.js"></script>
     <script src="js/staff.js"></script>
 </body>

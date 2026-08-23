@@ -1,5 +1,5 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.112.3/cors";
 
 type RequestBody = {
     order_id?: string | number;

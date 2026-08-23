@@ -1,19 +1,12 @@
 /* =====================================================
    KANTU FLORAL
-   admin-product-manager.js
-
-   Compatibilidad temporal.
-   La gestión de categorías, talla y nota vive en products.js.
-   Este archivo se mantiene como cargador liviano para las mejoras
-   generales de experiencia del cliente.
+   experience-loader.js
+   Carga diferida de módulos visuales no críticos.
 ===================================================== */
 
 (() => {
-    window.KantuAdminProductManagerLoaded = true;
+    window.KantuExperienceLoaderReady = true;
 
-    // El cliente ya usa una publishable key. Exponer la misma instancia en
-    // window permite que los módulos cargados dinámicamente la reutilicen sin
-    // crear sesiones paralelas ni clientes adicionales.
     if (typeof supabaseClient !== "undefined" && !window.supabaseClient) {
         window.supabaseClient = supabaseClient;
     }

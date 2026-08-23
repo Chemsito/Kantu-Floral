@@ -23,6 +23,12 @@ const PRODUCT_CATEGORIES = Object.freeze([
 const PRODUCT_CATEGORY_VALUES = Object.freeze(PRODUCT_CATEGORIES.map(([value]) => value));
 const PRODUCT_SIZES = Object.freeze(["S", "M", "L", "XL", "XXL"]);
 
+window.KantuProductConfig = Object.freeze({
+    categories: PRODUCT_CATEGORIES,
+    categoryValues: PRODUCT_CATEGORY_VALUES,
+    sizes: PRODUCT_SIZES
+});
+
 let products = [];
 let currentCategory = "todos";
 
@@ -55,6 +61,7 @@ function rebuildCategoryButtons() {
             class="category-btn${index === 0 ? " active" : ""}"
             data-category="${productEscape(value)}"
             type="button"
+            aria-pressed="${index === 0 ? "true" : "false"}"
         >${productEscape(label)}</button>
     `).join("");
 
@@ -64,6 +71,9 @@ function rebuildCategoryButtons() {
 
 /* =====================================================
    METADATOS DE PRODUCTO: TALLA Y NOTA
+   Estas helpers también son consumidas directamente por admin.js. Al tener
+   una integración explícita ya no es necesario envolver/reescribir funciones
+   del panel en tiempo de ejecución.
 ===================================================== */
 
 function normalizeProductSize(value) {
@@ -124,13 +134,6 @@ function enhanceRenderedProductCards(productList) {
         }
     });
 }
-
-/* =====================================================
-   PRODUCTOS EN ADMIN
-   La categoría, talla y nota se guardan desde un único flujo propio.
-   Esto evita depender del formulario legado de admin.js, que todavía
-   contiene las cuatro categorías antiguas y podía resetear el select.
-===================================================== */
 
 function syncAdminProductCategoryOptions(preferredValue = null) {
     const select = document.getElementById("adminProductCategory");
@@ -246,125 +249,8 @@ function readEnhancedAdminProductPayload() {
     };
 }
 
-async function saveEnhancedAdminProduct(event) {
-    if (event.target?.id !== "adminProductForm") return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    let payload;
-    try {
-        payload = readEnhancedAdminProductPayload();
-    } catch (error) {
-        if (typeof showAdminMessage === "function") showAdminMessage(error.message);
-        return;
-    }
-
-    const id = document.getElementById("adminProductId")?.value || "";
-    const button = document.getElementById("adminProductSaveButton");
-    if (button) {
-        button.disabled = true;
-        button.textContent = "Guardando...";
-    }
-
-    try {
-        const query = id
-            ? supabaseClient.from("products").update(payload).eq("id", id)
-            : supabaseClient.from("products").insert(payload);
-        const { error } = await query;
-        if (error) throw error;
-
-        if (typeof loadProducts === "function") await loadProducts();
-        if (typeof switchAdminView === "function") switchAdminView("products");
-        if (typeof showAdminMessage === "function") {
-            showAdminMessage(
-                id ? "Producto actualizado correctamente." : "Producto creado correctamente.",
-                "success"
-            );
-        }
-    } catch (error) {
-        console.error("Error guardando producto:", error);
-        if (typeof showAdminMessage === "function") {
-            showAdminMessage("No pudimos guardar el producto. Revisa los datos.");
-        }
-    } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent = "Guardar producto";
-        }
-    }
-}
-
-function enhanceAdminProductCards() {
-    const cards = [...document.querySelectorAll("#adminProductsList .admin-product-card")];
-    cards.forEach((card, index) => {
-        const product = typeof adminProducts !== "undefined" ? adminProducts[index] : null;
-        if (!product) return;
-
-        const categoryLabel = card.querySelector(".admin-product-info > div > span");
-        if (categoryLabel) categoryLabel.textContent = getCategoryName(product.category);
-
-        const badges = card.querySelector(".admin-product-badges");
-        if (badges && !badges.querySelector(".admin-product-size-badge")) {
-            const badge = document.createElement("span");
-            badge.className = "admin-product-size-badge";
-            badge.textContent = `Talla ${normalizeProductSize(product.size)}`;
-            badges.appendChild(badge);
-        }
-
-        const noteText = String(product.note || "").trim();
-        const info = card.querySelector(".admin-product-info");
-        if (noteText && info && !info.querySelector(".admin-product-note")) {
-            const note = document.createElement("p");
-            note.className = "admin-product-note";
-            note.textContent = `Nota: ${noteText}`;
-            info.appendChild(note);
-        }
-    });
-}
-
 function installAdminProductEnhancements() {
     ensureAdminProductMetadataFields();
-
-    const form = document.getElementById("adminProductForm");
-    if (form && !form.dataset.kantuEnhancedSave) {
-        form.addEventListener("submit", saveEnhancedAdminProduct, true);
-        form.dataset.kantuEnhancedSave = "true";
-    }
-
-    if (typeof openAdminProductForm === "function" && !openAdminProductForm.__kantuEnhancedProductForm) {
-        const originalOpenAdminProductForm = openAdminProductForm;
-        const enhancedOpenAdminProductForm = function enhancedOpenAdminProductForm(product = null) {
-            ensureAdminProductMetadataFields();
-            originalOpenAdminProductForm(product);
-            populateAdminProductMetadata(product);
-        };
-        enhancedOpenAdminProductForm.__kantuEnhancedProductForm = true;
-        openAdminProductForm = enhancedOpenAdminProductForm;
-    }
-
-    if (typeof renderAdminProducts === "function" && !renderAdminProducts.__kantuEnhancedProductCards) {
-        const originalRenderAdminProducts = renderAdminProducts;
-        const enhancedRenderAdminProducts = function enhancedRenderAdminProducts() {
-            originalRenderAdminProducts();
-            enhanceAdminProductCards();
-        };
-        enhancedRenderAdminProducts.__kantuEnhancedProductCards = true;
-        renderAdminProducts = enhancedRenderAdminProducts;
-    }
-
-    if (typeof showFavoriteProducts === "function" && !showFavoriteProducts.__kantuProductMetadata) {
-        const originalShowFavoriteProducts = showFavoriteProducts;
-        const enhancedShowFavoriteProducts = function enhancedShowFavoriteProducts() {
-            originalShowFavoriteProducts();
-            const favoriteProducts = typeof favorites === "undefined"
-                ? []
-                : products.filter(product => favorites.includes(Number(product.id)));
-            if (favoriteProducts.length) enhanceRenderedProductCards(favoriteProducts);
-        };
-        enhancedShowFavoriteProducts.__kantuProductMetadata = true;
-        showFavoriteProducts = enhancedShowFavoriteProducts;
-    }
 }
 
 /* =====================================================
@@ -388,9 +274,7 @@ async function loadProducts() {
         products = data || [];
         renderProducts();
 
-        if (typeof updateCart === "function") {
-            updateCart();
-        }
+        if (typeof updateCart === "function") updateCart();
     } catch (error) {
         console.error("Error inesperado cargando catálogo:", error);
         showToast("Ocurrió un error al cargar el catálogo.");
@@ -423,13 +307,14 @@ function renderProducts() {
         const productId = Number(product.id);
         if (!Number.isSafeInteger(productId) || productId <= 0) return "";
 
-        const isFavorite = typeof favorites !== "undefined" && favorites.includes(product.id);
+        const isFavorite = typeof favorites !== "undefined" && favorites.includes(Number(product.id));
         const safeImage = productSafeUrl(product.image);
         const imageMarkup = safeImage
             ? `<img src="${productEscape(safeImage)}" alt="${productEscape(product.name || "Producto")}" loading="lazy">`
             : '<div class="product-image-placeholder" aria-hidden="true">✿</div>';
         const stock = Math.max(0, Number(product.stock) || 0);
         const price = Number(product.price);
+        const favoriteAction = isFavorite ? "Eliminar de" : "Agregar a";
 
         return `
             <article class="product-card">
@@ -437,9 +322,11 @@ function renderProducts() {
                     ${imageMarkup}
                     <span class="product-tag">${productEscape(product.tag || "")}</span>
                     <button
+                        type="button"
                         class="favorite ${isFavorite ? "active" : ""}"
                         onclick="toggleFavorite(${productId})"
-                        aria-label="Agregar a favoritos"
+                        aria-pressed="${String(isFavorite)}"
+                        aria-label="${favoriteAction} favoritos: ${productEscape(product.name || "Producto")}"
                     >${isFavorite ? "♥" : "♡"}</button>
                 </div>
 
@@ -451,6 +338,7 @@ function renderProducts() {
                     <div class="product-bottom">
                         <span class="price">S/ ${Number.isFinite(price) ? price.toFixed(2) : "0.00"}</span>
                         <button
+                            type="button"
                             class="add-cart"
                             onclick="addToCart(${productId})"
                             ${stock <= 0 ? "disabled" : ""}
@@ -474,8 +362,12 @@ function initializeCategories() {
 
     categoryButtons.forEach(button => {
         button.addEventListener("click", () => {
-            categoryButtons.forEach(btn => btn.classList.remove("active"));
+            categoryButtons.forEach(btn => {
+                btn.classList.remove("active");
+                btn.setAttribute("aria-pressed", "false");
+            });
             button.classList.add("active");
+            button.setAttribute("aria-pressed", "true");
             currentCategory = button.dataset.category;
             renderProducts();
         });
