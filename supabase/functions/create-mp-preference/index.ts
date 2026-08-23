@@ -25,6 +25,8 @@ type MercadoPagoPreference = {
 
 type MercadoPagoEnvironment = "test" | "production";
 
+const RETRYABLE_PAYMENT_STATUSES = new Set(["pending", "rejected", "cancelled"]);
+
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
     return new Response(JSON.stringify(body), {
         status,
@@ -135,7 +137,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
         if (order.status !== "pendiente") {
             return jsonResponse({ error: "INVALID_ORDER_STATUS", message: "Solo se pueden pagar pedidos pendientes." }, 409);
         }
-        if (order.payment_status !== "pending") {
+        if (!RETRYABLE_PAYMENT_STATUSES.has(String(order.payment_status || ""))) {
             return jsonResponse({ error: "INVALID_PAYMENT_STATUS", message: "Este pedido no está disponible para pago." }, 409);
         }
 
@@ -268,7 +270,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
             .eq("id", orderId)
             .eq("user_id", user.id)
             .eq("status", "pendiente")
-            .eq("payment_status", "pending")
+            .eq("payment_status", order.payment_status)
             .select("id")
             .maybeSingle();
         if (updateError) {
