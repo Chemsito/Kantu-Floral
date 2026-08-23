@@ -22,5 +22,6 @@
     }
 
     loadScriptOnce("js/customer-ux.js", "data-kantu-customer-ux", "true");
+    loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();

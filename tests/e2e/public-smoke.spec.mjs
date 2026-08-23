@@ -64,6 +64,15 @@ test.describe("Kantu Floral public stabilization", () => {
         expect(parsed.mapsUrl).toContain("google.com/maps?q=-16.390000,-71.550000");
     });
 
+    test("admin product image uploader initializes without requiring admin access", async ({ page }) => {
+        await page.goto("/", { waitUntil: "domcontentloaded" });
+
+        const group = page.locator("#adminProductUploadGroup");
+        await expect(group).toHaveCount(1, { timeout: 15000 });
+        await expect(page.locator("#adminProductUploadFile")).toHaveAttribute("accept", /image\/webp/);
+        await expect(page.locator("#adminProductUploadStatus")).toHaveAttribute("aria-live", "polite");
+    });
+
     test("staff portal boots the realtime sidecar without JavaScript errors", async ({ page }) => {
         const pageErrors = [];
         page.on("pageerror", error => pageErrors.push(error.message));
