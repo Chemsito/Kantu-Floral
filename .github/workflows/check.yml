@@ -50,6 +50,9 @@ jobs:
           ref: catalog/blume-full-import
           fetch-depth: 0
 
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
       - name: Build 96 catalog images
         shell: bash
         run: |
