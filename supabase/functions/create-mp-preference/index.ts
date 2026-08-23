@@ -124,7 +124,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
         const { data: order, error: orderError } = await databaseClient
             .from("orders")
-            .select("id, user_id, status, payment_status, total, delivery_fee")
+            .select("id, user_id, status, payment_status, total, subtotal, delivery_fee, discount_amount, promotion_code")
             .eq("id", orderId)
             .eq("user_id", user.id)
             .maybeSingle();
@@ -141,6 +141,18 @@ Deno.serve(async (request: Request): Promise<Response> => {
         }
         if (!RETRYABLE_PAYMENT_STATUSES.has(String(order.payment_status || ""))) {
             return jsonResponse({ error: "INVALID_PAYMENT_STATUS", message: "Este pedido no está disponible para pago." }, 409);
+        }
+
+        const orderTotal = Number(order.total);
+        const orderSubtotal = Number(order.subtotal);
+        const deliveryFee = Number(order.delivery_fee) || 0;
+        const discountAmount = Number(order.discount_amount) || 0;
+        if (!Number.isFinite(orderTotal) || orderTotal <= 0) {
+            return jsonResponse({ error: "ORDER_TOTAL_NOT_PAYABLE", message: "El total del pedido no es válido para pago online." }, 409);
+        }
+        if (!Number.isFinite(orderSubtotal) || orderSubtotal < 0
+            || !Number.isFinite(discountAmount) || discountAmount < 0 || discountAmount > orderSubtotal) {
+            return jsonResponse({ error: "INVALID_ORDER_DISCOUNT", message: "El descuento del pedido no pudo validarse." }, 409);
         }
 
         const { data: orderItems, error: orderItemsError } = await databaseClient
@@ -200,7 +212,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
             }
         }
 
-        const mercadoPagoItems = orderItems.map(item => {
+        let mercadoPagoItems = orderItems.map(item => {
             const product = productsById.get(String(item.product_id))!;
             const pictureUrl = product.image?.trim();
             return {
@@ -213,8 +225,21 @@ Deno.serve(async (request: Request): Promise<Response> => {
             };
         });
 
-        const deliveryFee = Number(order.delivery_fee) || 0;
-        if (deliveryFee > 0) {
+        if (discountAmount > 0) {
+            // Checkout Pro no acepta una línea negativa de descuento de forma portable.
+            // Cuando existe promoción cobramos un único ítem cuyo precio es exactamente
+            // el total autoritativo persistido en orders. El webhook seguirá validando
+            // el monto pagado contra ese mismo total.
+            mercadoPagoItems = [{
+                id: `order-${orderId}`,
+                title: order.promotion_code
+                    ? `Pedido Kantu Floral · promoción ${String(order.promotion_code)}`
+                    : "Pedido Kantu Floral · promoción aplicada",
+                currency_id: "PEN",
+                quantity: 1,
+                unit_price: orderTotal
+            }];
+        } else if (deliveryFee > 0) {
             mercadoPagoItems.push({
                 id: "delivery",
                 title: "Delivery Kantu Floral",
@@ -227,12 +252,13 @@ Deno.serve(async (request: Request): Promise<Response> => {
         const calculatedTotalCents = Math.round(
             mercadoPagoItems.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) * 100
         );
-        const orderTotalCents = Math.round(Number(order.total) * 100);
-        if (!Number.isFinite(orderTotalCents) || calculatedTotalCents !== orderTotalCents) {
-            console.error("El total del pedido no coincide con productos + delivery.", {
+        const orderTotalCents = Math.round(orderTotal * 100);
+        if (calculatedTotalCents !== orderTotalCents) {
+            console.error("El total preparado para Mercado Pago no coincide con orders.total.", {
                 orderId,
                 calculatedTotalCents,
-                orderTotalCents
+                orderTotalCents,
+                discountAmount
             });
             return jsonResponse({
                 error: "ORDER_TOTAL_MISMATCH",

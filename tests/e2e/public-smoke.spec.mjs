@@ -100,6 +100,23 @@ test.describe("Kantu Floral public stabilization", () => {
         expect(pageErrors).toEqual([]);
     });
 
+    test("promotions sidecar initializes checkout and Admin controls without seeding a code", async ({ page }) => {
+        const pageErrors = [];
+        page.on("pageerror", error => pageErrors.push(error.message));
+
+        await page.goto("/", { waitUntil: "domcontentloaded" });
+        await page.waitForTimeout(800);
+
+        await expect(page.locator("script[data-kantu-promotions='true']")).toHaveCount(1, { timeout: 15000 });
+        await expect(page.locator("#checkoutPromotionSection")).toHaveCount(1);
+        await expect(page.locator("#checkoutPromotionCode")).toHaveAttribute("maxlength", "40");
+        await expect(page.locator('[data-admin-view="promotions"]')).toHaveCount(1);
+        await expect(page.locator("#adminPromotionsView")).toHaveCount(1);
+        const apiReady = await page.evaluate(() => typeof window.KantuPromotions?.getAppliedCode === "function");
+        expect(apiReady).toBe(true);
+        expect(pageErrors).toEqual([]);
+    });
+
     test("individual product page fails safely without a product id", async ({ page }) => {
         const pageErrors = [];
         page.on("pageerror", error => pageErrors.push(error.message));

@@ -1,0 +1,196 @@
+/* Kantu Floral - promociones */
+
+.checkout-promotion-section {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid rgba(139, 47, 69, 0.16);
+    border-radius: 15px;
+    background: #fffaf7;
+}
+
+.checkout-promotion-heading strong {
+    display: block;
+    color: #4d333b;
+    font-size: 14px;
+}
+
+.checkout-promotion-heading small {
+    display: block;
+    margin-top: 3px;
+    color: #7a6f72;
+    font-size: 12px;
+}
+
+.checkout-promotion-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.checkout-promotion-control input {
+    min-width: 0;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.checkout-promotion-control button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 10px;
+    padding: 8px 14px;
+    background: #8b2f45;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.checkout-promotion-control button.secondary {
+    background: #eee5e3;
+    color: #633f49;
+}
+
+.checkout-promotion-control button:disabled {
+    opacity: .65;
+    cursor: wait;
+}
+
+.checkout-promotion-status {
+    margin: 9px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #6f6266;
+}
+
+.checkout-promotion-status.success {
+    color: #34724c;
+}
+
+.checkout-promotion-status.error {
+    color: #a4313d;
+}
+
+.checkout-promotion-line,
+.promotion-discount {
+    color: #34724c;
+}
+
+.promotion-admin-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid #eadedb;
+    border-radius: 15px;
+    background: #fffaf7;
+}
+
+.promotion-field-wide {
+    grid-column: 1 / -1;
+}
+
+.promotion-admin-list {
+    display: grid;
+    gap: 12px;
+}
+
+.promotion-admin-card {
+    padding: 15px;
+    border: 1px solid #eadedb;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.promotion-admin-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.promotion-admin-main strong,
+.promotion-admin-main span {
+    display: block;
+}
+
+.promotion-admin-main strong {
+    color: #4f323a;
+    letter-spacing: .04em;
+}
+
+.promotion-admin-main > div > span {
+    margin-top: 3px;
+    color: #7b6e72;
+    font-size: 12px;
+}
+
+.promotion-status {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.promotion-status.active {
+    background: #e7f5eb;
+    color: #317047;
+}
+
+.promotion-status.inactive {
+    background: #f2eeee;
+    color: #75696d;
+}
+
+.promotion-admin-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.promotion-admin-meta span {
+    padding: 8px 9px;
+    border-radius: 9px;
+    background: #faf6f4;
+    color: #75696d;
+    font-size: 11px;
+}
+
+.promotion-admin-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.promotion-admin-actions button {
+    border: 1px solid #dfcfcc;
+    border-radius: 9px;
+    padding: 7px 11px;
+    background: #fff;
+    color: #633f49;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.promotion-admin-actions button.danger {
+    border-color: #ebc9cd;
+    color: #a4313d;
+}
+
+@media (max-width: 700px) {
+    .checkout-promotion-control {
+        grid-template-columns: 1fr;
+    }
+
+    .promotion-admin-form,
+    .promotion-admin-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .promotion-field-wide {
+        grid-column: auto;
+    }
+}
