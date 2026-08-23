@@ -17,6 +17,16 @@ type MercadoPagoPayment = {
     date_approved?: string | null;
 };
 
+type WebhookAuditEvent = {
+    requestId: string | null;
+    dataId: string | null;
+    eventType: string | null;
+    liveMode: boolean | null;
+    result: string;
+    orderId?: string | null;
+    paymentStatus?: string | null;
+};
+
 const PAYMENT_STATUS_MAP: Record<string, string> = {
     approved: "approved",
     pending: "pending",
@@ -176,16 +186,8 @@ function getApprovedAt(dateApproved: string | null | undefined): string {
 }
 
 async function recordWebhookEvent(
-    databaseClient: ReturnType<typeof createClient>,
-    event: {
-        requestId: string | null;
-        dataId: string | null;
-        eventType: string | null;
-        liveMode: boolean | null;
-        result: string;
-        orderId?: string | null;
-        paymentStatus?: string | null;
-    }
+    databaseClient: any,
+    event: WebhookAuditEvent
 ): Promise<void> {
     try {
         const { error } = await databaseClient.from("mercadopago_webhook_events").insert({
