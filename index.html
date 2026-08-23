@@ -3,42 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fffaf6">
 
-    <title>Kantu Floral | Flores que hablan por ti</title>
+    <title>Kantu Floral | Flores que cuentan historias</title>
+    <meta name="description" content="Kantu Floral - Ramos y arreglos florales con delivery en Arequipa para cumpleaños, aniversarios y momentos especiales.">
+    <link rel="canonical" href="https://chemsito.github.io/Kantu-Floral/">
 
-    <meta
-        name="description"
-        content="Kantu Floral - Ramos y arreglos florales para cada ocasión."
-    >
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_PE">
+    <meta property="og:site_name" content="Kantu Floral">
+    <meta property="og:title" content="Kantu Floral | Flores que cuentan historias">
+    <meta property="og:description" content="Ramos y arreglos florales con delivery en Arequipa.">
+    <meta property="og:url" content="https://chemsito.github.io/Kantu-Floral/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kantu Floral | Flores que cuentan historias">
+    <meta name="twitter:description" content="Ramos y arreglos florales con delivery en Arequipa.">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Florist",
+        "name": "Kantu Floral",
+        "url": "https://chemsito.github.io/Kantu-Floral/",
+        "telephone": "+51 967 539 019",
+        "areaServed": "Arequipa, Perú",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Arequipa",
+            "addressCountry": "PE"
+        }
+    }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/brand.css" data-kantu-brand="true">
+    <link rel="stylesheet" href="css/mobile.css" data-kantu-mobile="true">
+    <link rel="stylesheet" href="css/stabilization.css" data-kantu-stabilization="true">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
 </head>
 
 <body>
-
     <!-- =========================
          HEADER
     ========================== -->
-
-    <header>
+    <header class="site-header">
         <div class="navbar">
-
-            <a href="#" class="logo">
-                <div class="logo-icon">✿</div>
+            <a href="#inicio" class="logo" aria-label="Kantu Floral, ir al inicio">
+                <div class="logo-icon" aria-hidden="true">✿</div>
                 <div class="logo-text">Kantu Floral</div>
             </a>
 
-            <nav>
+            <nav id="siteNavigation" aria-label="Navegación principal">
                 <a href="#inicio">Inicio</a>
                 <a href="#catalogo">Catálogo</a>
                 <a href="#nosotros">Nosotros</a>
@@ -47,633 +66,254 @@
             </nav>
 
             <div class="header-actions">
+                <button type="button" class="icon-button" id="favoritesButton" title="Favoritos" aria-label="Ver productos favoritos">♡</button>
 
-                <button
-                    class="icon-button"
-                    id="favoritesButton"
-                    title="Favoritos"
-                >
-                    ♡
-                </button>
-
-                <button
-                    class="icon-button"
-                    id="cartButton"
-                    title="Carrito"
-                >
-                    🛒
+                <button type="button" class="icon-button" id="cartButton" title="Carrito" aria-label="Abrir carrito">
+                    <span aria-hidden="true">🛒</span>
                     <span class="cart-button-label" id="cartButtonLabel">Carrito</span>
-                    <span class="cart-count" id="cartCount">0</span>
+                    <span class="cart-count" id="cartCount" aria-live="polite">0</span>
                 </button>
 
-                <button
-                    class="user-button"
-                    id="loginButton"
-                >
-                    Iniciar sesión
-                </button>
+                <button type="button" class="user-button" id="loginButton">Iniciar sesión</button>
 
                 <button
+                    type="button"
                     class="icon-button mobile-menu"
-                    onclick="document.querySelector('nav').classList.toggle('mobile-open')"
+                    aria-controls="siteNavigation"
+                    aria-expanded="false"
+                    aria-label="Abrir menú de navegación"
                 >
-                    ☰
+                    <span aria-hidden="true">☰</span>
                 </button>
-
             </div>
-
         </div>
     </header>
-
 
     <!-- =========================
          HERO
     ========================== -->
-
     <main>
-
         <section class="hero" id="inicio">
-
             <div class="hero-content">
-
-                <span class="hero-label">
-                    Flores hechas con amor
-                </span>
-
-                <h1>
-                    Haz que cada momento florezca.
-                </h1>
-
+                <span class="hero-label">Flores hechas con amor</span>
+                <h1>Haz que cada momento florezca.</h1>
                 <p>
                     Ramos y arreglos florales diseñados para expresar
                     aquello que a veces las palabras no pueden decir.
                 </p>
-
                 <div class="hero-buttons">
-
-                    <a
-                        href="#catalogo"
-                        class="btn btn-primary"
-                    >
-                        Ver catálogo
-                    </a>
-
-                    <button
-                        class="btn btn-light"
-                        onclick="openAuth('register')"
-                    >
-                        Crear cuenta
-                    </button>
-
+                    <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
+                    <button type="button" class="btn btn-light" onclick="openAuth('register')">Crear cuenta</button>
                 </div>
-
             </div>
-
         </section>
 
         <section class="active-order-section" id="activeOrderSection" hidden aria-live="polite">
             <div id="activeOrderCard"></div>
         </section>
 
-
         <!-- =========================
              CATALOG
         ========================== -->
-
         <section class="section" id="catalogo">
-
             <div class="section-heading">
-
                 <span>Nuestra colección</span>
-
-                <h2>
-                    Encuentra el arreglo perfecto
-                </h2>
-
+                <h2>Encuentra el arreglo perfecto</h2>
                 <p>
                     Diseños florales cuidadosamente seleccionados
                     para cumpleaños, aniversarios, celebraciones
                     y momentos especiales.
                 </p>
-
             </div>
 
-
-            <div class="categories">
-
-                <button
-                    class="category-btn active"
-                    data-category="todos"
-                >
-                    Todos
-                </button>
-
-                <button
-                    class="category-btn"
-                    data-category="ramos"
-                >
-                    Ramos
-                </button>
-
-                <button
-                    class="category-btn"
-                    data-category="arreglos"
-                >
-                    Arreglos
-                </button>
-
-                <button
-                    class="category-btn"
-                    data-category="rosas"
-                >
-                    Rosas
-                </button>
-
-                <button
-                    class="category-btn"
-                    data-category="especiales"
-                >
-                    Especiales
-                </button>
-
+            <div class="categories" aria-label="Categorías del catálogo">
+                <button type="button" class="category-btn active" data-category="todos" aria-pressed="true">Todos</button>
             </div>
 
-
-            <div
-                class="products-grid"
-                id="productsGrid"
-            ></div>
-
+            <div class="products-grid" id="productsGrid" aria-live="polite"></div>
         </section>
-
 
         <!-- =========================
              FEATURES
         ========================== -->
-
-        <section
-            class="features-section"
-            id="nosotros"
-        >
-
+        <section class="features-section" id="nosotros">
             <div class="features">
-
                 <div class="feature">
-
-                    <div class="feature-icon">
-                        🚚
-                    </div>
-
-                    <h3>
-                        Delivery floral
-                    </h3>
-
-                    <p>
-                        Entregamos tus flores cuidadosamente
-                        preparadas para que lleguen perfectas.
-                    </p>
-
+                    <div class="feature-icon" aria-hidden="true">🚚</div>
+                    <h3>Delivery floral</h3>
+                    <p>Entregamos tus flores cuidadosamente preparadas para que lleguen perfectas.</p>
                 </div>
 
-
                 <div class="feature">
-
-                    <div class="feature-icon">
-                        🌷
-                    </div>
-
-                    <h3>
-                        Flores frescas
-                    </h3>
-
-                    <p>
-                        Seleccionamos flores de calidad para
-                        crear arreglos únicos y duraderos.
-                    </p>
-
+                    <div class="feature-icon" aria-hidden="true">🌷</div>
+                    <h3>Flores frescas</h3>
+                    <p>Seleccionamos flores de calidad para crear arreglos únicos y duraderos.</p>
                 </div>
 
-
                 <div class="feature">
-
-                    <div class="feature-icon">
-                        💌
-                    </div>
-
-                    <h3>
-                        Diseños personalizados
-                    </h3>
-
-                    <p>
-                        Cuéntanos qué quieres expresar y
-                        crearemos un arreglo especial para ti.
-                    </p>
-
+                    <div class="feature-icon" aria-hidden="true">💌</div>
+                    <h3>Diseños personalizados</h3>
+                    <p>Cuéntanos qué quieres expresar y crearemos un arreglo especial para ti.</p>
                 </div>
-
             </div>
-
         </section>
-
     </main>
-
 
     <!-- =========================
          FOOTER
     ========================== -->
-
     <footer id="contacto">
-
         <div class="footer-content">
-
             <div class="footer-column">
-
-                <div class="footer-logo">
-                    Kantu Floral ✿
-                </div>
-
+                <div class="footer-logo">Kantu Floral ✿</div>
                 <p>
-                    Flores que transmiten emociones.
-                    Creamos arreglos florales para convertir
+                    Flores que transmiten emociones. Creamos arreglos florales para convertir
                     momentos especiales en recuerdos inolvidables.
                 </p>
-
             </div>
 
-
             <div class="footer-column">
-
                 <h4>Comprar</h4>
-
-                <a href="#catalogo">
-                    Ramos
-                </a>
-
-                <a href="#catalogo">
-                    Arreglos
-                </a>
-
-                <a href="#catalogo">
-                    Rosas
-                </a>
-
+                <a href="#catalogo">Ramos</a>
+                <a href="#catalogo">Arreglos</a>
+                <a href="#catalogo">Rosas</a>
             </div>
 
-
             <div class="footer-column">
-
                 <h4>Ayuda</h4>
-
-                <a href="#">
-                    Preguntas frecuentes
-                </a>
-
-                <a href="#">
-                    Delivery
-                </a>
-
-                <a href="#">
-                    Métodos de pago
-                </a>
-
+                <a href="#catalogo">Preguntas frecuentes</a>
+                <a href="#catalogo">Delivery</a>
+                <a href="#catalogo">Métodos de pago</a>
             </div>
-
 
             <div class="footer-column">
-
                 <h4>Contacto</h4>
-
-                <a href="#">
-                    WhatsApp
-                </a>
-
-                <a href="#">
-                    Instagram
-                </a>
-
-                <a href="#">
-                    Facebook
-                </a>
-
+                <a href="https://wa.me/51967539019" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                <a href="https://www.facebook.com/profile.php?id=61590177373176" target="_blank" rel="noopener noreferrer">Facebook</a>
             </div>
-
         </div>
 
-
-        <div class="copyright">
-            © 2026 Kantu Floral. Todos los derechos reservados.
-        </div>
-
+        <div class="copyright">© 2026 Kantu Floral. Todos los derechos reservados.</div>
     </footer>
-
 
     <!-- =========================
          AUTH MODAL
     ========================== -->
-
-    <div
-        class="modal-overlay"
-        id="authModal"
-    >
-
+    <div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authLoginTitle" aria-hidden="true">
         <div class="modal">
-
-            <button
-                class="close-modal"
-                onclick="closeAuth()"
-            >
-                ×
-            </button>
-
+            <button type="button" class="close-modal" onclick="closeAuth()" aria-label="Cerrar acceso a cuenta">×</button>
 
             <!-- LOGIN -->
-
             <div id="loginForm">
-
-                <h2>
-                    Bienvenido de nuevo
-                </h2>
-
-                <p class="modal-subtitle">
-                    Ingresa a tu cuenta para continuar
-                    comprando en Kantu Floral.
-                </p>
-
+                <h2 id="authLoginTitle">Bienvenido de nuevo</h2>
+                <p class="modal-subtitle">Ingresa a tu cuenta para continuar comprando en Kantu Floral.</p>
 
                 <form onsubmit="login(event)">
-
                     <div class="form-group">
-
-                        <label>
-                            Correo electrónico
-                        </label>
-
-                        <input
-                            type="email"
-                            id="loginEmail"
-                            placeholder="tu@email.com"
-                            required
-                        >
-
+                        <label for="loginEmail">Correo electrónico</label>
+                        <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="email" required>
                     </div>
 
-
                     <div class="form-group">
-
-                        <label>
-                            Contraseña
-                        </label>
-
-                        <input
-                            type="password"
-                            id="loginPassword"
-                            placeholder="••••••••"
-                            required
-                        >
-
+                        <label for="loginPassword">Contraseña</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required>
                     </div>
 
-
-                    <button
-                        type="button"
-                        class="forgot"
-                        onclick="openForgotPassword()"
-                    >
-                        ¿Olvidaste tu contraseña?
-                    </button>
-
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary form-submit"
-                    >
-                        Iniciar sesión
-                    </button>
-
+                    <button type="button" class="forgot" onclick="openForgotPassword()">¿Olvidaste tu contraseña?</button>
+                    <button type="submit" class="btn btn-primary form-submit">Iniciar sesión</button>
                 </form>
 
-
-                <div class="divider">
-                    O continúa con
-                </div>
-
-
+                <div class="divider">O continúa con</div>
                 <div class="social-buttons">
-
-                    <button
-                        class="social-btn"
-                        onclick="socialLogin('Google')"
-                    >
-                        🔴 Google
-                    </button>
-
-
+                    <button type="button" class="social-btn" onclick="socialLogin('Google')">🔴 Google</button>
                 </div>
-
 
                 <div class="switch-auth">
-
                     ¿No tienes una cuenta?
-
-                    <button onclick="switchAuth('register')">
-                        Crear cuenta
-                    </button>
-
+                    <button type="button" onclick="switchAuth('register')">Crear cuenta</button>
                 </div>
-
             </div>
 
-
             <!-- REGISTER -->
-
-            <div
-                id="registerForm"
-                style="display:none;"
-            >
-
-                <h2>
-                    Crear cuenta
-                </h2>
-
-                <p class="modal-subtitle">
-                    Regístrate para disfrutar de una
-                    experiencia personalizada.
-                </p>
-
+            <div id="registerForm" style="display:none;">
+                <h2>Crear cuenta</h2>
+                <p class="modal-subtitle">Regístrate para disfrutar de una experiencia personalizada.</p>
 
                 <form onsubmit="register(event)">
-
                     <div class="form-group">
-
-                        <label>
-                            Nombre completo
-                        </label>
-
-                        <input
-                            type="text"
-                            id="registerName"
-                            placeholder="Tu nombre"
-                            required
-                        >
-
+                        <label for="registerName">Nombre completo</label>
+                        <input type="text" id="registerName" placeholder="Tu nombre" autocomplete="name" required>
                     </div>
 
-
                     <div class="form-group">
-
-                        <label>
-                            Correo electrónico
-                        </label>
-
-                        <input
-                            type="email"
-                            id="registerEmail"
-                            placeholder="tu@email.com"
-                            required
-                        >
-
+                        <label for="registerEmail">Correo electrónico</label>
+                        <input type="email" id="registerEmail" placeholder="tu@email.com" autocomplete="email" required>
                     </div>
 
-
                     <div class="form-group">
-
-                        <label>
-                            Contraseña
-                        </label>
-
+                        <label for="registerPassword">Contraseña</label>
                         <input
                             type="password"
                             id="registerPassword"
-                            placeholder="Mínimo 6 caracteres"
-                            minlength="6"
+                            placeholder="Mínimo 8 caracteres"
+                            minlength="8"
+                            autocomplete="new-password"
                             required
                         >
-
                     </div>
 
-
                     <div class="form-group">
-
-                        <label>
-                            Confirmar contraseña
-                        </label>
-
+                        <label for="registerConfirm">Confirmar contraseña</label>
                         <input
                             type="password"
                             id="registerConfirm"
                             placeholder="Repite tu contraseña"
+                            minlength="8"
+                            autocomplete="new-password"
                             required
                         >
-
                     </div>
 
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary form-submit"
-                    >
-                        Crear cuenta
-                    </button>
-
+                    <button type="submit" class="btn btn-primary form-submit">Crear cuenta</button>
                 </form>
 
-
-                <div class="divider">
-                    O regístrate con
-                </div>
-
-
+                <div class="divider">O regístrate con</div>
                 <div class="social-buttons">
-
-                    <button
-                        class="social-btn"
-                        onclick="socialLogin('Google')"
-                    >
-                        🔴 Google
-                    </button>
-
-
+                    <button type="button" class="social-btn" onclick="socialLogin('Google')">🔴 Google</button>
                 </div>
-
 
                 <div class="switch-auth">
-
                     ¿Ya tienes una cuenta?
-
-                    <button onclick="switchAuth('login')">
-                        Iniciar sesión
-                    </button>
-
+                    <button type="button" onclick="switchAuth('login')">Iniciar sesión</button>
                 </div>
-
             </div>
-
 
             <!-- FORGOT PASSWORD -->
-
-            <div
-                id="forgotForm"
-                style="display:none;"
-            >
-
-                <h2>
-                    Recuperar contraseña
-                </h2>
-
+            <div id="forgotForm" style="display:none;">
+                <h2>Recuperar contraseña</h2>
                 <p class="modal-subtitle">
-                    Introduce tu correo y te enviaremos
-                    instrucciones para restablecer tu contraseña.
+                    Introduce tu correo y te enviaremos instrucciones para restablecer tu contraseña.
                 </p>
 
-
                 <form onsubmit="recoverPassword(event)">
-
                     <div class="form-group">
-
-                        <label>
-                            Correo electrónico
-                        </label>
-
-                        <input
-                            type="email"
-                            id="recoveryEmail"
-                            placeholder="tu@email.com"
-                            required
-                        >
-
+                        <label for="recoveryEmail">Correo electrónico</label>
+                        <input type="email" id="recoveryEmail" placeholder="tu@email.com" autocomplete="email" required>
                     </div>
-
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary form-submit"
-                    >
-                        Enviar instrucciones
-                    </button>
-
+                    <button type="submit" class="btn btn-primary form-submit">Enviar instrucciones</button>
                 </form>
 
-
                 <div class="switch-auth">
-
-                    <button onclick="switchAuth('login')">
-                        ← Volver al inicio de sesión
-                    </button>
-
+                    <button type="button" onclick="switchAuth('login')">← Volver al inicio de sesión</button>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 
     <!-- =========================
          MI CUENTA
     ========================== -->
-
-    <div class="modal-overlay account-overlay" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+    <div class="modal-overlay account-overlay" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountTitle" aria-hidden="true">
         <div class="modal account-modal">
             <button class="close-modal" type="button" onclick="closeAccount()" aria-label="Cerrar Mi cuenta">×</button>
 
@@ -690,7 +330,7 @@
                 <button type="button" class="account-tab" data-account-tab="orders">Mis pedidos</button>
             </nav>
 
-            <p id="accountMessage" class="account-message" role="status" hidden></p>
+            <p id="accountMessage" class="account-message" role="status" aria-live="polite" hidden></p>
 
             <section id="accountProfileSection" class="account-section">
                 <div id="accountProfileLoading" class="account-loading">Cargando tu perfil...</div>
@@ -729,7 +369,7 @@
             <section id="accountOrdersSection" class="account-section" hidden>
                 <div id="accountOrdersLoading" class="account-loading">Cargando tus pedidos...</div>
                 <div id="accountOrdersEmpty" class="account-empty" hidden>
-                    <span>✿</span><h3>Aún no tienes pedidos</h3>
+                    <span aria-hidden="true">✿</span><h3>Aún no tienes pedidos</h3>
                     <p>Cuando realices una compra, podrás seguirla desde aquí.</p>
                 </div>
                 <div id="accountOrdersList" class="account-orders-list"></div>
@@ -753,8 +393,7 @@
     <!-- =========================
          PANEL ADMINISTRADOR
     ========================== -->
-
-    <div class="modal-overlay admin-overlay" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <div class="modal-overlay admin-overlay" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminTitle" aria-hidden="true">
         <div class="admin-panel">
             <header class="admin-header">
                 <div>
@@ -771,7 +410,7 @@
                 <button type="button" class="admin-nav-button" data-admin-view="products">Productos</button>
             </nav>
 
-            <p id="adminMessage" class="admin-message" role="status" hidden></p>
+            <p id="adminMessage" class="admin-message" role="status" aria-live="polite" hidden></p>
             <div id="adminAccessLoading" class="admin-loader" hidden>Verificando permisos...</div>
 
             <main id="adminContent" class="admin-content" hidden>
@@ -786,16 +425,19 @@
 
                 <section id="adminOrdersView" class="admin-view" hidden>
                     <div class="admin-section-heading">
-                        <div><h3>Gestión de pedidos</h3><p>Consulta y actualiza el estado de cada pedido.</p></div>
+                        <div><h3>Gestión de pedidos</h3><p>Consulta pedidos y cancela únicamente los pendientes no pagados. La operación continúa en el portal del equipo.</p></div>
                         <button type="button" class="admin-refresh" data-admin-refresh="orders">Actualizar</button>
                     </div>
                     <div class="admin-toolbar">
                         <input id="adminOrderSearch" type="search" placeholder="Buscar por ID, cliente o teléfono" aria-label="Buscar pedidos">
                         <select id="adminOrderFilter" aria-label="Filtrar pedidos por estado">
                             <option value="todos">Todos los estados</option>
-                            <option value="pendiente">Pendiente</option><option value="confirmado">Confirmado</option>
-                            <option value="preparando">Preparando</option><option value="en_camino">En camino</option>
-                            <option value="entregado">Entregado</option><option value="cancelado">Cancelado</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmado">Confirmado</option>
+                            <option value="preparando">Preparando</option>
+                            <option value="en_camino">En camino</option>
+                            <option value="entregado">Entregado</option>
+                            <option value="cancelado">Cancelado</option>
                         </select>
                     </div>
                     <div id="adminOrdersLoading" class="admin-loader">Cargando pedidos...</div>
@@ -844,7 +486,12 @@
                         <div class="form-group admin-field-wide"><label for="adminProductDescription">Descripción</label><textarea id="adminProductDescription" rows="3"></textarea></div>
                         <div class="form-group"><label for="adminProductPrice">Precio *</label><input id="adminProductPrice" type="number" min="0.01" step="0.01" required></div>
                         <div class="form-group"><label for="adminProductStock">Stock *</label><input id="adminProductStock" type="number" min="0" step="1" required></div>
-                        <div class="form-group"><label for="adminProductCategory">Categoría *</label><select id="adminProductCategory" required><option value="ramos">Ramos</option><option value="arreglos">Arreglos</option><option value="rosas">Rosas</option><option value="especiales">Especiales</option></select></div>
+                        <div class="form-group">
+                            <label for="adminProductCategory">Categoría *</label>
+                            <select id="adminProductCategory" required>
+                                <option value="ramos">Ramos</option>
+                            </select>
+                        </div>
                         <div class="form-group"><label for="adminProductTag">Etiqueta</label><input id="adminProductTag" type="text"></div>
                         <div class="form-group admin-field-wide"><label for="adminProductImage">URL de imagen</label><input id="adminProductImage" type="url" placeholder="https://..."></div>
                         <label class="admin-checkbox admin-field-wide"><input id="adminProductActive" type="checkbox" checked><span>Producto activo y visible en el catálogo</span></label>
@@ -861,135 +508,65 @@
     <!-- =========================
          CART
     ========================== -->
-
-    <aside
-        class="cart-panel"
-        id="cartPanel"
-    >
-
+    <aside class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-label="Carrito de compras" aria-hidden="true">
         <div class="cart-header">
-
-            <h2>
-                Tu carrito
-            </h2>
-
-            <button
-                class="close-modal"
-                onclick="closeCart()"
-            >
-                ×
-            </button>
-
+            <h2>Tu carrito</h2>
+            <button type="button" class="close-modal" onclick="closeCart()" aria-label="Cerrar carrito">×</button>
         </div>
 
-
-        <div
-            class="cart-items"
-            id="cartItems"
-        ></div>
-
+        <div class="cart-items" id="cartItems"></div>
 
         <div class="cart-footer">
-
             <div class="cart-total">
-
-                <span>
-                    Total
-                </span>
-
-                <span id="cartTotal">
-                    S/ 0.00
-                </span>
-
+                <span>Total</span>
+                <span id="cartTotal">S/ 0.00</span>
             </div>
 
-            <button
-                class="btn btn-primary checkout-btn"
-                id="cartCheckoutButton"
-                onclick="checkout()"
-            >
+            <button type="button" class="btn btn-primary checkout-btn" id="cartCheckoutButton" onclick="checkout()">
                 Continuar con la compra
             </button>
-
         </div>
-
     </aside>
-
 
     <!-- =========================
          CHECKOUT
     ========================== -->
-
-    <div
-        class="modal-overlay"
-        id="checkoutModal"
-    >
-
+    <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle" aria-hidden="true">
         <div class="modal checkout-modal">
-
-            <button
-                class="close-modal"
-                type="button"
-                onclick="closeCheckout()"
-                aria-label="Cerrar checkout"
-            >
-                ×
-            </button>
+            <button class="close-modal" type="button" onclick="closeCheckout()" aria-label="Cerrar checkout">×</button>
 
             <div id="checkoutFormView">
+                <h2 id="checkoutTitle">Completa tu pedido</h2>
+                <p class="modal-subtitle">Indícanos dónde y a quién entregaremos tus flores.</p>
 
-                <h2>
-                    Completa tu pedido
-                </h2>
-
-                <p class="modal-subtitle">
-                    Indícanos dónde y a quién entregaremos tus flores.
-                </p>
-
-                <form
-                    id="checkoutForm"
-                    onsubmit="submitOrder(event)"
-                >
-
+                <form id="checkoutForm" onsubmit="submitOrder(event)">
                     <div class="form-group">
-
-                        <label for="checkoutName">
-                            Nombre completo
-                        </label>
-
-                        <input
-                            type="text"
-                            id="checkoutName"
-                            autocomplete="name"
-                            required
-                        >
-
+                        <label for="checkoutName">Nombre completo</label>
+                        <input type="text" id="checkoutName" autocomplete="name" required>
                     </div>
 
                     <div class="form-group">
-
-                        <label for="checkoutPhone">
-                            Teléfono / WhatsApp
-                        </label>
-
-                        <input
-                            type="tel"
-                            id="checkoutPhone"
-                            autocomplete="tel"
-                            required
-                        >
-
+                        <label for="checkoutPhone">Teléfono / WhatsApp</label>
+                        <input type="tel" id="checkoutPhone" autocomplete="tel" required>
                     </div>
 
                     <div class="form-group checkout-location-field">
-                        <label>Ubicación de entrega</label>
-                        <p class="checkout-location-help">Haz clic en el mapa para seleccionar la ubicación exacta de entrega.</p>
-                        <div id="checkoutDeliveryMap" class="checkout-delivery-map" aria-label="Mapa para seleccionar ubicación de entrega"></div>
+                        <label for="checkoutDeliveryMap">Ubicación de entrega</label>
+                        <p class="checkout-location-help" id="checkoutLocationHelp">
+                            Haz clic en el mapa para seleccionar la ubicación exacta. Con teclado, enfoca el mapa, muévelo con las flechas y pulsa Enter para seleccionar el centro.
+                        </p>
+                        <div
+                            id="checkoutDeliveryMap"
+                            class="checkout-delivery-map"
+                            tabindex="0"
+                            aria-describedby="checkoutLocationHelp"
+                            aria-label="Mapa para seleccionar ubicación de entrega"
+                        ></div>
                         <div class="checkout-location-actions">
                             <button id="checkoutUseLocationButton" type="button" class="checkout-location-button">Usar mi ubicación actual</button>
                             <span id="checkoutLocationLoading" hidden>Buscando tu ubicación...</span>
                         </div>
-                        <p id="checkoutLocationStatus" class="checkout-location-status" role="status">Aún no seleccionaste una ubicación.</p>
+                        <p id="checkoutLocationStatus" class="checkout-location-status" role="status" aria-live="polite">Aún no seleccionaste una ubicación.</p>
                     </div>
 
                     <div class="form-group">
@@ -998,91 +575,32 @@
                     </div>
 
                     <div class="checkout-summary">
-
-                        <h3>
-                            Resumen del pedido
-                        </h3>
-
-                        <div
-                            id="checkoutSummary"
-                            class="checkout-summary-items"
-                        ></div>
-
+                        <h3>Resumen del pedido</h3>
+                        <div id="checkoutSummary" class="checkout-summary-items"></div>
                         <div class="checkout-total-row">
-
                             <span>Total</span>
-
                             <strong id="checkoutTotal">S/ 0.00</strong>
-
                         </div>
-
                     </div>
 
-                    <p
-                        id="checkoutError"
-                        class="checkout-message checkout-error"
-                        role="alert"
-                        hidden
-                    ></p>
+                    <p id="checkoutError" class="checkout-message checkout-error" role="alert" hidden></p>
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary form-submit"
-                        id="confirmOrderButton"
-                    >
-                        Confirmar pedido
-                    </button>
-
-                    <p
-                        id="checkoutLoading"
-                        class="checkout-loading"
-                        aria-live="polite"
-                        hidden
-                    >
-                        Creando tu pedido...
-                    </p>
-
+                    <button type="submit" class="btn btn-primary form-submit" id="confirmOrderButton">Confirmar pedido</button>
+                    <p id="checkoutLoading" class="checkout-loading" aria-live="polite" hidden>Creando tu pedido...</p>
                 </form>
-
             </div>
 
-            <div
-                id="checkoutSuccess"
-                class="checkout-success"
-                role="status"
-                hidden
-            >
-
-                <span class="checkout-success-icon">✿</span>
-
+            <div id="checkoutSuccess" class="checkout-success" role="status" aria-live="polite" hidden>
+                <span class="checkout-success-icon" aria-hidden="true">✿</span>
                 <h2>Pedido confirmado</h2>
-
                 <p id="checkoutSuccessMessage"></p>
 
-                <button
-                    type="button"
-                    class="btn mp-payment-button form-submit"
-                    id="mercadoPagoButton"
-                    hidden
-                >
-                    Pagar con Mercado Pago
-                </button>
-
-                <button
-                    type="button"
-                    class="btn btn-light form-submit manual-payment-choice"
-                    id="manualPaymentButton"
-                    hidden
-                >
+                <button type="button" class="btn mp-payment-button form-submit" id="mercadoPagoButton" hidden>Pagar con Mercado Pago</button>
+                <button type="button" class="btn btn-light form-submit manual-payment-choice" id="manualPaymentButton" hidden>
                     Pagar con Yape / Plin o transferencia
                 </button>
 
-                <p
-                    id="mercadoPagoError"
-                    class="checkout-message checkout-error"
-                    role="alert"
-                    hidden
-                ></p>
+                <p id="mercadoPagoError" class="checkout-message checkout-error" role="alert" hidden></p>
 
                 <section id="manualPaymentPanel" class="manual-payment-panel" hidden>
                     <div class="manual-payment-heading">
@@ -1151,45 +669,30 @@
                         </div>
                         <button id="manualPaymentSubmit" type="submit" class="btn btn-primary form-submit">Enviar comprobante</button>
                     </form>
-                    <p id="manualPaymentMessage" class="checkout-message" role="status" hidden></p>
-                    <div id="manualPaymentStatus" class="manual-payment-status" hidden></div>
+                    <p id="manualPaymentMessage" class="checkout-message" role="status" aria-live="polite" hidden></p>
+                    <div id="manualPaymentStatus" class="manual-payment-status" role="status" aria-live="polite" hidden></div>
                 </section>
 
-                <button
-                    type="button"
-                    class="btn btn-light form-submit checkout-continue-button"
-                    onclick="closeCheckout()"
-                >
-                    Continuar
-                </button>
-
+                <button type="button" class="btn btn-light form-submit checkout-continue-button" onclick="closeCheckout()">Continuar</button>
             </div>
-
         </div>
-
     </div>
 
-
     <!-- TOAST -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <div
-        class="toast"
-        id="toast"
-    ></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script src="js/supabase.js"></script>
-<script src="js/products.js"></script>
-<script src="js/cart.js"></script>
-<script src="js/orders.js"></script>
-<script src="js/manual-payments.js"></script>
-<script src="js/order-tracking.js"></script>
-<script src="js/account.js"></script>
-<script src="js/admin.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/app.js"></script>
-
+    <script src="js/supabase.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/orders.js"></script>
+    <script src="js/manual-payments.js"></script>
+    <script src="js/order-tracking.js"></script>
+    <script src="js/account.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
