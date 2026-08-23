@@ -63,4 +63,15 @@ test.describe("Kantu Floral public stabilization", () => {
         expect(parsed.reference).toBe("puerta negra");
         expect(parsed.mapsUrl).toContain("google.com/maps?q=-16.390000,-71.550000");
     });
+
+    test("staff portal boots the realtime sidecar without JavaScript errors", async ({ page }) => {
+        const pageErrors = [];
+        page.on("pageerror", error => pageErrors.push(error.message));
+
+        await page.goto("/staff.html", { waitUntil: "domcontentloaded" });
+        await page.waitForTimeout(1200);
+
+        await expect(page.locator("script[src='js/staff-realtime.js']")).toHaveCount(1);
+        expect(pageErrors).toEqual([]);
+    });
 });
