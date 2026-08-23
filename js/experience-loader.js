@@ -26,6 +26,7 @@
     loadScriptOnce("js/order-gifting-ui.js", "data-kantu-order-gifting-ui", "true");
     loadScriptOnce("js/commerce-ops.js", "data-kantu-commerce-ops", "true");
     loadScriptOnce("js/promotions.js", "data-kantu-promotions", "true");
+    loadScriptOnce("js/relationship-tools.js", "data-kantu-relationship-tools", "true");
     loadScriptOnce("js/admin-schedule.js", "data-kantu-admin-schedule", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
