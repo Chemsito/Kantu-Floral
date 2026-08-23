@@ -35,6 +35,89 @@
         if (node) node.setAttribute(attribute, content);
     }
 
+    function mainStoreUrl(action = "", hash = "") {
+        const url = new URL("index.html", window.location.href);
+        if (action) url.searchParams.set("kantu_open", action);
+        if (hash) url.hash = hash.replace(/^#/, "");
+        return url.href;
+    }
+
+    function navigateToMain(action = "", hash = "") {
+        window.location.href = mainStoreUrl(action, hash);
+    }
+
+    function setDetailMobileMenuState(open) {
+        const button = document.querySelector(".mobile-menu");
+        const nav = element("siteNavigation");
+        if (!button || !nav) return;
+        nav.classList.toggle("mobile-open", open);
+        button.setAttribute("aria-expanded", String(open));
+        button.setAttribute("aria-label", open ? "Cerrar menú de navegación" : "Abrir menú de navegación");
+    }
+
+    async function refreshDetailHeaderState() {
+        const cartCount = element("cartCount");
+        const loginButton = element("loginButton");
+        const ordersButton = element("headerOrdersButton");
+
+        try {
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
+            const currentUser = error ? null : user;
+
+            if (ordersButton) ordersButton.hidden = !currentUser;
+            if (loginButton) loginButton.textContent = currentUser ? "Mi cuenta" : "Iniciar sesión";
+
+            let quantity = 0;
+            if (currentUser) {
+                const [profileResult, cartResult] = await Promise.all([
+                    supabaseClient.from("profiles").select("full_name").eq("id", currentUser.id).maybeSingle(),
+                    supabaseClient.from("cart_items").select("quantity").eq("user_id", currentUser.id)
+                ]);
+
+                const name = profileResult.data?.full_name || currentUser.user_metadata?.full_name;
+                if (loginButton && name) loginButton.textContent = name.split(" ")[0] || "Mi cuenta";
+                if (!cartResult.error) {
+                    quantity = (cartResult.data || []).reduce((sum, row) => sum + Math.max(0, Number(row.quantity) || 0), 0);
+                }
+            } else {
+                quantity = readCart("kantuCart:guest")
+                    .reduce((sum, row) => sum + Math.max(0, Number(row.quantity) || 0), 0);
+            }
+
+            if (cartCount) cartCount.textContent = String(quantity);
+        } catch (error) {
+            console.warn("No se pudo sincronizar la cabecera del detalle:", error);
+            if (cartCount) {
+                const quantity = readCart("kantuCart:guest")
+                    .reduce((sum, row) => sum + Math.max(0, Number(row.quantity) || 0), 0);
+                cartCount.textContent = String(quantity);
+            }
+        }
+    }
+
+    function initializeDetailHeader() {
+        const mobileButton = document.querySelector(".mobile-menu");
+        const nav = element("siteNavigation");
+        if (mobileButton && nav) {
+            mobileButton.addEventListener("click", () => {
+                setDetailMobileMenuState(!nav.classList.contains("mobile-open"));
+            });
+            nav.querySelectorAll("a, button").forEach(item => {
+                item.addEventListener("click", () => setDetailMobileMenuState(false));
+            });
+        }
+
+        element("favoritesButton")?.addEventListener("click", () => navigateToMain("favorites", "catalogo"));
+        element("cartButton")?.addEventListener("click", () => navigateToMain("cart", "catalogo"));
+        element("loginButton")?.addEventListener("click", () => navigateToMain("account"));
+        element("headerOrdersButton")?.addEventListener("click", () => navigateToMain("orders"));
+
+        refreshDetailHeaderState();
+        supabaseClient.auth.onAuthStateChange(() => {
+            window.setTimeout(refreshDetailHeaderState, 0);
+        });
+    }
+
     function updateSeo(row) {
         const description = String(row.description || row.note || `Flores y regalos de Kantu Floral en Arequipa.`)
             .trim()
@@ -224,7 +307,8 @@
                 writeCart(key, local);
             }
 
-            setStatus("✓ Producto agregado. Puedes volver a la tienda para revisar tu carrito.", "success");
+            await refreshDetailHeaderState();
+            setStatus("✓ Producto agregado. Puedes abrir el carrito desde el menú superior.", "success");
         } catch (error) {
             console.error("Error agregando producto desde detalle:", error);
             setStatus("No pudimos agregarlo al carrito. Inténtalo nuevamente.", "error");
@@ -236,6 +320,59 @@
         }
     }
 
+    async function copyShareLink(url) {
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(url);
+                return true;
+            } catch {
+                // Fallback para navegadores que exponen Clipboard API pero la bloquean.
+            }
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        textarea.style.pointerEvents = "none";
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+
+        let copied = false;
+        try {
+            copied = document.execCommand("copy");
+        } catch {
+            copied = false;
+        } finally {
+            textarea.remove();
+        }
+        return copied;
+    }
+
+    function shouldUseNativeShare(shareData) {
+        if (typeof navigator.share !== "function") return false;
+        const touchDevice = navigator.maxTouchPoints > 0
+            || window.matchMedia?.("(pointer: coarse)")?.matches === true;
+        if (!touchDevice) return false;
+        if (typeof navigator.canShare === "function" && !navigator.canShare(shareData)) return false;
+        return true;
+    }
+
+    function flashShareButton(message) {
+        const button = element("productDetailShare");
+        if (!button) return;
+        const original = button.textContent;
+        button.textContent = message;
+        button.disabled = true;
+        window.setTimeout(() => {
+            if (!button.isConnected) return;
+            button.textContent = original || "Compartir";
+            button.disabled = false;
+        }, 1600);
+    }
+
     async function shareProduct() {
         if (!product) return;
         const shareData = {
@@ -244,17 +381,25 @@
             url: window.location.href
         };
 
-        try {
-            if (navigator.share) {
+        if (shouldUseNativeShare(shareData)) {
+            try {
                 await navigator.share(shareData);
+                setStatus("Producto compartido.", "success");
                 return;
+            } catch (error) {
+                if (error?.name === "AbortError") return;
+                console.warn("Share nativo no disponible; se copiará el enlace:", error);
             }
-            await navigator.clipboard.writeText(window.location.href);
-            setStatus("Enlace copiado para compartir.", "success");
-        } catch (error) {
-            if (error?.name === "AbortError") return;
-            setStatus("No pudimos compartir automáticamente. Copia el enlace del navegador.", "error");
         }
+
+        const copied = await copyShareLink(shareData.url);
+        if (copied) {
+            setStatus("✓ Enlace copiado al portapapeles para compartir.", "success");
+            flashShareButton("Enlace copiado ✓");
+            return;
+        }
+
+        setStatus("No pudimos copiar el enlace automáticamente. Puedes copiarlo desde la barra del navegador.", "error");
     }
 
     async function loadProduct() {
@@ -286,9 +431,14 @@
         render(product);
     }
 
+    async function initializeProductDetail() {
+        initializeDetailHeader();
+        await loadProduct();
+    }
+
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", loadProduct, { once: true });
+        document.addEventListener("DOMContentLoaded", initializeProductDetail, { once: true });
     } else {
-        loadProduct();
+        initializeProductDetail();
     }
 })();
