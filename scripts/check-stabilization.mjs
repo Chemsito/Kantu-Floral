@@ -12,6 +12,7 @@ const experienceLoader = read("js/experience-loader.js");
 const webhook = read("supabase/functions/mercadopago-webhook/index.ts");
 const preference = read("supabase/functions/create-mp-preference/index.ts");
 const migration = read("supabase/migrations/20260823133500_harden_webhook_audit_and_rpc_surface.sql");
+const healthMigration = read("supabase/migrations/20260823142000_add_deployment_health_check.sql");
 
 assert.match(html, /@supabase\/supabase-js@2\.112\.3/, "El cliente público debe fijar la versión exacta de Supabase JS.");
 assert.doesNotMatch(html, /mobile-menu[^>]*onclick=/s, "El botón móvil no debe conservar un onclick inline.");
@@ -59,5 +60,12 @@ assert.match(migration, /revoke execute on function public\.create_order\(text, 
     "El overload legado de create_order debe retirarse de la superficie del navegador.");
 assert.match(migration, /alter function public\.is_admin\(\) set search_path = ''/i,
     "is_admin debe usar search_path endurecido.");
+
+assert.match(healthMigration, /kantu_deployment_health_check/, "Debe existir un health check de despliegue.");
+assert.match(healthMigration, /delivery_pricing_settings/, "El health check debe verificar configuración de delivery.");
+assert.match(healthMigration, /payment-proofs/, "El health check debe verificar el bucket privado de comprobantes.");
+assert.match(healthMigration, /relrowsecurity/, "El health check debe verificar RLS de tablas críticas.");
+assert.match(healthMigration, /revoke all on function public\.kantu_deployment_health_check\(\) from public, anon, authenticated/i,
+    "El health check no debe ser ejecutable desde el navegador.");
 
 console.log("Stabilization checks OK");
