@@ -8,6 +8,8 @@ const cart = read("js/cart.js");
 const app = read("js/app.js");
 const admin = read("js/admin.js");
 const products = read("js/products.js");
+const orders = read("js/orders.js");
+const supabaseCore = read("js/supabase.js");
 const experienceLoader = read("js/experience-loader.js");
 const webhook = read("supabase/functions/mercadopago-webhook/index.ts");
 const preference = read("supabase/functions/create-mp-preference/index.ts");
@@ -46,6 +48,18 @@ assert.match(products, /aria-pressed=/, "Las categorías/favoritos deben mantene
 assert.match(products, /favoriteAction/, "El texto accesible de favoritos debe cambiar según su estado.");
 assert.doesNotMatch(products, /saveEnhancedAdminProduct/, "Products no debe interceptar el submit administrativo.");
 assert.match(experienceLoader, /customer-ux\.js/, "El loader de experiencia debe cargar el paquete UX.");
+
+assert.match(orders, /checkoutDeliveryAddressText/, "Checkout debe solicitar una dirección legible además de coordenadas.");
+assert.match(orders, /Dirección: \$\{addressLine\} \| \$\{selectedDeliveryMapsUrl\}/,
+    "La dirección persistida debe conservar texto humano y ubicación exacta.");
+assert.match(orders, /select\("full_name, phone, address, district, city"\)/,
+    "Checkout debe reutilizar los datos guardados del perfil.");
+assert.match(orders, /DELIVERY_ADDRESS_TEXT_REQUIRED/,
+    "Checkout debe distinguir dirección escrita de ubicación geográfica.");
+assert.match(supabaseCore, /addressLine/,
+    "El parser compartido debe preservar la dirección legible.");
+assert.match(supabaseCore, /<strong>Dirección:<\/strong>/,
+    "Cuenta, Admin y Staff deben poder renderizar la dirección legible.");
 
 assert.match(preference, /@supabase\/supabase-js@2\.112\.3/, "La función de preferencias debe fijar Supabase JS.");
 assert.match(webhook, /@supabase\/supabase-js@2\.112\.3/, "El webhook debe fijar la versión exacta de Supabase JS.");
