@@ -115,16 +115,18 @@ function kantuShortId(id) {
 }
 
 function kantuParseDeliveryAddress(value) {
-    const text = String(value || "");
+    const text = String(value || "").trim();
     const mapsMatch = text.match(
         /(https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?)/i
     );
+    const addressLine = text.match(/(?:^|\|)\s*Dirección:\s*([^|]+)/i)?.[1]?.trim() || "";
     const reference = text.match(/\|\s*Referencia:\s*(.+)$/i)?.[1]?.trim() || "";
 
     return {
         mapsUrl: mapsMatch?.[1] || "",
+        addressLine,
         reference,
-        plain: mapsMatch ? "" : text
+        plain: mapsMatch ? addressLine : text
     };
 }
 
@@ -135,6 +137,9 @@ function kantuRenderDeliveryAddress(value, linkLabel = "Abrir en Google Maps") {
     }
 
     return `<div class="delivery-location-block">
+        ${location.addressLine
+            ? `<small><strong>Dirección:</strong> ${kantuEscapeHtml(location.addressLine)}</small>`
+            : ""}
         <a href="${kantuEscapeHtml(location.mapsUrl)}" target="_blank" rel="noopener noreferrer">${kantuEscapeHtml(linkLabel)}</a>
         ${location.reference
             ? `<small><strong>Referencia:</strong> ${kantuEscapeHtml(location.reference)}</small>`
