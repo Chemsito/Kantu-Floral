@@ -28,6 +28,7 @@
     loadScriptOnce("js/promotions.js", "data-kantu-promotions", "true");
     loadScriptOnce("js/promotion-rules.js", "data-kantu-promotion-rules", "true");
     loadScriptOnce("js/admin-schedule.js", "data-kantu-admin-schedule", "true");
+    loadScriptOnce("js/delivery-availability.js", "data-kantu-delivery-availability", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();
