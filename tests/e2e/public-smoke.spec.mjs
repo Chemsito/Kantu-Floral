@@ -46,4 +46,21 @@ test.describe("Kantu Floral public stabilization", () => {
             await expect(favorite).toHaveAttribute("aria-label", /favoritos/i);
         }
     });
+
+    test("checkout keeps a readable delivery address together with the exact map location", async ({ page }) => {
+        await page.goto("/", { waitUntil: "domcontentloaded" });
+
+        const address = page.locator("#checkoutDeliveryAddressText");
+        await expect(address).toHaveCount(1);
+        await expect(address).toHaveAttribute("required", "");
+        await expect(address).toHaveAttribute("autocomplete", "street-address");
+
+        const parsed = await page.evaluate(() => window.KantuCore.parseDeliveryAddress(
+            "Dirección: Av. Ejército 710, Cayma | https://www.google.com/maps?q=-16.390000,-71.550000 | Referencia: puerta negra"
+        ));
+
+        expect(parsed.addressLine).toBe("Av. Ejército 710, Cayma");
+        expect(parsed.reference).toBe("puerta negra");
+        expect(parsed.mapsUrl).toContain("google.com/maps?q=-16.390000,-71.550000");
+    });
 });
