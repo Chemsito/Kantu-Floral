@@ -1,6 +1,7 @@
 /* =====================================================
    KANTU FLORAL
    app.js
+   Orquestación de experiencia y compatibilidad
 ===================================================== */
 
 const KANTU_APP = window.KantuCore;
@@ -18,21 +19,20 @@ function loadAdminProductManager() {
 loadAdminProductManager();
 
 function loadKantuBrandIdentity() {
-    if (!document.querySelector('link[data-kantu-brand="true"]')) {
-        const brandStyles = document.createElement("link");
-        brandStyles.rel = "stylesheet";
-        brandStyles.href = "css/brand.css";
-        brandStyles.dataset.kantuBrand = "true";
-        document.head.appendChild(brandStyles);
-    }
+    const styles = [
+        ["css/brand.css", "kantuBrand"],
+        ["css/mobile.css", "kantuMobile"],
+        ["css/stabilization.css", "kantuStabilization"]
+    ];
 
-    if (!document.querySelector('link[data-kantu-mobile="true"]')) {
-        const mobileStyles = document.createElement("link");
-        mobileStyles.rel = "stylesheet";
-        mobileStyles.href = "css/mobile.css";
-        mobileStyles.dataset.kantuMobile = "true";
-        document.head.appendChild(mobileStyles);
-    }
+    styles.forEach(([href, key]) => {
+        if (document.querySelector(`link[data-${key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}="true"]`)) return;
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = href;
+        link.dataset[key] = "true";
+        document.head.appendChild(link);
+    });
 
     document.title = "Kantu Floral | Flores que cuentan historias";
 
@@ -50,7 +50,62 @@ function loadKantuBrandIdentity() {
     themeColor.content = "#fffaf6";
 }
 
+function ensureSeoMetadata() {
+    const canonicalHref = new URL("index.html", window.location.href).href.split("?")[0].replace(/index\.html$/, "");
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.rel = "canonical";
+        document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalHref;
+
+    const metas = {
+        "og:type": "website",
+        "og:locale": "es_PE",
+        "og:site_name": "Kantu Floral",
+        "og:title": "Kantu Floral | Flores que cuentan historias",
+        "og:description": "Ramos y arreglos florales con delivery en Arequipa.",
+        "og:url": canonicalHref,
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Kantu Floral | Flores que cuentan historias",
+        "twitter:description": "Ramos y arreglos florales con delivery en Arequipa."
+    };
+
+    Object.entries(metas).forEach(([property, content]) => {
+        const attribute = property.startsWith("og:") ? "property" : "name";
+        let meta = document.head.querySelector(`meta[${attribute}="${property}"]`);
+        if (!meta) {
+            meta = document.createElement("meta");
+            meta.setAttribute(attribute, property);
+            document.head.appendChild(meta);
+        }
+        meta.content = content;
+    });
+
+    if (!document.getElementById("kantuLocalBusinessSchema")) {
+        const schema = document.createElement("script");
+        schema.id = "kantuLocalBusinessSchema";
+        schema.type = "application/ld+json";
+        schema.textContent = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Florist",
+            name: "Kantu Floral",
+            url: canonicalHref,
+            areaServed: "Arequipa, Perú",
+            address: {
+                "@type": "PostalAddress",
+                addressLocality: "Arequipa",
+                addressCountry: "PE"
+            },
+            telephone: "+51 967 539 019"
+        });
+        document.head.appendChild(schema);
+    }
+}
+
 loadKantuBrandIdentity();
+ensureSeoMetadata();
 
 function readFavoriteIds() {
     try {
@@ -85,6 +140,7 @@ function initializeFavorites() {
     const favoritesButton = document.getElementById("favoritesButton");
     if (!favoritesButton) return;
 
+    favoritesButton.setAttribute("aria-label", "Ver productos favoritos");
     favoritesButton.addEventListener("click", () => {
         if (favorites.length === 0) {
             showToast("Todavía no tienes favoritos.");
@@ -125,7 +181,7 @@ function showFavoriteProducts() {
                 <div class="product-image">
                     ${imageMarkup}
                     <span class="product-tag">Favorito</span>
-                    <button class="favorite active" onclick="toggleFavorite(${id})" aria-label="Eliminar de favoritos">♥</button>
+                    <button type="button" class="favorite active" onclick="toggleFavorite(${id})" aria-label="Eliminar ${KANTU_APP.escapeHtml(product.name || "producto")} de favoritos">♥</button>
                 </div>
                 <div class="product-info">
                     <span class="product-category">${KANTU_APP.escapeHtml(getCategoryName(product.category))}</span>
@@ -133,7 +189,7 @@ function showFavoriteProducts() {
                     <p>${KANTU_APP.escapeHtml(product.description || "")}</p>
                     <div class="product-bottom">
                         <span class="price">S/ ${price.toFixed(2)}</span>
-                        <button class="add-cart" onclick="addToCart(${id})" ${stock <= 0 ? "disabled" : ""}>
+                        <button type="button" class="add-cart" onclick="addToCart(${id})" ${stock <= 0 ? "disabled" : ""}>
                             ${stock > 0 ? "+ Agregar" : "Agotado"}
                         </button>
                     </div>
@@ -141,6 +197,10 @@ function showFavoriteProducts() {
             </article>
         `;
     }).join("");
+
+    if (typeof enhanceRenderedProductCards === "function") {
+        enhanceRenderedProductCards(favoriteProducts);
+    }
 }
 
 let toastTimer;
@@ -149,85 +209,143 @@ function showToast(message) {
     const toast = document.getElementById("toast");
     if (!toast) return;
 
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
     clearTimeout(toastTimer);
     toast.textContent = message;
     toast.classList.add("show");
     toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
-function initializeMobileMenu() {
+function setMobileMenuState(open) {
     const mobileMenu = document.querySelector(".mobile-menu");
-    const nav = document.querySelector("nav");
+    const nav = document.querySelector("header nav");
     if (!mobileMenu || !nav) return;
-    mobileMenu.addEventListener("click", () => nav.classList.toggle("mobile-open"));
+
+    nav.classList.toggle("mobile-open", open);
+    mobileMenu.setAttribute("aria-expanded", String(open));
+    mobileMenu.setAttribute("aria-label", open ? "Cerrar menú de navegación" : "Abrir menú de navegación");
+}
+
+function initializeMobileMenu() {
+    const originalButton = document.querySelector(".mobile-menu");
+    const nav = document.querySelector("header nav");
+    if (!originalButton || !nav) return;
+
+    // El HTML legado tenía un onclick inline. Se elimina para garantizar una
+    // única fuente de eventos y evitar el doble toggle del menú móvil.
+    originalButton.removeAttribute("onclick");
+    originalButton.type = "button";
+    originalButton.setAttribute("aria-controls", "siteNavigation");
+    originalButton.setAttribute("aria-expanded", "false");
+    originalButton.setAttribute("aria-label", "Abrir menú de navegación");
+    nav.id = nav.id || "siteNavigation";
+
+    if (originalButton.dataset.kantuMenuBound === "true") return;
+    originalButton.dataset.kantuMenuBound = "true";
+    originalButton.addEventListener("click", () => {
+        setMobileMenuState(!nav.classList.contains("mobile-open"));
+    });
 }
 
 function initializeMobileLinks() {
-    const navLinks = document.querySelectorAll("nav a");
-    const nav = document.querySelector("nav");
-    navLinks.forEach(link => link.addEventListener("click", () => nav?.classList.remove("mobile-open")));
+    const navLinks = document.querySelectorAll("header nav a, header nav button");
+    navLinks.forEach(link => link.addEventListener("click", () => setMobileMenuState(false)));
 }
 
 /* =====================================================
-   CORRECCIONES DE LAYOUT
-   El selector global `header` del sitio también alcanzaba al header interno
-   de Mi cuenta y terminaba superponiéndose al botón X.
+   MODALES ACCESIBLES
 ===================================================== */
 
-function initializeModalLayoutFixes() {
-    const accountHeader = document.querySelector(".account-header");
-    if (accountHeader) {
-        accountHeader.style.position = "static";
-        accountHeader.style.top = "auto";
-        accountHeader.style.zIndex = "auto";
-        accountHeader.style.background = "transparent";
-        accountHeader.style.backdropFilter = "none";
-        accountHeader.style.borderBottom = "0";
-    }
+const modalReturnFocus = new WeakMap();
 
-    document.querySelectorAll(".modal > .close-modal").forEach(button => {
-        button.style.zIndex = "20";
-        button.style.display = "grid";
-        button.style.placeItems = "center";
-        button.style.padding = "0";
-        button.style.lineHeight = "1";
+function visibleFocusableElements(container) {
+    return [...container.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter(element => !element.hidden && element.getClientRects().length > 0);
+}
+
+function closeVisibleOverlay(overlay) {
+    const closeButton = overlay.querySelector(".close-modal, [data-modal-close]");
+    if (closeButton instanceof HTMLElement) {
+        closeButton.click();
+        return;
+    }
+    overlay.classList.remove("show");
+}
+
+function initializeAccessibleOverlays() {
+    document.querySelectorAll(".modal-overlay").forEach(overlay => {
+        if (!overlay.hasAttribute("role")) overlay.setAttribute("role", "dialog");
+        if (!overlay.hasAttribute("aria-modal")) overlay.setAttribute("aria-modal", "true");
+        overlay.setAttribute("aria-hidden", overlay.classList.contains("show") ? "false" : "true");
+
+        overlay.querySelectorAll(".close-modal").forEach(button => {
+            if (!button.getAttribute("aria-label")) button.setAttribute("aria-label", "Cerrar ventana");
+        });
+    });
+
+    const observer = new MutationObserver(records => {
+        records.forEach(record => {
+            const overlay = record.target;
+            if (!(overlay instanceof HTMLElement) || !overlay.classList.contains("modal-overlay")) return;
+            const isOpen = overlay.classList.contains("show");
+            overlay.setAttribute("aria-hidden", String(!isOpen));
+
+            if (isOpen) {
+                modalReturnFocus.set(overlay, document.activeElement);
+                window.setTimeout(() => visibleFocusableElements(overlay)[0]?.focus(), 0);
+            } else {
+                const previous = modalReturnFocus.get(overlay);
+                if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
+                modalReturnFocus.delete(overlay);
+            }
+        });
+    });
+
+    document.querySelectorAll(".modal-overlay").forEach(overlay => {
+        observer.observe(overlay, { attributes: true, attributeFilter: ["class"] });
+    });
+
+    document.addEventListener("keydown", event => {
+        const openOverlays = [...document.querySelectorAll(".modal-overlay.show")];
+        const overlay = openOverlays.at(-1);
+
+        if (event.key === "Escape") {
+            if (overlay) {
+                event.preventDefault();
+                closeVisibleOverlay(overlay);
+                return;
+            }
+            if (document.getElementById("cartPanel")?.classList.contains("show")) {
+                event.preventDefault();
+                closeCart();
+            }
+            return;
+        }
+
+        if (event.key !== "Tab" || !overlay) return;
+        const focusables = visibleFocusableElements(overlay);
+        if (!focusables.length) {
+            event.preventDefault();
+            return;
+        }
+
+        const first = focusables[0];
+        const last = focusables.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
     });
 }
 
 /* =====================================================
-   POLÍTICA DE CIERRE DE MODALES
-   Un clic accidental sobre el fondo difuminado o Escape no debe destruir
-   información escrita por el cliente. Las ventanas se cierran únicamente
-   mediante su X o por una acción explícita del flujo.
-===================================================== */
-
-function initializeModalDismissalPolicy() {
-    document.addEventListener("click", event => {
-        const target = event.target;
-        if (!(target instanceof Element)) return;
-        if (!target.classList.contains("modal-overlay") || !target.classList.contains("show")) return;
-
-        event.preventDefault();
-        event.stopImmediatePropagation();
-    }, true);
-
-    document.addEventListener("keydown", event => {
-        if (event.key !== "Escape") return;
-        if (!document.querySelector(".modal-overlay.show")) return;
-
-        event.preventDefault();
-        event.stopImmediatePropagation();
-    }, true);
-}
-
-initializeModalDismissalPolicy();
-
-/* =====================================================
    HARDENING DEL PANEL ADMIN
-   - Admin solo puede cancelar pedidos pendientes/no pagados.
-   - Preparación, reparto y entrega se gestionan desde staff.html para conservar
-     sus timestamps operativos.
-   - Ventas suma únicamente pagos aprobados.
+   Compatibilidad temporal hasta mover completamente esta política a admin.js.
 ===================================================== */
 
 function applyAdminHardening() {
@@ -295,9 +413,6 @@ function applyAdminHardening() {
 
 /* =====================================================
    REINTENTOS SEGUROS DE MERCADO PAGO
-   Un intento rechazado/cancelado puede volver a abrir Checkout Pro, pero las
-   opciones manuales se mantienen ocultas hasta que el pedido esté nuevamente
-   en estado de pago pendiente. Los webhooks siguen siendo la fuente de verdad.
 ===================================================== */
 
 function applyMercadoPagoRetrySupport() {
@@ -501,8 +616,11 @@ function applyCustomerExperienceImprovements() {
                 return;
             }
 
-            // En móvil el carrito ocupa toda la pantalla; debe cerrarse antes
-            // de mostrar el checkout para no tapar "Completa tu pedido".
+            if (typeof cartSyncState !== "undefined" && cartSyncState === "error") {
+                showToast("Tu carrito aún no está sincronizado. Revisa tu conexión antes de comprar.");
+                return;
+            }
+
             closeCart();
             openCheckout(user);
         };
@@ -615,8 +733,8 @@ function initializeCustomerExperienceListeners() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    initializeModalLayoutFixes();
     applyAdminHardening();
+    initializeAccessibleOverlays();
     initializeCategories();
     initializeCart();
     initializeAuth();
