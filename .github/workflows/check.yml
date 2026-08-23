@@ -36,3 +36,43 @@ jobs:
 
       - name: Check Supabase Edge Functions
         run: deno check --no-config supabase/functions/create-mp-preference/index.ts supabase/functions/mercadopago-webhook/index.ts
+
+  catalog-assets:
+    if: github.event_name == 'pull_request' && github.head_ref == 'catalog/blume-full-import' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout catalog branch
+        uses: actions/checkout@v4
+        with:
+          ref: catalog/blume-full-import
+          fetch-depth: 0
+
+      - name: Build 96 catalog images
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .catalog-build/micro-00 .catalog-build/micro-01 .catalog-build/micro-02 .catalog-build/micro-03 .catalog-build/micro-04 .catalog-build/micro-05 .catalog-build/micro-06 .catalog-build/micro-07 | base64 -d > /tmp/blume-sprite.webp
+          test "$(identify -format '%wx%h' /tmp/blume-sprite.webp)" = "640x800"
+          mkdir -p assets/catalog/blume-2026
+          for i in $(seq 0 95); do
+            col=$((i % 10)); row=$((i / 10)); x=$((col * 64)); y=$((row * 80)); num=$(printf "%03d" $((i + 1)))
+            convert /tmp/blume-sprite.webp -crop "64x80+${x}+${y}" +repage -resize "320x400" -quality 86 "assets/catalog/blume-2026/${num}.webp"
+          done
+          test "$(find assets/catalog/blume-2026 -type f -name '*.webp' | wc -l)" -eq 96
+          rm -rf .catalog-build
+          rm -f .github/workflows/build-blume-catalog.yml
+          git fetch origin main
+          git checkout origin/main -- .github/workflows/check.yml
+
+      - name: Commit generated assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add BLUME 2026 catalog image assets"
+          git push origin HEAD:catalog/blume-full-import
