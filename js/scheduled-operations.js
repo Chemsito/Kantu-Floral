@@ -14,7 +14,10 @@
     }
 
     function ensureStyles() {
-        if (document.querySelector('link[data-kantu-scheduled-operations-style="true"]')) return;
+        if (
+            document.querySelector('link[data-kantu-scheduled-operations-style="true"]')
+            || document.querySelector('link[href="css/scheduled-operations.css"]')
+        ) return;
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = "css/scheduled-operations.css";
@@ -171,7 +174,6 @@
         const { data, error } = await supabaseClient.rpc("admin_delivery_agenda", { p_days: 14 });
         adminAgendaLoading = false;
         if (error) {
-            // Para clientes u otros roles este bloque permanece oculto.
             const card = el("adminDeliveryAgendaCard");
             if (card) card.hidden = true;
             return null;
