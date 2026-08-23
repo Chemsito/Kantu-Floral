@@ -1,0 +1,133 @@
+/* Kantu Floral - agenda y prioridad de pedidos programados */
+
+.admin-delivery-agenda-card {
+    margin-top: 1.25rem;
+    padding: 1.1rem;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.84);
+}
+
+.admin-delivery-agenda-heading,
+.admin-delivery-agenda-row,
+.staff-scheduled-operation,
+.staff-schedule-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.admin-delivery-agenda-heading {
+    align-items: flex-start;
+    margin-bottom: 0.9rem;
+}
+
+.admin-delivery-agenda-heading h4 {
+    margin: 0 0 0.2rem;
+}
+
+.admin-delivery-agenda-heading p,
+.scheduled-operations-empty {
+    margin: 0;
+    color: var(--text-secondary, #666);
+    font-size: 0.9rem;
+}
+
+.admin-delivery-agenda-list {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.admin-delivery-agenda-row {
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(31, 41, 55, 0.09);
+}
+
+.admin-delivery-agenda-row:first-child {
+    border-top: 0;
+}
+
+.admin-delivery-agenda-row > div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.admin-delivery-agenda-row > div:last-child {
+    text-align: right;
+}
+
+.admin-delivery-agenda-row span,
+.admin-delivery-agenda-row small {
+    color: var(--text-secondary, #666);
+}
+
+.staff-schedule-summary {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.staff-schedule-summary > div {
+    min-width: 0;
+    display: grid;
+    gap: 0.15rem;
+}
+
+.staff-schedule-summary span {
+    color: #6b7280;
+    font-size: 0.78rem;
+}
+
+.staff-schedule-summary strong {
+    font-size: 1.15rem;
+}
+
+.staff-schedule-summary .urgent strong {
+    color: #b91c1c;
+}
+
+.staff-scheduled-operation {
+    margin: 0 1rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.08);
+    font-size: 0.82rem;
+}
+
+.staff-scheduled-operation span {
+    font-weight: 600;
+}
+
+.staff-scheduled-operation.today {
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.staff-scheduled-operation.overdue {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.staff-scheduled-operation.overdue span,
+.staff-scheduled-operation.overdue strong {
+    color: #991b1b;
+}
+
+.staff-order-card.scheduled-overdue {
+    box-shadow: inset 4px 0 0 rgba(185, 28, 28, 0.72);
+}
+
+@media (max-width: 640px) {
+    .admin-delivery-agenda-heading,
+    .admin-delivery-agenda-row,
+    .staff-scheduled-operation,
+    .staff-schedule-summary {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-delivery-agenda-row > div:last-child {
+        text-align: left;
+    }
+}
