@@ -23,6 +23,12 @@ const PRODUCT_CATEGORIES = Object.freeze([
 const PRODUCT_CATEGORY_VALUES = Object.freeze(PRODUCT_CATEGORIES.map(([value]) => value));
 const PRODUCT_SIZES = Object.freeze(["S", "M", "L", "XL", "XXL"]);
 
+window.KantuProductConfig = Object.freeze({
+    categories: PRODUCT_CATEGORIES,
+    categoryValues: PRODUCT_CATEGORY_VALUES,
+    sizes: PRODUCT_SIZES
+});
+
 let products = [];
 let currentCategory = "todos";
 
@@ -36,10 +42,6 @@ function ensureProductMetadataStyles() {
 }
 
 ensureProductMetadataStyles();
-
-/* =====================================================
-   CATEGORÍAS
-===================================================== */
 
 function getCategoryName(category) {
     return PRODUCT_CATEGORIES.find(([value]) => value === category)?.[1] || category;
@@ -55,16 +57,13 @@ function rebuildCategoryButtons() {
             class="category-btn${index === 0 ? " active" : ""}"
             data-category="${productEscape(value)}"
             type="button"
+            aria-pressed="${index === 0 ? "true" : "false"}"
         >${productEscape(label)}</button>
     `).join("");
 
     currentCategory = "todos";
     return [...container.querySelectorAll(".category-btn")];
 }
-
-/* =====================================================
-   METADATOS DE PRODUCTO: TALLA Y NOTA
-===================================================== */
 
 function normalizeProductSize(value) {
     const size = String(value || "M").trim().toUpperCase();
@@ -124,13 +123,6 @@ function enhanceRenderedProductCards(productList) {
         }
     });
 }
-
-/* =====================================================
-   PRODUCTOS EN ADMIN
-   La categoría, talla y nota se guardan desde un único flujo propio.
-   Esto evita depender del formulario legado de admin.js, que todavía
-   contiene las cuatro categorías antiguas y podía resetear el select.
-===================================================== */
 
 function syncAdminProductCategoryOptions(preferredValue = null) {
     const select = document.getElementById("adminProductCategory");
@@ -367,10 +359,6 @@ function installAdminProductEnhancements() {
     }
 }
 
-/* =====================================================
-   CARGAR PRODUCTOS DESDE SUPABASE
-===================================================== */
-
 async function loadProducts() {
     try {
         const { data, error } = await supabaseClient
@@ -388,18 +376,12 @@ async function loadProducts() {
         products = data || [];
         renderProducts();
 
-        if (typeof updateCart === "function") {
-            updateCart();
-        }
+        if (typeof updateCart === "function") updateCart();
     } catch (error) {
         console.error("Error inesperado cargando catálogo:", error);
         showToast("Ocurrió un error al cargar el catálogo.");
     }
 }
-
-/* =====================================================
-   RENDERIZAR PRODUCTOS
-===================================================== */
 
 function renderProducts() {
     const productsGrid = document.getElementById("productsGrid");
@@ -423,13 +405,14 @@ function renderProducts() {
         const productId = Number(product.id);
         if (!Number.isSafeInteger(productId) || productId <= 0) return "";
 
-        const isFavorite = typeof favorites !== "undefined" && favorites.includes(product.id);
+        const isFavorite = typeof favorites !== "undefined" && favorites.includes(Number(product.id));
         const safeImage = productSafeUrl(product.image);
         const imageMarkup = safeImage
             ? `<img src="${productEscape(safeImage)}" alt="${productEscape(product.name || "Producto")}" loading="lazy">`
             : '<div class="product-image-placeholder" aria-hidden="true">✿</div>';
         const stock = Math.max(0, Number(product.stock) || 0);
         const price = Number(product.price);
+        const favoriteAction = isFavorite ? "Eliminar de" : "Agregar a";
 
         return `
             <article class="product-card">
@@ -437,9 +420,11 @@ function renderProducts() {
                     ${imageMarkup}
                     <span class="product-tag">${productEscape(product.tag || "")}</span>
                     <button
+                        type="button"
                         class="favorite ${isFavorite ? "active" : ""}"
                         onclick="toggleFavorite(${productId})"
-                        aria-label="Agregar a favoritos"
+                        aria-pressed="${String(isFavorite)}"
+                        aria-label="${favoriteAction} favoritos: ${productEscape(product.name || "Producto")}"
                     >${isFavorite ? "♥" : "♡"}</button>
                 </div>
 
@@ -451,6 +436,7 @@ function renderProducts() {
                     <div class="product-bottom">
                         <span class="price">S/ ${Number.isFinite(price) ? price.toFixed(2) : "0.00"}</span>
                         <button
+                            type="button"
                             class="add-cart"
                             onclick="addToCart(${productId})"
                             ${stock <= 0 ? "disabled" : ""}
@@ -464,18 +450,18 @@ function renderProducts() {
     enhanceRenderedProductCards(filteredProducts);
 }
 
-/* =====================================================
-   FILTROS
-===================================================== */
-
 function initializeCategories() {
     const categoryButtons = rebuildCategoryButtons();
     installAdminProductEnhancements();
 
     categoryButtons.forEach(button => {
         button.addEventListener("click", () => {
-            categoryButtons.forEach(btn => btn.classList.remove("active"));
+            categoryButtons.forEach(btn => {
+                btn.classList.remove("active");
+                btn.setAttribute("aria-pressed", "false");
+            });
             button.classList.add("active");
+            button.setAttribute("aria-pressed", "true");
             currentCategory = button.dataset.category;
             renderProducts();
         });
