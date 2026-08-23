@@ -55,6 +55,7 @@
     color: #745f59 !important;
     font-size: 11px !important;
     line-height: 1.45 !important;
+    overflow-wrap: anywhere;
 }
 
 .product-note strong {
@@ -91,7 +92,7 @@
             58px
             92px
             38px
-            52px
+            minmax(52px, auto)
             auto;
         align-content: stretch;
         row-gap: 0;
@@ -137,12 +138,10 @@
         grid-row: 5;
         align-self: start;
         min-height: 44px;
-        max-height: 48px;
+        max-height: none;
         margin-top: 4px !important;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
+        overflow: visible;
+        display: block;
     }
 
     .product-bottom {
@@ -153,8 +152,9 @@
         padding-top: 12px;
     }
 
-    /* Cuando no hay nota, la fila 5 queda vacía y conserva exactamente
-       el mismo espacio, por lo que el precio nunca sube respecto a otras tarjetas. */
+    /* Cuando no hay nota, la fila 5 conserva el espacio mínimo y el precio
+       se mantiene alineado. Si una nota necesita más líneas, la fila crece
+       naturalmente para mostrarla completa sin cortar el contenido. */
 }
 
 .admin-product-field-label {
