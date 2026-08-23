@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20260823205500_add_gift_delivery_preferences.sql", "utf8");
+const privilegeMigration = fs.readFileSync("supabase/migrations/20260823211500_tighten_delivery_schedule_privileges.sql", "utf8");
 const checkout = fs.readFileSync("js/checkout-gifting.js", "utf8");
 const products = fs.readFileSync("js/products.js", "utf8");
 const detailHtml = fs.readFileSync("producto.html", "utf8");
@@ -36,10 +37,19 @@ assert.match(migration, /v_role not in \('admin', 'florist', 'delivery'\)/,
     "El RPC operativo debe validar el rol internamente.");
 assert.match(migration, /case when v_role in \('admin', 'delivery'\) then o\.recipient_phone else null end/,
     "Florista no debe recibir el teléfono privado del destinatario.");
-assert.match(migration, /delivery_schedule_settings.*true|delivery_schedule_settings/s,
-    "El health check debe vigilar la nueva configuración.");
 assert.match(migration, /revoke all on function public\.kantu_deployment_health_check\(\) from public, anon, authenticated/i,
     "El health check debe seguir privado.");
+
+assert.match(privilegeMigration, /revoke all on table public\.delivery_schedule_settings from public, anon, authenticated/i,
+    "La agenda debe revocar los grants heredados antes de conceder el mínimo.");
+assert.match(privilegeMigration, /grant select, update on table public\.delivery_schedule_settings to authenticated/i,
+    "El navegador autenticado solo necesita SELECT y UPDATE sobre la agenda.");
+for (const privilege of ["insert", "delete", "truncate"]) {
+    assert.match(privilegeMigration, new RegExp(`not has_table_privilege\\('authenticated', 'public\\.delivery_schedule_settings', '${privilege}'\\)`, "i"),
+        `El health check debe detectar si authenticated recupera ${privilege.toUpperCase()}.`);
+}
+assert.match(privilegeMigration, /delivery_schedule_privileges/,
+    "El health check debe exponer el estado de privilegios de la agenda.");
 
 for (const rpcParam of [
     "p_recipient_name",
