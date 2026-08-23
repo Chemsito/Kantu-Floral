@@ -34,7 +34,7 @@ test.describe("Kantu Floral public stabilization", () => {
         await expect(modal).toHaveAttribute("aria-hidden", "true");
     });
 
-    test("catalog controls initialize and favorite controls expose toggle semantics", async ({ page }) => {
+    test("catalog controls initialize and product cards expose detail links", async ({ page }) => {
         await page.goto("/", { waitUntil: "domcontentloaded" });
 
         await expect(page.locator("#catalogTools")).toBeVisible({ timeout: 15000 });
@@ -44,6 +44,11 @@ test.describe("Kantu Floral public stabilization", () => {
         if (await favorite.count()) {
             await expect(favorite).toHaveAttribute("aria-pressed", /true|false/);
             await expect(favorite).toHaveAttribute("aria-label", /favoritos/i);
+        }
+
+        const detail = page.locator("#productsGrid .product-detail-link").first();
+        if (await detail.count()) {
+            await expect(detail).toHaveAttribute("href", /producto\.html\?id=\d+/);
         }
     });
 
@@ -64,6 +69,33 @@ test.describe("Kantu Floral public stabilization", () => {
         expect(parsed.mapsUrl).toContain("google.com/maps?q=-16.390000,-71.550000");
     });
 
+    test("checkout exposes recipient gift card and safe scheduling controls", async ({ page }) => {
+        await page.goto("/", { waitUntil: "domcontentloaded" });
+
+        const recipientName = page.locator("#checkoutRecipientName");
+        const recipientPhone = page.locator("#checkoutRecipientPhone");
+        const giftMessage = page.locator("#checkoutGiftMessage");
+        const timing = page.locator("#checkoutDeliveryTiming");
+
+        await expect(recipientName).toHaveCount(1, { timeout: 15000 });
+        await expect(recipientName).toHaveAttribute("required", "");
+        await expect(recipientName).toHaveAttribute("maxlength", "120");
+        await expect(recipientPhone).toHaveAttribute("required", "");
+        await expect(giftMessage).toHaveAttribute("maxlength", "500");
+        await expect(timing).toHaveValue("asap");
+        await expect(page.locator("#checkoutSchedulePanel")).toBeHidden();
+    });
+
+    test("individual product page fails safely without a product id", async ({ page }) => {
+        const pageErrors = [];
+        page.on("pageerror", error => pageErrors.push(error.message));
+
+        await page.goto("/producto.html", { waitUntil: "domcontentloaded" });
+        await expect(page.locator("#productDetailRoot")).toContainText("Producto no encontrado");
+        await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,follow");
+        expect(pageErrors).toEqual([]);
+    });
+
     test("admin product image uploader initializes without requiring admin access", async ({ page }) => {
         await page.goto("/", { waitUntil: "domcontentloaded" });
 
@@ -73,7 +105,7 @@ test.describe("Kantu Floral public stabilization", () => {
         await expect(page.locator("#adminProductUploadStatus")).toHaveAttribute("aria-live", "polite");
     });
 
-    test("staff portal boots the realtime sidecar without JavaScript errors", async ({ page }) => {
+    test("staff portal boots realtime and gifting sidecars without JavaScript errors", async ({ page }) => {
         const pageErrors = [];
         page.on("pageerror", error => pageErrors.push(error.message));
 
@@ -81,6 +113,7 @@ test.describe("Kantu Floral public stabilization", () => {
         await page.waitForTimeout(1200);
 
         await expect(page.locator("script[src='js/staff-realtime.js']")).toHaveCount(1);
+        await expect(page.locator("script[src='js/order-gifting-ui.js']")).toHaveCount(1);
         expect(pageErrors).toEqual([]);
     });
 });
