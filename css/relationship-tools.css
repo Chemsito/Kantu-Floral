@@ -1,0 +1,226 @@
+/* Kantu Floral - favoritos persistentes y fechas especiales */
+
+#favoritesButton {
+    position: relative;
+}
+
+.favorites-count-badge {
+    position: absolute;
+    top: -7px;
+    right: -8px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #8b2f45;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
+
+.product-detail-favorite {
+    min-height: 46px;
+    padding: 10px 16px;
+    border: 1px solid #d9c4c4;
+    border-radius: 12px;
+    background: #fff;
+    color: #8b2f45;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.product-detail-favorite.active {
+    background: #f9e9ee;
+    border-color: #c98698;
+}
+
+.relationship-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.relationship-heading h3 {
+    margin: 0;
+    color: #4e353c;
+}
+
+.relationship-heading p {
+    margin: 4px 0 0;
+    color: #776c6f;
+    font-size: 13px;
+}
+
+.special-date-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid #eadedb;
+    border-radius: 15px;
+    background: #fffaf7;
+}
+
+.relationship-wide {
+    grid-column: 1 / -1;
+}
+
+.special-dates-list {
+    display: grid;
+    gap: 11px;
+}
+
+.special-date-card {
+    padding: 14px;
+    border: 1px solid #eadedb;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.special-date-card.inactive {
+    opacity: .66;
+}
+
+.special-date-main {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.special-date-main span,
+.special-date-main strong,
+.special-date-main small {
+    display: block;
+}
+
+.special-date-main > div > span {
+    color: #9a6170;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.special-date-main strong {
+    margin-top: 3px;
+    color: #4e353c;
+}
+
+.special-date-main small {
+    margin-top: 4px;
+    color: #7a6d71;
+}
+
+.special-date-state {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #f7e9ee;
+    color: #8b2f45;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.special-date-card > p {
+    margin: 10px 0 0;
+    color: #706367;
+    font-size: 12px;
+}
+
+.special-date-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 7px;
+    margin-top: 11px;
+}
+
+.special-date-actions button {
+    border: 1px solid #dfcfcc;
+    border-radius: 8px;
+    padding: 6px 9px;
+    background: #fff;
+    color: #68454e;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.special-date-actions button.danger {
+    border-color: #efcfd2;
+    color: #a3313e;
+}
+
+.special-date-upcoming-banner {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin: 0 auto 18px;
+    padding: 14px 16px;
+    border: 1px solid #e6ccd2;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #fff5f7, #fffaf5);
+}
+
+.special-date-upcoming-banner[hidden] {
+    display: none;
+}
+
+.special-date-upcoming-banner span,
+.special-date-upcoming-banner strong,
+.special-date-upcoming-banner small {
+    display: block;
+}
+
+.special-date-upcoming-banner span {
+    color: #9a6170;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.special-date-upcoming-banner strong {
+    margin-top: 2px;
+    color: #4d333a;
+}
+
+.special-date-upcoming-banner small {
+    margin-top: 3px;
+    color: #786b6f;
+}
+
+.special-date-upcoming-banner button {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 13px;
+    background: #8b2f45;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (max-width: 650px) {
+    .special-date-form {
+        grid-template-columns: 1fr;
+    }
+
+    .relationship-wide {
+        grid-column: auto;
+    }
+
+    .special-date-main,
+    .special-date-upcoming-banner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .special-date-state {
+        width: fit-content;
+    }
+}
