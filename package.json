@@ -1,7 +1,7 @@
 {
   "scripts": {
     "check": "npm run check:js && npm run check:hardening && npm run check:security",
-    "check:js": "node --check js/supabase.js && node --check js/products.js && node --check js/cart.js && node --check js/orders.js && node --check js/manual-payments.js && node --check js/order-tracking.js && node --check js/account.js && node --check js/admin.js && node --check js/admin-product-manager.js && node --check js/auth.js && node --check js/app.js && node --check js/staff.js",
+    "check:js": "node --check js/supabase.js && node --check js/products.js && node --check js/cart.js && node --check js/orders.js && node --check js/manual-payments.js && node --check js/order-tracking.js && node --check js/account.js && node --check js/admin.js && node --check js/admin-product-manager.js && node --check js/customer-ux.js && node --check js/auth.js && node --check js/app.js && node --check js/staff.js",
     "check:hardening": "node scripts/check-hardening.mjs",
     "check:security": "node scripts/check-security-contracts.mjs"
   },
