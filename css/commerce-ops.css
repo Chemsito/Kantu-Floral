@@ -99,6 +99,70 @@
     cursor: wait;
 }
 
+.catalog-featured-strip {
+    margin: 18px 0;
+    padding: 14px 16px;
+    border: 1px solid rgba(139, 47, 69, 0.13);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff9f6, #fff1f4);
+}
+
+.catalog-featured-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.catalog-featured-heading strong {
+    color: #4b3038;
+    font-family: "Playfair Display", Georgia, serif;
+}
+
+.catalog-featured-heading span {
+    color: #7d6f73;
+    font-size: 11px;
+}
+
+.catalog-featured-items {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    scrollbar-width: thin;
+}
+
+.catalog-featured-items a {
+    flex: 0 0 auto;
+    min-width: 165px;
+    padding: 9px 11px;
+    border: 1px solid rgba(139, 47, 69, 0.13);
+    border-radius: 11px;
+    background: #fff;
+    color: #59474c;
+    text-decoration: none;
+}
+
+.catalog-featured-items a span,
+.catalog-featured-items a strong {
+    display: block;
+}
+
+.catalog-featured-items a span {
+    max-width: 180px;
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.catalog-featured-items a strong {
+    margin-top: 3px;
+    color: #8b2f45;
+    font-size: 12px;
+}
+
 .commerce-overview-card,
 .inventory-ledger-card {
     margin-top: 20px;
@@ -245,4 +309,5 @@
 @media (max-width: 600px) {
     .checkout-upsell-list { grid-template-columns: 1fr; }
     .commerce-metrics-grid { grid-template-columns: 1fr; }
+    .catalog-featured-heading { align-items: flex-start; flex-direction: column; }
 }
