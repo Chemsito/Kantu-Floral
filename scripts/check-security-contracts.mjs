@@ -6,7 +6,7 @@ const read = path => fs.readFileSync(path, "utf8");
 const supabaseBootstrap = read("js/supabase.js");
 const hardening = read("supabase/migrations/20260822155818_harden_permissions_indexes_and_rls.sql");
 const staffOps = read("supabase/migrations/20260822181000_staff_operations_and_delivery_pricing.sql");
-const staffQueues = read("supabase/migrations/20260822185300_staff_search_and_role_specific_queues.sql");
+const staffQueues = read("supabase/migrations/20260822185224_staff_search_and_role_specific_queues.sql");
 const leastPrivilege = read("supabase/migrations/20260822235932_reduce_nonpayment_table_privileges.sql");
 
 // Frontend credentials: only a publishable key may be shipped to the browser.
