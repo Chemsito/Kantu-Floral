@@ -22,6 +22,9 @@
     }
 
     loadScriptOnce("js/customer-ux.js", "data-kantu-customer-ux", "true");
+    loadScriptOnce("js/checkout-gifting.js", "data-kantu-checkout-gifting", "true");
+    loadScriptOnce("js/order-gifting-ui.js", "data-kantu-order-gifting-ui", "true");
+    loadScriptOnce("js/admin-schedule.js", "data-kantu-admin-schedule", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();

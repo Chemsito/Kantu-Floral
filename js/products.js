@@ -33,12 +33,21 @@ let products = [];
 let currentCategory = "todos";
 
 function ensureProductMetadataStyles() {
-    if (document.querySelector('link[data-kantu-product-metadata="true"]')) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "css/product-options.css";
-    link.dataset.kantuProductMetadata = "true";
-    document.head.appendChild(link);
+    if (!document.querySelector('link[data-kantu-product-metadata="true"]')) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "css/product-options.css";
+        link.dataset.kantuProductMetadata = "true";
+        document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('link[data-kantu-gifting-styles="true"]')) {
+        const giftingLink = document.createElement("link");
+        giftingLink.rel = "stylesheet";
+        giftingLink.href = "css/gifting.css";
+        giftingLink.dataset.kantuGiftingStyles = "true";
+        document.head.appendChild(giftingLink);
+    }
 }
 
 ensureProductMetadataStyles();
@@ -337,12 +346,15 @@ function renderProducts() {
 
                     <div class="product-bottom">
                         <span class="price">S/ ${Number.isFinite(price) ? price.toFixed(2) : "0.00"}</span>
-                        <button
-                            type="button"
-                            class="add-cart"
-                            onclick="addToCart(${productId})"
-                            ${stock <= 0 ? "disabled" : ""}
-                        >${stock > 0 ? "+ Agregar" : "Agotado"}</button>
+                        <div class="product-card-actions">
+                            <a class="product-detail-link" href="producto.html?id=${productId}" aria-label="Ver detalle de ${productEscape(product.name || "Producto")}">Ver detalle</a>
+                            <button
+                                type="button"
+                                class="add-cart"
+                                onclick="addToCart(${productId})"
+                                ${stock <= 0 ? "disabled" : ""}
+                            >${stock > 0 ? "+ Agregar" : "Agotado"}</button>
+                        </div>
                     </div>
                 </div>
             </article>

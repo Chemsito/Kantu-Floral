@@ -1,0 +1,250 @@
+/* Kantu Floral - destinatario, tarjeta y agenda de entrega */
+
+.checkout-gift-section,
+.checkout-schedule-section {
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid rgba(139, 47, 69, 0.16);
+    border-radius: 16px;
+    background: rgba(255, 248, 244, 0.72);
+}
+
+.checkout-section-heading {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.checkout-section-heading > span {
+    display: inline-grid;
+    place-items: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: #8b2f45;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.checkout-section-heading strong {
+    display: block;
+    color: #412e33;
+    font-size: 15px;
+}
+
+.checkout-section-heading small {
+    display: block;
+    margin-top: 2px;
+    color: #75686b;
+    line-height: 1.35;
+}
+
+.checkout-gift-grid,
+.checkout-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.checkout-surprise-option {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 2px 0 14px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    background: #fff;
+    color: #56484c;
+    cursor: pointer;
+}
+
+.checkout-surprise-option input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: #8b2f45;
+}
+
+.checkout-surprise-option strong {
+    display: block;
+    color: #412e33;
+}
+
+.checkout-surprise-option small {
+    display: block;
+    margin-top: 2px;
+    color: #786d70;
+}
+
+.checkout-character-count {
+    float: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.checkout-schedule-panel[hidden] {
+    display: none !important;
+}
+
+.checkout-schedule-hint {
+    margin: 8px 0 0;
+    color: #786d70;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.checkout-schedule-hint.available {
+    color: #38664d;
+}
+
+.product-card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.product-detail-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 11px;
+    border: 1px solid rgba(139, 47, 69, 0.26);
+    border-radius: 10px;
+    color: #8b2f45;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.product-detail-link:hover,
+.product-detail-link:focus-visible {
+    background: #fff4f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 47, 69, 0.12);
+}
+
+.kantu-gift-meta {
+    margin-top: 10px;
+    padding: 11px 12px;
+    border: 1px solid rgba(139, 47, 69, 0.14);
+    border-radius: 12px;
+    background: #fff9f6;
+    color: #514448;
+    line-height: 1.45;
+}
+
+.kantu-gift-meta strong {
+    color: #412e33;
+}
+
+.kantu-gift-meta-row {
+    margin: 3px 0;
+    font-size: 12px;
+}
+
+.kantu-gift-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #f9e8ee;
+    color: #8b2f45;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.kantu-gift-message {
+    margin-top: 7px;
+    padding-top: 7px;
+    border-top: 1px dashed rgba(139, 47, 69, 0.2);
+    white-space: pre-wrap;
+}
+
+.admin-schedule-card {
+    margin-top: 22px;
+    padding: 18px;
+    border: 1px solid #eadedb;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.admin-schedule-card h4 {
+    margin: 0 0 4px;
+    color: #4a3439;
+}
+
+.admin-schedule-card > p {
+    margin: 0 0 16px;
+    color: #7a6e71;
+    font-size: 13px;
+}
+
+.admin-schedule-toggle {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+.admin-schedule-toggle input {
+    width: 18px;
+    height: 18px;
+    accent-color: #8b2f45;
+}
+
+.admin-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-schedule-card textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.admin-schedule-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.admin-schedule-status {
+    font-size: 12px;
+    color: #6f6266;
+}
+
+.admin-schedule-status.success {
+    color: #2f7650;
+}
+
+.admin-schedule-status.error {
+    color: #a2313c;
+}
+
+@media (max-width: 700px) {
+    .checkout-gift-grid,
+    .checkout-schedule-grid,
+    .admin-schedule-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .product-card-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .product-card-actions > * {
+        flex: 1 1 auto;
+    }
+}
