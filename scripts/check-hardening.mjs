@@ -7,8 +7,8 @@ const cart = read("js/cart.js");
 const products = read("js/products.js");
 const app = read("js/app.js");
 const auth = read("js/auth.js");
-const orderMigration = read("supabase/migrations/20260822200500_harden_admin_order_transitions.sql");
-const operationalMigration = read("supabase/migrations/20260822203000_lock_admin_status_to_unpaid_cancellation.sql");
+const orderMigration = read("supabase/migrations/20260822200533_harden_admin_order_transitions.sql");
+const operationalMigration = read("supabase/migrations/20260822201426_lock_admin_status_to_unpaid_cancellation.sql");
 
 assert.match(cart, /onConflict:\s*["']user_id,product_id["']/, "El carrito debe resolver upserts por user_id + product_id.");
 assert.match(cart, /KANTU_CART\.escapeHtml/, "El carrito debe escapar contenido de productos.");
