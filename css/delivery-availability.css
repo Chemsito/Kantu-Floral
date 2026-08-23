@@ -1,0 +1,80 @@
+/* Kantu Floral - disponibilidad avanzada de delivery */
+
+.admin-delivery-availability {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(31, 41, 55, 0.12);
+}
+
+.admin-delivery-availability-heading,
+.admin-delivery-availability-actions,
+.admin-delivery-capacity-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.admin-delivery-availability-heading {
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.admin-delivery-availability-heading h5 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+}
+
+.admin-delivery-availability-heading p,
+.delivery-availability-empty {
+    margin: 0;
+    color: var(--text-secondary, #666);
+    font-size: 0.9rem;
+}
+
+.admin-delivery-capacity-grid {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.55rem;
+}
+
+.admin-delivery-capacity-row {
+    padding: 0.7rem 0.8rem;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.admin-delivery-capacity-row span {
+    font-weight: 600;
+}
+
+.admin-delivery-capacity-row input {
+    width: min(150px, 42vw);
+}
+
+.admin-delivery-availability-actions {
+    margin-top: 1rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.checkout-schedule-hint.unavailable {
+    color: #9a3412;
+}
+
+#checkoutRequestedSlot option:disabled {
+    color: #8a8a8a;
+}
+
+@media (max-width: 640px) {
+    .admin-delivery-availability-heading,
+    .admin-delivery-capacity-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-delivery-capacity-row input {
+        width: 100%;
+    }
+}
