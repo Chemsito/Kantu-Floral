@@ -4,7 +4,7 @@ const MANUAL_PAYMENT_BUCKET = "payment-proofs";
 const MANUAL_PAYMENT_MAX_SIZE = 5 * 1024 * 1024;
 const MANUAL_PAYMENT_MIME_TYPES = ["image/jpeg", "image/png"];
 const MANUAL_PAYMENT_EXTENSIONS = ["jpg", "jpeg", "png"];
-const MANUAL_PAYMENT_POLL_INTERVAL = 5000;
+const MANUAL_PAYMENT_FALLBACK_POLL_INTERVAL = 30000;
 
 const KANTU_MANUAL = window.KantuCore;
 const manualElement = KANTU_MANUAL.element;
@@ -49,6 +49,8 @@ const manualBankAccounts = {
 let manualPaymentOrder = null;
 let manualPaymentPollId = null;
 let manualPaymentPolling = false;
+let manualPaymentRealtimeChannel = null;
+let manualPaymentRealtimeSubscribed = false;
 let selectedManualBank = "bcp";
 
 function setManualPaymentOrder(orderId, total) {
@@ -372,15 +374,60 @@ function renderManualPaymentStatus(proof, order) {
     element.hidden = false;
 }
 
+function handleManualPaymentRealtimeChange() {
+    if (!manualPaymentOrder) return;
+    pollManualPaymentStatus();
+}
+
+function startManualPaymentRealtime() {
+    if (!manualPaymentOrder || manualPaymentRealtimeChannel) return;
+
+    const orderId = String(manualPaymentOrder.id);
+    manualPaymentRealtimeSubscribed = false;
+    manualPaymentRealtimeChannel = supabaseClient
+        .channel(`manual-payment-${orderId}`)
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "payment_proofs",
+            filter: `order_id=eq.${orderId}`
+        }, handleManualPaymentRealtimeChange)
+        .on("postgres_changes", {
+            event: "UPDATE",
+            schema: "public",
+            table: "orders",
+            filter: `id=eq.${orderId}`
+        }, handleManualPaymentRealtimeChange)
+        .subscribe(status => {
+            manualPaymentRealtimeSubscribed = status === "SUBSCRIBED";
+            if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) {
+                manualPaymentRealtimeSubscribed = false;
+            }
+        });
+}
+
+function stopManualPaymentRealtime() {
+    manualPaymentRealtimeSubscribed = false;
+    if (manualPaymentRealtimeChannel) {
+        supabaseClient.removeChannel(manualPaymentRealtimeChannel);
+        manualPaymentRealtimeChannel = null;
+    }
+}
+
 function startManualPaymentPolling() {
     stopManualPaymentPolling();
     pollManualPaymentStatus();
-    manualPaymentPollId = window.setInterval(pollManualPaymentStatus, MANUAL_PAYMENT_POLL_INTERVAL);
+    startManualPaymentRealtime();
+    manualPaymentPollId = window.setInterval(
+        pollManualPaymentStatus,
+        MANUAL_PAYMENT_FALLBACK_POLL_INTERVAL
+    );
 }
 
 function stopManualPaymentPolling() {
     if (manualPaymentPollId) window.clearInterval(manualPaymentPollId);
     manualPaymentPollId = null;
+    stopManualPaymentRealtime();
 }
 
 function initializeManualPayments() {
