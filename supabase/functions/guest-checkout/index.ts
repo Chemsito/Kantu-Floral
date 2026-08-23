@@ -179,7 +179,7 @@ async function validateGuestAccess(
     .eq("order_id", orderId)
     .eq("token_hash", tokenHash)
     .gt("expires_at", new Date().toISOString())
-    .maybeSingle<GuestAccess>();
+    .maybeSingle();
   if (accessError || !access) return null;
 
   const { data: order, error: orderError } = await databaseClient
@@ -187,10 +187,10 @@ async function validateGuestAccess(
     .select("id, user_id, status, payment_status, payment_provider, payment_preference_id, total, subtotal, delivery_fee, delivery_distance_km, estimated_delivery_minutes, requested_delivery_date, requested_delivery_slot, recipient_name, is_surprise, discount_amount, created_at")
     .eq("id", orderId)
     .is("user_id", null)
-    .maybeSingle<GuestOrder>();
+    .maybeSingle();
   if (orderError || !order) return null;
 
-  return { order, access };
+  return { order: order as GuestOrder, access: access as GuestAccess };
 }
 
 async function latestProof(databaseClient: any, orderId: string | number) {
