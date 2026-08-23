@@ -1,0 +1,254 @@
+/* Kantu Floral - recordatorios de fechas importantes */
+
+.account-occasions-section {
+    display: grid;
+    gap: 1rem;
+}
+
+.occasion-reminder-intro,
+.occasion-reminder-main,
+.occasion-reminder-meta,
+.occasion-reminder-actions,
+.occasion-reminder-summary,
+.occasion-date-fields,
+.occasion-form-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.occasion-reminder-intro,
+.occasion-reminder-main,
+.occasion-reminder-meta {
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.occasion-reminder-intro {
+    padding: 1rem;
+    border-radius: 16px;
+    background: rgba(255, 247, 237, 0.78);
+    border: 1px solid rgba(180, 83, 9, 0.12);
+}
+
+.occasion-reminder-intro h3 {
+    margin: 0.15rem 0 0.35rem;
+}
+
+.occasion-reminder-intro p,
+.occasion-reminder-empty p {
+    margin: 0;
+    color: var(--text-secondary, #666);
+    line-height: 1.45;
+}
+
+.occasion-reminder-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9a3412;
+}
+
+.occasion-reminder-privacy {
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.occasion-reminder-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.76);
+}
+
+.occasion-field-wide {
+    grid-column: 1 / -1;
+}
+
+.occasion-date-fields {
+    align-items: flex-end;
+}
+
+.occasion-date-fields .form-group {
+    flex: 1;
+}
+
+.occasion-lead-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.occasion-lead-control input {
+    width: 100%;
+}
+
+.occasion-enabled-control {
+    align-self: end;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 600;
+}
+
+.occasion-form-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.occasion-reminder-status {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.occasion-reminder-status.success {
+    background: rgba(22, 163, 74, 0.1);
+    color: #166534;
+}
+
+.occasion-reminder-status.error {
+    background: rgba(220, 38, 38, 0.08);
+    color: #991b1b;
+}
+
+.occasion-reminder-summary {
+    align-items: stretch;
+}
+
+.occasion-reminder-summary > div {
+    flex: 1;
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid rgba(31, 41, 55, 0.1);
+    border-radius: 12px;
+}
+
+.occasion-reminder-summary strong {
+    font-size: 1.15rem;
+}
+
+.occasion-reminder-summary span {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.occasion-reminder-summary .due {
+    border-color: rgba(217, 119, 6, 0.25);
+    background: rgba(251, 191, 36, 0.08);
+}
+
+.occasion-reminder-list {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.occasion-reminder-card {
+    padding: 0.9rem;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.84);
+}
+
+.occasion-reminder-card.due {
+    border-color: rgba(217, 119, 6, 0.28);
+    box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.68);
+}
+
+.occasion-reminder-card.disabled {
+    opacity: 0.68;
+}
+
+.occasion-reminder-main > div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.occasion-reminder-main > div > span {
+    font-size: 0.76rem;
+    color: #64748b;
+}
+
+.occasion-reminder-state {
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.09);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.occasion-reminder-meta {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.occasion-reminder-actions {
+    margin-top: 0.75rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.occasion-reminder-actions button {
+    border: 0;
+    background: transparent;
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+}
+
+.occasion-reminder-actions .danger {
+    color: #b91c1c;
+}
+
+.occasion-reminder-empty {
+    display: grid;
+    place-items: center;
+    gap: 0.35rem;
+    padding: 1.4rem;
+    text-align: center;
+    border: 1px dashed rgba(31, 41, 55, 0.18);
+    border-radius: 14px;
+}
+
+.occasion-reminder-empty > span {
+    font-size: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .occasion-reminder-form {
+        grid-template-columns: 1fr;
+    }
+
+    .occasion-field-wide {
+        grid-column: auto;
+    }
+
+    .occasion-reminder-intro,
+    .occasion-reminder-main,
+    .occasion-reminder-meta,
+    .occasion-reminder-summary,
+    .occasion-date-fields {
+        flex-direction: column;
+    }
+
+    .occasion-date-fields {
+        align-items: stretch;
+    }
+
+    .occasion-form-actions {
+        justify-content: stretch;
+    }
+
+    .occasion-form-actions .btn {
+        flex: 1;
+    }
+}
