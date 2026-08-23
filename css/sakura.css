@@ -4,15 +4,33 @@ html {
     background: #fff9fa;
 }
 
+/*
+ * Contexto de apilado seguro: permite usar capas negativas para la decoración
+ * sin que desaparezcan detrás del lienzo del navegador.
+ */
 body {
+    position: relative;
+    isolation: isolate;
     background: transparent !important;
 }
 
-/* Ramas decorativas: siempre detrás de la interfaz. */
+/*
+ * Navegación siempre visible al hacer scroll. Se refuerza aquí porque este
+ * archivo se carga después de los estilos base, de marca y responsive.
+ */
+body > header {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1200 !important;
+    width: 100%;
+}
+
+/* Ramas decorativas: capa más profunda del fondo. */
 .sakura-background {
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: -2;
     overflow: hidden;
     pointer-events: none;
     user-select: none;
@@ -27,15 +45,17 @@ body {
     opacity: .76;
 }
 
-/* Pétalos: capa flotante propia, por encima del catálogo pero sin bloquear interacción. */
+/*
+ * Pétalos animados como fondo: quedan detrás de todo el contenido visible,
+ * pero siguen dentro del contexto aislado del body para no desaparecer.
+ */
 .sakura-petals-overlay {
     position: fixed;
     inset: 0;
-    z-index: 90;
+    z-index: -1;
     overflow: hidden;
     pointer-events: none !important;
     user-select: none;
-    isolation: isolate;
 }
 
 .sakura-petals {
@@ -106,12 +126,11 @@ body {
     }
 }
 
-/* El contenido queda por encima del fondo estático. */
-body > header,
+/* Todo el contenido normal queda por encima de las capas sakura. */
 body > main,
 body > footer {
     position: relative;
-    z-index: 1;
+    z-index: 0;
 }
 
 /* Permite que el fondo se perciba sin sacrificar legibilidad del catálogo. */
@@ -136,10 +155,6 @@ body > footer {
         background-size: auto 78vh;
         background-position: top center;
         opacity: .56;
-    }
-
-    .sakura-petals-overlay {
-        z-index: 80;
     }
 
     .sakura-petal {
