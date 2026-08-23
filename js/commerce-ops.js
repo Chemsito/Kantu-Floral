@@ -8,8 +8,10 @@
     let upsellBusy = false;
     const sourceLabels = Object.freeze({
         product_created: "Producto creado",
-        admin_adjustment: "Ajuste Admin",
-        paid_order: "Pedido pagado",
+        stock_increase: "Aumento de stock",
+        stock_decrease: "Disminución de stock",
+        admin_adjustment: "Ajuste administrativo (histórico)",
+        paid_order: "Pedido pagado (histórico)",
         system_adjustment: "Ajuste del sistema"
     });
 
