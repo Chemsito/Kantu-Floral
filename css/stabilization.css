@@ -70,6 +70,39 @@
     border: 0 !important;
 }
 
+/* En móvil usamos un único patrón: botón hamburguesa + navegación desplegable. */
+@media (max-width: 768px) {
+    .site-header .mobile-menu {
+        display: grid !important;
+        place-items: center;
+    }
+
+    .site-header #siteNavigation {
+        display: none !important;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+        padding: 10px 0 2px;
+        border-top: 1px solid rgba(167, 124, 59, .14);
+        overflow: visible;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 7px;
+    }
+
+    .site-header #siteNavigation.mobile-open {
+        display: flex !important;
+    }
+
+    .site-header #siteNavigation a,
+    .site-header #siteNavigation .nav-order-link {
+        width: 100%;
+        min-height: 42px;
+        justify-content: flex-start;
+        text-align: left;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
