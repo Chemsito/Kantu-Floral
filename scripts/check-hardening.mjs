@@ -31,6 +31,10 @@ assert.match(app, /resetManualPayment\(\)/,
 
 assert.match(mpPreference, /RETRYABLE_PAYMENT_STATUSES = new Set\(\["pending", "rejected", "cancelled"\]\)/,
   "La Edge Function debe aceptar reintentos de pagos rechazados o cancelados.");
+assert.match(mpPreference, /\.select\("id, name, image, stock, active"\)/,
+  "La preferencia debe volver a consultar stock y disponibilidad antes de enviar al cliente a pagar.");
+assert.match(mpPreference, /stock < requiredQuantity/,
+  "La preferencia debe bloquear checkout cuando el stock actual sea insuficiente.");
 assert.match(mpPreference, /\.eq\("payment_status", order\.payment_status\)/,
   "La asociación de una nueva preferencia debe usar control optimista sobre el estado observado.");
 
