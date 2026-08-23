@@ -3,7 +3,7 @@
 (() => {
     const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
     const MOBILE = window.matchMedia("(max-width: 720px)");
-    const SAKURA_VERSION = "20260823-1124";
+    const SAKURA_VERSION = "20260823-1149";
 
     function ensureSakuraStyles() {
         let link = document.querySelector('link[data-kantu-sakura-style="true"]');
@@ -30,11 +30,11 @@
 
         if (reduced) {
             return {
-                count: mobile ? 5 : 8,
+                count: mobile ? 10 : 16,
                 minSize: mobile ? 11 : 13,
                 maxSize: mobile ? 17 : 21,
-                minDuration: 36,
-                maxDuration: 52,
+                minDuration: 30,
+                maxDuration: 44,
                 minOpacity: 0.48,
                 maxOpacity: 0.68,
                 maxSway: mobile ? 50 : 78,
@@ -44,11 +44,11 @@
         }
 
         return {
-            count: mobile ? 16 : 30,
+            count: mobile ? 32 : 60,
             minSize: mobile ? 12 : 14,
             maxSize: mobile ? 20 : 26,
-            minDuration: mobile ? 16 : 15,
-            maxDuration: mobile ? 26 : 25,
+            minDuration: mobile ? 13.5 : 12.5,
+            maxDuration: mobile ? 22 : 21,
             minOpacity: 0.56,
             maxOpacity: 0.88,
             maxSway: mobile ? 95 : 175,
@@ -153,7 +153,7 @@
         // Autocomprobación: nunca dejar la capa vacía silenciosamente.
         window.setTimeout(() => {
             if (layer.querySelectorAll(".sakura-petal").length > 0) return;
-            const emergencyProfile = { ...profile, count: MOBILE.matches ? 6 : 10 };
+            const emergencyProfile = { ...profile, count: MOBILE.matches ? 12 : 20 };
             for (let index = 0; index < emergencyProfile.count; index += 1) {
                 const petal = buildPetal(emergencyProfile);
                 layer.appendChild(petal);
