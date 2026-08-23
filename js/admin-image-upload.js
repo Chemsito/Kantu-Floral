@@ -178,5 +178,9 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", ensureProductImageUploadField);
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", ensureProductImageUploadField, { once: true });
+    } else {
+        ensureProductImageUploadField();
+    }
 })();
