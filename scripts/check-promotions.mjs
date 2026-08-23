@@ -6,6 +6,8 @@ const cleanup = fs.readFileSync("supabase/migrations/20260823215500_cleanup_untr
 const promotions = fs.readFileSync("js/promotions.js", "utf8");
 const gifting = fs.readFileSync("js/checkout-gifting.js", "utf8");
 const loader = fs.readFileSync("js/experience-loader.js", "utf8");
+const mpPreference = fs.readFileSync("supabase/functions/create-mp-preference/index.ts", "utf8");
+const mpWebhook = fs.readFileSync("supabase/functions/mercadopago-webhook/index.ts", "utf8");
 
 assert.match(migration, /create table if not exists public\.promotion_codes/i,
     "Debe existir una tabla administrable de promociones.");
@@ -68,5 +70,14 @@ assert.match(gifting, /discount_amount:\s*order\.discount_amount/,
     "La pantalla de pago debe conservar el descuento retornado por Supabase.");
 assert.match(loader, /js\/promotions\.js/,
     "El loader debe cargar el módulo de promociones.");
+
+assert.match(mpPreference, /discount_amount, promotion_code/,
+    "Mercado Pago debe consultar el descuento persistido del pedido.");
+assert.match(mpPreference, /if \(discountAmount > 0\)[\s\S]*unit_price: orderTotal/,
+    "Con promoción Checkout Pro debe cobrar exactamente orders.total.");
+assert.match(mpPreference, /calculatedTotalCents[\s\S]*orderTotalCents/,
+    "La preferencia debe conservar la validación exacta de monto antes de cobrar.");
+assert.match(mpWebhook, /paidAmount !== orderAmount/,
+    "El webhook debe seguir validando el monto cobrado contra orders.total.");
 
 console.log("Promotions checks OK");
