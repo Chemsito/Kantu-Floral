@@ -143,6 +143,44 @@
     line-height: 1.45;
 }
 
+.kantu-order-customizations {
+    display: grid;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 11px 12px;
+    border: 1px solid rgba(139, 47, 69, .16);
+    border-radius: 12px;
+    background: #fff7f5;
+}
+
+.kantu-order-customizations-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #7f1734;
+    font-size: 12px;
+}
+
+.kantu-order-customizations p {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    color: #635459;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.kantu-order-customizations p > span {
+    min-width: 0;
+}
+
+.kantu-order-customizations p > strong {
+    flex: 0 0 auto;
+    color: #4d3039;
+    text-align: right;
+}
+
 @media (max-width: 520px) {
     .kantu-customization-options {
         grid-template-columns: 1fr;
@@ -151,5 +189,14 @@
     .kantu-customization-modal {
         padding: 17px;
         border-radius: 18px;
+    }
+
+    .kantu-order-customizations p {
+        display: grid;
+        gap: 2px;
+    }
+
+    .kantu-order-customizations p > strong {
+        text-align: left;
     }
 }
