@@ -1,0 +1,83 @@
+/* Kantu Floral - correcciones UX detectadas en auditoría */
+
+/* El bloque promocional forma parte de la revisión y nunca debe quedar debajo/detrás del panel sticky. */
+.checkout-review-flow-section > .checkout-promotion-section {
+    position: static;
+    z-index: auto;
+    width: auto;
+    margin: 0 0 15px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #fff8f5;
+}
+
+.checkout-review-flow-section > .checkout-promotion-section + .checkout-summary {
+    padding-top: 13px;
+    border-top: 1px solid #eee1dc;
+}
+
+#checkoutForm.checkout-simplified > .checkout-promotion-section {
+    grid-column: 2;
+    position: static;
+}
+
+.checkout-promotion-control {
+    align-items: stretch;
+}
+
+.checkout-promotion-control input,
+#checkoutDeliveryTiming,
+#checkoutRequestedSlot,
+#checkoutRequestedDate,
+.occasion-reminder-form select,
+.occasion-reminder-form input {
+    box-sizing: border-box;
+    min-height: 44px;
+    border: 1px solid #ddcbc6;
+    border-radius: 11px;
+    padding: 9px 11px;
+    background: #fff;
+    color: #403237;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.checkout-promotion-control input:focus,
+#checkoutDeliveryTiming:focus,
+#checkoutRequestedSlot:focus,
+#checkoutRequestedDate:focus,
+.occasion-reminder-form select:focus,
+.occasion-reminder-form input:focus {
+    border-color: #a63f5c;
+    box-shadow: 0 0 0 4px rgba(166, 63, 92, .10);
+}
+
+.occasion-date-fields {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr);
+    gap: 12px;
+    align-items: end;
+}
+
+.occasion-date-fields .form-group {
+    min-width: 0;
+}
+
+.occasion-date-fields select {
+    width: 100%;
+}
+
+.checkout-upsell-section {
+    min-width: 0;
+}
+
+@media (max-width: 760px) {
+    #checkoutForm.checkout-simplified > .checkout-promotion-section {
+        grid-column: auto;
+    }
+
+    .occasion-date-fields {
+        grid-template-columns: 1fr;
+    }
+}
