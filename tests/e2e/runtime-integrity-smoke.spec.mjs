@@ -26,7 +26,7 @@ test("destacados reaparece cuando los productos llegan después del render inici
 test("Fechas importantes nunca se filtra dentro de Mis pedidos", async ({ page }) => {
     await page.goto("/");
     await page.waitForFunction(() => Boolean(window.KantuRuntimeIntegrity));
-    await page.waitForSelector('[data-account-tab="occasions"]');
+    await page.waitForSelector('[data-account-tab="occasions"]', { state: "attached" });
 
     await page.evaluate(() => switchAccountTab("occasions"));
     const occasions = page.locator("#accountOccasionsSection");
