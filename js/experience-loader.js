@@ -38,6 +38,7 @@
     loadScriptOnce("js/favorites-sync.js", "data-kantu-favorites-sync", "true");
     loadScriptOnce("js/checkout-flow.js", "data-kantu-checkout-flow", "true");
     loadScriptOnce("js/guest-checkout.js", "data-kantu-guest-checkout", "true");
+    loadScriptOnce("js/guest-customization-router.js", "data-kantu-guest-customization-router", "true");
     loadScriptOnce("js/ux-audit-fixes.js", "data-kantu-ux-audit-fixes", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
