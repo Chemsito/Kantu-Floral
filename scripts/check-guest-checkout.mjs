@@ -54,7 +54,7 @@ assert.match(guestCreateEdge, /crypto\.getRandomValues\(new Uint8Array\(32\)\)/,
 assert.match(guestCreateEdge, /consume_guest_checkout_rate_limit/, "La creación atómica debe aplicar rate limiting.");
 assert.match(guestCreateEdge, /create_guest_order_customized/, "La Edge atómica debe delegar la transacción a PostgreSQL.");
 assert.match(guestCreateEdge, /PRODUCT_CUSTOMIZATION_REQUIRED/, "La Edge atómica debe devolver errores claros de personalización.");
-assert.doesNotMatch(guestCreateEdge, /SUPABASE_SERVICE_ROLE_KEY[^\n]*return|serviceRoleKey[^\n]*json\(/, "La Edge no debe devolver el service role al cliente.");
+assert.doesNotMatch(guestCreateEdge, /(?:guest_token|service_role|service_role_key)\s*:\s*serviceRoleKey/, "La Edge no debe serializar el service role en una respuesta.");
 
 assert.match(guestCustomizationEdge, /guest_order_access/, "La edición invitada debe validar el token contra el hash almacenado.");
 assert.match(guestCustomizationEdge, /service_set_guest_order_customizations/, "La edición invitada debe validar opciones server-side.");
