@@ -219,7 +219,9 @@
                 <button id="adminProductFilterClear" type="button">Limpiar filtros</button>
             </div>`;
 
-        list.insertAdjacentElement("beforebegin", toolbar);
+        const ledger = el("inventoryLedgerCard");
+        if (ledger) ledger.insertAdjacentElement("beforebegin", toolbar);
+        else list.insertAdjacentElement("beforebegin", toolbar);
 
         el("adminProductSearch")?.addEventListener("input", event => {
             adminProductFilterState.search = event.target.value;
