@@ -1,0 +1,15 @@
+/* Kantu Floral - reglas defensivas para módulos dinámicos */
+
+/* En Mi cuenta, hidden siempre debe ganar frente a cualquier display dinámico. */
+.account-modal [hidden] {
+    display: none !important;
+}
+
+/* El subtítulo interno anterior de destacados ya no forma parte de la interfaz. */
+.catalog-featured-heading > span {
+    display: none !important;
+}
+
+.catalog-featured-heading {
+    justify-content: flex-start;
+}
