@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 
 const html = fs.readFileSync("producto.html", "utf8");
 const detail = fs.readFileSync("js/product-detail.js", "utf8");
+const back = fs.readFileSync("js/product-detail-back.js", "utf8");
 const bridge = fs.readFileSync("js/navigation-bridge.js", "utf8");
+const catalogPosition = fs.readFileSync("js/catalog-position.js", "utf8");
 const loader = fs.readFileSync("js/experience-loader.js", "utf8");
 
 assert.match(html, /class="site-header product-detail-site-header"/, "El detalle debe reutilizar la cabecera principal.");
@@ -23,9 +25,18 @@ assert.match(detail, /document\.execCommand\("copy"\)/, "Debe existir fallback d
 assert.match(detail, /Enlace copiado/, "La interfaz debe confirmar la copia del enlace.");
 
 assert.match(loader, /js\/navigation-bridge\.js/, "La tienda principal debe cargar el puente de navegación.");
+assert.match(loader, /js\/catalog-position\.js/, "La tienda principal debe cargar restauración de posición del catálogo.");
 assert.match(bridge, /kantu_open/, "El puente debe consumir la acción solicitada desde la página de producto.");
 assert.match(bridge, /#favoritesButton/, "El puente debe poder abrir Favoritos.");
 assert.match(bridge, /#cartButton/, "El puente debe poder abrir el carrito.");
 assert.match(bridge, /#loginButton/, "El puente debe poder abrir la cuenta o login.");
 
-console.log("Product detail navigation and sharing contracts OK");
+assert.match(catalogPosition, /\.product-detail-link/, "Debe capturar la posición al abrir Ver detalle.");
+assert.match(catalogPosition, /viewportTop/, "Debe guardar la posición visual del producto, no solo scrollY.");
+assert.match(catalogPosition, /kantuCatalogRestoreRequested:v2/, "Debe existir una solicitud explícita de restauración.");
+assert.match(catalogPosition, /window\.scrollTo/, "Debe restaurar el scroll después de renderizar el catálogo.");
+assert.match(catalogPosition, /setInterval/, "Debe esperar a que Supabase termine de reconstruir las tarjetas.");
+assert.match(back, /kantuCatalogRestoreRequested:v2/, "La flecha Volver debe solicitar la restauración antes de history.back().");
+assert.match(back, /window\.history\.back\(\)/, "La flecha debe conservar el historial real cuando viene de la tienda.");
+
+console.log("Product detail navigation, sharing and catalog restoration contracts OK");

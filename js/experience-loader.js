@@ -22,6 +22,7 @@
     }
 
     loadScriptOnce("js/navigation-bridge.js", "data-kantu-navigation-bridge", "true");
+    loadScriptOnce("js/catalog-position.js", "data-kantu-catalog-position", "true");
     loadScriptOnce("js/customer-ux.js", "data-kantu-customer-ux", "true");
     loadScriptOnce("js/checkout-gifting.js", "data-kantu-checkout-gifting", "true");
     loadScriptOnce("js/order-gifting-ui.js", "data-kantu-order-gifting-ui", "true");
