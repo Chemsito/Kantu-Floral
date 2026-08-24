@@ -130,6 +130,13 @@
     background: #fff2f5;
 }
 
+/* El historial no debe convertirse en un muro antes de llegar a los productos. */
+#adminProductsView .inventory-ledger-list {
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .catalog-featured-items {
         overflow-x: auto !important;
