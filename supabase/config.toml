@@ -13,3 +13,9 @@ verify_jwt = false
 
 [functions.create-guest-mp-preference]
 verify_jwt = false
+
+[functions.guest-order-create]
+verify_jwt = false
+
+[functions.guest-order-customizations]
+verify_jwt = false

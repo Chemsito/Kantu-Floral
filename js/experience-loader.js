@@ -26,7 +26,9 @@
     loadScriptOnce("js/customer-ux.js", "data-kantu-customer-ux", "true");
     loadScriptOnce("js/checkout-gifting.js", "data-kantu-checkout-gifting", "true");
     loadScriptOnce("js/order-gifting-ui.js", "data-kantu-order-gifting-ui", "true");
+    loadScriptOnce("js/order-customizations-ui.js", "data-kantu-order-customizations-ui", "true");
     loadScriptOnce("js/commerce-ops.js", "data-kantu-commerce-ops", "true");
+    loadScriptOnce("js/product-customizations.js", "data-kantu-product-customizations", "true");
     loadScriptOnce("js/promotions.js", "data-kantu-promotions", "true");
     loadScriptOnce("js/promotion-rules.js", "data-kantu-promotion-rules", "true");
     loadScriptOnce("js/admin-schedule.js", "data-kantu-admin-schedule", "true");
@@ -36,6 +38,8 @@
     loadScriptOnce("js/favorites-sync.js", "data-kantu-favorites-sync", "true");
     loadScriptOnce("js/checkout-flow.js", "data-kantu-checkout-flow", "true");
     loadScriptOnce("js/guest-checkout.js", "data-kantu-guest-checkout", "true");
+    loadScriptOnce("js/guest-customization-router.js", "data-kantu-guest-customization-router", "true");
+    loadScriptOnce("js/ux-audit-fixes.js", "data-kantu-ux-audit-fixes", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();

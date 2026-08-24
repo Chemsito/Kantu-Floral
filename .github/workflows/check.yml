@@ -41,6 +41,8 @@ jobs:
           supabase/functions/mercadopago-webhook/index.ts
           supabase/functions/guest-checkout/index.ts
           supabase/functions/create-guest-mp-preference/index.ts
+          supabase/functions/guest-order-create/index.ts
+          supabase/functions/guest-order-customizations/index.ts
 
   browser-smoke:
     runs-on: ubuntu-latest

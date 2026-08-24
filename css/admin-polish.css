@@ -1,0 +1,245 @@
+/* Kantu Floral - pulido visual del panel administrativo */
+
+#adminContent .admin-schedule-card,
+#adminContent .commerce-overview-card,
+#adminContent .inventory-ledger-card,
+#adminContent .promotion-admin-form,
+#adminContent .promotion-admin-card {
+    box-sizing: border-box;
+}
+
+#adminContent .admin-schedule-card {
+    overflow: hidden;
+    padding: clamp(18px, 2.2vw, 28px);
+    border: 1px solid #eadbd7;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #fffdfb 0%, #fff9f6 100%);
+    box-shadow: 0 12px 34px rgba(67, 41, 48, .055);
+}
+
+#adminContent .admin-schedule-card > h4 {
+    margin: 0;
+    font-family: "Playfair Display", serif;
+    font-size: clamp(20px, 2vw, 26px);
+    color: #432f35;
+}
+
+#adminContent .admin-schedule-card > p {
+    max-width: 760px;
+    margin: 6px 0 18px;
+    color: #786b6e;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+#adminContent .admin-schedule-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    border: 1px solid #eadbd7;
+    border-radius: 14px;
+    background: #fff;
+    color: #4b363c;
+    line-height: 1.4;
+}
+
+#adminContent .admin-schedule-toggle input {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin: 0;
+}
+
+#adminContent .admin-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+#adminContent .admin-schedule-card .form-group,
+#adminContent .admin-delivery-availability .form-group {
+    min-width: 0;
+    margin-bottom: 18px;
+}
+
+#adminContent .admin-schedule-card label,
+#adminContent .admin-delivery-availability label {
+    color: #513b41;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+#adminContent .admin-schedule-card input[type="number"],
+#adminContent .admin-schedule-card textarea,
+#adminContent .admin-delivery-availability input[type="number"],
+#adminContent .admin-delivery-availability textarea,
+#adminContent .promotion-admin-form input,
+#adminContent .promotion-admin-form select,
+#adminContent .promotion-admin-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    margin-top: 7px;
+    border: 1px solid #dbc7c2;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    color: #413237;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+#adminContent .admin-schedule-card textarea,
+#adminContent .admin-delivery-availability textarea,
+#adminContent .promotion-admin-form textarea {
+    min-height: 132px;
+    resize: vertical;
+    line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#adminContent .admin-schedule-card input:focus,
+#adminContent .admin-schedule-card textarea:focus,
+#adminContent .admin-delivery-availability input:focus,
+#adminContent .admin-delivery-availability textarea:focus,
+#adminContent .promotion-admin-form input:focus,
+#adminContent .promotion-admin-form select:focus,
+#adminContent .promotion-admin-form textarea:focus {
+    border-color: #a94863;
+    box-shadow: 0 0 0 4px rgba(169, 72, 99, .10);
+    background: #fffefd;
+}
+
+#adminContent .admin-schedule-card small,
+#adminContent .admin-delivery-availability small {
+    display: block;
+    margin-top: 7px;
+    color: #85777b;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+#adminContent .admin-delivery-availability {
+    margin: 22px 0 0;
+    padding: 20px 0 0;
+    border-top: 1px solid #eadbd7;
+}
+
+#adminContent .admin-delivery-availability-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+#adminContent .admin-delivery-availability-heading h5 {
+    margin: 0 0 5px;
+    color: #49343a;
+    font-size: 17px;
+}
+
+#adminContent .admin-delivery-availability-heading p {
+    max-width: 720px;
+    margin: 0;
+    color: #7c7073;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#adminContent .admin-delivery-capacity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 9px;
+}
+
+#adminContent .admin-delivery-capacity-row {
+    display: grid;
+    grid-template-columns: minmax(92px, .8fr) minmax(110px, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 1px solid #eadbd7;
+    border-radius: 13px;
+    background: #fff;
+}
+
+#adminContent .admin-delivery-capacity-row > span {
+    min-width: 0;
+    color: #553e44;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+#adminContent .admin-delivery-capacity-row input {
+    margin: 0;
+}
+
+#adminContent .admin-schedule-actions,
+#adminContent .admin-delivery-availability-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+#adminContent .admin-schedule-actions .btn,
+#adminContent .admin-delivery-availability-actions .btn {
+    min-height: 43px;
+    border-radius: 12px;
+    padding-inline: 18px;
+}
+
+#adminContent .admin-refresh {
+    flex: 0 0 auto;
+    min-height: 38px;
+    border: 1px solid #dfcfcb;
+    border-radius: 11px;
+    padding: 8px 12px;
+    background: #fff;
+    color: #7f2741;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+#adminContent .admin-refresh:hover {
+    background: #fff5f7;
+}
+
+/* Evita desbordes horizontales que hacían desaparecer campos del panel. */
+#adminContent,
+#adminContent * {
+    min-width: 0;
+}
+
+#adminContent input,
+#adminContent select,
+#adminContent textarea,
+#adminContent button {
+    max-width: 100%;
+}
+
+@media (max-width: 760px) {
+    #adminContent .admin-schedule-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #adminContent .admin-delivery-availability-heading {
+        display: grid;
+    }
+
+    #adminContent .admin-delivery-capacity-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #adminContent .admin-delivery-capacity-row {
+        grid-template-columns: 1fr;
+    }
+}
