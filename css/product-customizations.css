@@ -1,0 +1,155 @@
+/* Kantu Floral - opciones personalizables */
+
+.checkout-upsell-customization,
+.cart-customization-control select,
+.product-detail-customization select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #ddc9c5;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #fff;
+    color: #49363b;
+    font: inherit;
+    font-size: 12px;
+}
+
+.checkout-upsell-customization {
+    margin: 7px 0;
+}
+
+.cart-customization-control {
+    display: grid;
+    gap: 4px;
+    margin: 7px 0 2px;
+}
+
+.cart-customization-control > span,
+.product-detail-customization label {
+    color: #6d565d;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.product-detail-customization {
+    display: grid;
+    gap: 7px;
+    margin: 18px 0 4px;
+    padding: 14px;
+    border: 1px solid rgba(139, 47, 69, .17);
+    border-radius: 14px;
+    background: #fffaf7;
+}
+
+.product-detail-customization small {
+    color: #786a6e;
+    font-size: 11px;
+}
+
+.kantu-customization-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(34, 21, 25, .52);
+    backdrop-filter: blur(4px);
+}
+
+.kantu-customization-modal {
+    width: min(480px, 100%);
+    max-height: min(680px, calc(100vh - 36px));
+    overflow: auto;
+    padding: 20px;
+    border: 1px solid rgba(139, 47, 69, .14);
+    border-radius: 22px;
+    background: #fffdfb;
+    box-shadow: 0 24px 70px rgba(56, 28, 37, .24);
+}
+
+.kantu-customization-modal-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.kantu-customization-modal-head span {
+    color: #a24b63;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.kantu-customization-modal-head h3 {
+    margin: 4px 0 2px;
+    color: #432f35;
+    font-family: "Playfair Display", serif;
+    font-size: 24px;
+}
+
+.kantu-customization-modal-head p {
+    margin: 0;
+    color: #786a6e;
+    font-size: 13px;
+}
+
+.kantu-customization-close {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border: 1px solid #eadbd7;
+    border-radius: 999px;
+    background: #fff;
+    color: #7f1734;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.kantu-customization-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin: 18px 0 12px;
+}
+
+.kantu-customization-option {
+    min-height: 50px;
+    border: 1px solid #e5d5d1;
+    border-radius: 13px;
+    padding: 10px 12px;
+    background: #fff8f5;
+    color: #6f3042;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.kantu-customization-option:hover,
+.kantu-customization-option:focus-visible,
+.kantu-customization-option.selected {
+    border-color: #9f3a57;
+    background: #fbe9ef;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(159, 58, 87, .10);
+}
+
+.kantu-customization-modal > small {
+    display: block;
+    color: #786a6e;
+    line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+    .kantu-customization-options {
+        grid-template-columns: 1fr;
+    }
+
+    .kantu-customization-modal {
+        padding: 17px;
+        border-radius: 18px;
+    }
+}
