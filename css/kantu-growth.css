@@ -15,6 +15,10 @@
     background: #b63655;
 }
 
+.kantu-notification-count[hidden] {
+    display: none !important;
+}
+
 .kantu-notification-panel {
     position: fixed;
     top: 82px;
