@@ -34,6 +34,7 @@
     const isStandaloneAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
 
     loadStyleOnce("css/ui-polish.css", "data-kantu-ui-polish", "true");
+    loadScriptOnce("js/ui-polish.js", "data-kantu-ui-polish-script", "true");
 
     loadScriptOnce("js/admin-standalone.js", "data-kantu-admin-standalone", "true");
     loadScriptOnce("js/navigation-bridge.js", "data-kantu-navigation-bridge", "true");
