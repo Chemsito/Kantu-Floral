@@ -9,6 +9,7 @@ type MercadoPagoEnvironment = "test" | "production";
 
 const RETRYABLE_PAYMENT_STATUSES = new Set(["pending", "rejected", "cancelled"]);
 const ACTIVE_PROOF_STATUSES = new Set(["uploaded", "verifying", "needs_review", "approved"]);
+const PREFERENCE_VALIDITY_MINUTES = 30;
 
 function jsonResponse(body: Record<string, unknown>, status = 200, extraHeaders: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -275,10 +276,15 @@ Deno.serve(async (request: Request): Promise<Response> => {
     }
 
     const encodedOrderId = encodeURIComponent(orderId);
+    const preferenceStartsAt = new Date();
+    const preferenceExpiresAt = new Date(preferenceStartsAt.getTime() + PREFERENCE_VALIDITY_MINUTES * 60_000);
     const preferencePayload = {
       items: mercadoPagoItems,
       external_reference: String(orderId),
       auto_return: "approved",
+      expires: true,
+      expiration_date_from: preferenceStartsAt.toISOString(),
+      expiration_date_to: preferenceExpiresAt.toISOString(),
       back_urls: {
         success: `${siteUrl}/index.html?payment=success&order_id=${encodedOrderId}&guest=1`,
         pending: `${siteUrl}/index.html?payment=pending&order_id=${encodedOrderId}&guest=1`,
@@ -321,6 +327,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
       .select("id")
       .maybeSingle();
     if (updateError) {
+      const errorText = [updateError.message, updateError.details, updateError.hint].filter(Boolean).join(" ").toUpperCase();
+      if (errorText.includes("INSUFFICIENT_STOCK")) {
+        return jsonResponse({ error: "INSUFFICIENT_STOCK", message: "El stock cambió mientras preparábamos el pago. Actualiza tu carrito." }, 409);
+      }
       return jsonResponse({ error: "ORDER_PAYMENT_UPDATE_FAILED", message: "No pudimos asociar la preferencia al pedido." }, 500);
     }
     if (!updatedOrder) {
@@ -333,7 +343,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
       ...(mercadoPagoEnvironment === "test" && preference.sandbox_init_point
         ? { sandbox_init_point: preference.sandbox_init_point }
         : {}),
-      environment: mercadoPagoEnvironment
+      environment: mercadoPagoEnvironment,
+      expires_at: preferenceExpiresAt.toISOString()
     });
   } catch (error) {
     console.error("Unexpected guest Mercado Pago error:", error instanceof Error ? error.message : "UNKNOWN");

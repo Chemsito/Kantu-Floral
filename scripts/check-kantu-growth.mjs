@@ -8,13 +8,18 @@ const standalone = fs.readFileSync("js/admin-standalone.js", "utf8");
 const css = fs.readFileSync("css/kantu-growth.css", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20260824213000_add_growth_notifications_and_claims.sql", "utf8");
 const hardeningMigration = fs.readFileSync("supabase/migrations/20260825145025_harden_roles_and_notification_feed.sql", "utf8");
+const reservationMigration = fs.readFileSync("supabase/migrations/20260825151900_reserve_mercadopago_stock.sql", "utf8");
+const reservationTriggerMigration = fs.readFileSync("supabase/migrations/20260825152042_reserve_stock_on_mp_preference.sql", "utf8");
+const reservationFixMigration = fs.readFileSync("supabase/migrations/20260825152359_fix_stock_reservation_conflict_target.sql", "utf8");
+const matchOpsMigration = fs.readFileSync("supabase/migrations/20260825153020_activate_match_signals_and_ops_alerts.sql", "utf8");
+const signedPreference = fs.readFileSync("supabase/functions/create-mp-preference/index.ts", "utf8");
+const guestPreference = fs.readFileSync("supabase/functions/create-guest-mp-preference/index.ts", "utf8");
 const edge = fs.readFileSync("supabase/functions/submit-customer-claim/index.ts", "utf8");
 const workflow = fs.readFileSync(".github/workflows/check.yml", "utf8");
 
 assert.match(loader, /kantu-growth\.js/, "El loader debe cargar Kantu Match y notificaciones del cliente.");
 assert.match(loader, /admin-growth\.js/, "El loader debe cargar las alertas administrativas.");
 assert.match(loader, /admin-standalone\.js/, "El panel Admin debe poder abrirse en una pestaña dedicada.");
-
 assert.match(customer, /notificationButton/, "Debe existir la campana de notificaciones junto al carrito.");
 assert.match(customer, /get_customer_notification_feed/, "El cliente debe consumir el feed autoritativo de notificaciones.");
 assert.match(customer, /AudioContext/, "Las notificaciones deben soportar sonido dentro de la página.");
@@ -22,7 +27,6 @@ assert.match(customer, /KANTU MATCH/, "Debe existir Kantu Match.");
 assert.match(customer, /recommendation_priority/, "Kantu Match debe considerar la prioridad comercial configurada por Admin.");
 assert.match(customer, /submit-customer-claim/, "El Libro de Reclamaciones debe usar la Edge Function controlada.");
 assert.doesNotMatch(customer, /SUPABASE_SERVICE_ROLE_KEY/, "El frontend nunca debe contener service_role.");
-
 assert.match(admin, /admin_operational_alerts/, "Admin debe consumir alertas operativas del servidor.");
 assert.match(admin, /5 \* 60_000/, "Las alertas urgentes deben poder repetir el aviso sonoro.");
 assert.match(admin, /customer_claims/, "Admin debe gestionar el Libro de Reclamaciones.");
@@ -48,9 +52,25 @@ assert.match(hardeningMigration, /get_customer_notification_feed\(\)[\s\S]*secur
 assert.match(hardeningMigration, /private\.get_public_promotion_notification_feed/i, "La lectura privilegiada de promociones debe quedar fuera del esquema expuesto.");
 assert.match(hardeningMigration, /revoke all on function public\.get_customer_notification_feed\(\) from public/i, "El feed debe usar grants explícitos.");
 
+assert.match(reservationMigration, /private\.order_stock_reservations/i, "Mercado Pago debe disponer de reservas de stock autoritativas.");
+assert.match(reservationMigration, /grant execute on function public\.reserve_order_stock_for_payment\(bigint,\s*integer\) to service_role/i, "Solo service_role debe poder reservar stock para pagos.");
+assert.match(reservationMigration, /orders_release_stock_reservation/i, "Pagos rechazados o cancelados deben liberar reservas.");
+assert.match(reservationMigration, /kantu-expire-stock-reservations/i, "Las reservas abandonadas deben tener limpieza periódica.");
+assert.match(reservationMigration, /state = 'consumed'|state='consumed'/i, "La confirmación pagada debe consumir una reserva sin volver a descontar stock.");
+assert.match(reservationTriggerMigration, /orders_reserve_stock_on_mp_preference/i, "Asignar una preferencia de Mercado Pago debe reservar stock en la misma transacción.");
+assert.match(reservationFixMigration, /on conflict on constraint order_stock_reservations_pkey/i, "El upsert de reservas debe usar un conflict target no ambiguo.");
+assert.match(signedPreference, /PREFERENCE_VALIDITY_MINUTES\s*=\s*30/, "La preferencia autenticada debe vencer antes de liberar la reserva.");
+assert.match(signedPreference, /expires:\s*true/, "La preferencia autenticada debe tener expiración en Mercado Pago.");
+assert.match(guestPreference, /PREFERENCE_VALIDITY_MINUTES\s*=\s*30/, "La preferencia invitada debe vencer antes de liberar la reserva.");
+assert.match(guestPreference, /expires:\s*true/, "La preferencia invitada debe tener expiración en Mercado Pago.");
+assert.match(matchOpsMigration, /recommendation_audiences\s*=\s*case p\.category/i, "Las señales existentes de categoría deben materializarse para Kantu Match.");
+assert.match(matchOpsMigration, /payment_attention/i, "Admin debe alertar pagos aprobados que sigan pendientes.");
+assert.match(matchOpsMigration, /match_configuration/i, "Admin debe alertar productos que todavía necesiten configuración de Kantu Match.");
+assert.match(matchOpsMigration, /payment_reservation/i, "Admin debe alertar reservas de pago que permanezcan atascadas.");
+
 assert.match(edge, /service_submit_customer_claim/, "La Edge Function debe delegar validación al backend.");
 assert.match(edge, /consume_guest_checkout_rate_limit|p_fingerprint_hash/, "El formulario público debe estar protegido por rate limit.");
 assert.doesNotMatch(edge, /return jsonResponse\([^)]*serviceRoleKey/, "La Edge Function nunca debe devolver la clave de servicio.");
 assert.match(workflow, /submit-customer-claim\/index\.ts/, "CI debe hacer deno check de la Edge Function nueva.");
 
-console.log("Kantu growth, notifications, claims and security hardening contracts OK");
+console.log("Kantu growth, payments, notifications, claims and security hardening contracts OK");
