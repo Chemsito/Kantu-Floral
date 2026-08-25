@@ -1,0 +1,497 @@
+/* Kantu Floral - Growth UX: Kantu Match, notificaciones y reclamos */
+
+.kantu-notification-button {
+    position: relative;
+}
+
+.kantu-notification-button .kantu-bell {
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.kantu-notification-count {
+    background: #b63655;
+}
+
+.kantu-notification-panel {
+    position: fixed;
+    top: 82px;
+    right: max(18px, calc((100vw - 1250px) / 2 + 18px));
+    z-index: 2600;
+    width: min(390px, calc(100vw - 28px));
+    max-height: min(620px, calc(100vh - 104px));
+    overflow: hidden;
+    border: 1px solid rgba(141, 72, 96, .17);
+    border-radius: 20px;
+    background: rgba(255, 252, 249, .98);
+    box-shadow: 0 28px 70px rgba(51, 30, 39, .23);
+    backdrop-filter: blur(18px);
+}
+
+.kantu-notification-panel[hidden] { display: none !important; }
+
+.kantu-notification-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 18px 12px;
+    border-bottom: 1px solid #f0dfe2;
+}
+
+.kantu-notification-head span,
+.kantu-match-eyebrow,
+.kantu-claims-eyebrow {
+    color: #a15a37;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.7px;
+}
+
+.kantu-notification-head h3 {
+    margin: 2px 0 0;
+    color: #52343d;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 22px;
+}
+
+.kantu-notification-head button,
+.kantu-growth-close {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #ead9d8;
+    border-radius: 50%;
+    background: #fff9f6;
+    color: #9e3a56;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.kantu-notification-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 18px;
+    background: #fff8f4;
+}
+
+.kantu-notification-actions small {
+    color: #8b7b7f;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+.kantu-notification-actions button {
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+    color: #a12f50;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.kantu-notification-list {
+    max-height: 480px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.kantu-notification-item {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 8px;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 14px;
+    transition: background .18s ease, transform .18s ease;
+}
+
+.kantu-notification-item:hover {
+    background: #fff1f4;
+    transform: translateX(-2px);
+}
+
+.kantu-notification-item.read { opacity: .72; }
+.kantu-notification-item.unread { background: #fff8f6; }
+
+.kantu-notification-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #f8e9ed;
+    font-size: 18px;
+}
+
+.kantu-notification-copy { min-width: 0; }
+.kantu-notification-copy strong,
+.kantu-notification-copy small { display: block; }
+.kantu-notification-copy strong { color: #4c333a; font-size: 12px; }
+.kantu-notification-copy small { margin-top: 3px; color: #796b70; font-size: 11px; line-height: 1.4; }
+.kantu-notification-dot { width: 7px; height: 7px; border-radius: 50%; background: #c23a5d; }
+
+.kantu-notification-empty {
+    padding: 34px 18px;
+    text-align: center;
+    color: #7c6a70;
+}
+.kantu-notification-empty > span { display: block; font-size: 28px; }
+.kantu-notification-empty strong { display: block; margin-top: 8px; color: #4e343c; }
+.kantu-notification-empty p { margin-top: 4px; font-size: 11px; }
+
+.kantu-match-prompt {
+    width: fit-content;
+    max-width: 100%;
+    margin: 22px auto 0;
+    padding: 12px 14px 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid rgba(141, 72, 96, .14);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .76);
+    box-shadow: 0 10px 28px rgba(92, 45, 61, .06);
+}
+
+.kantu-match-prompt p { margin: 0 !important; font-size: 12px !important; }
+.kantu-match-prompt button {
+    min-height: 40px;
+    padding: 9px 15px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #9c3454, #c35070);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(156, 52, 84, .18);
+}
+
+.kantu-match-overlay,
+.kantu-claims-overlay { z-index: 2900; }
+
+.kantu-match-modal,
+.kantu-claims-modal {
+    position: relative;
+    width: min(920px, 96vw);
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 30px;
+    border: 1px solid #ead9d8;
+    border-radius: 26px;
+    background: #fffaf7;
+    box-shadow: 0 35px 90px rgba(49, 27, 36, .28);
+}
+
+.kantu-match-modal > .kantu-growth-close,
+.kantu-claims-modal > .kantu-growth-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+
+.kantu-match-modal h2,
+.kantu-claims-modal h2 {
+    margin: 5px 42px 6px 0;
+    color: #4e3039;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(27px, 4vw, 38px);
+}
+
+.kantu-match-intro,
+.kantu-claims-modal > p {
+    max-width: 720px;
+    margin: 0 0 24px;
+    color: #786a6e;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+#kantuMatchForm fieldset {
+    margin: 0 0 18px;
+    padding: 0;
+    border: 0;
+}
+
+#kantuMatchForm legend {
+    margin-bottom: 9px;
+    color: #50353d;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.kantu-match-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 8px;
+}
+
+.kantu-match-choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.kantu-match-choice span {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 12px;
+    border: 1px solid #e5d3d3;
+    border-radius: 13px;
+    background: #fff;
+    color: #655258;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    transition: .18s ease;
+}
+
+.kantu-match-choice input:checked + span {
+    border-color: #b34261;
+    background: #fff0f4;
+    color: #8c2e49;
+    box-shadow: 0 0 0 2px rgba(179, 66, 97, .08);
+}
+
+.kantu-match-choice input:focus-visible + span {
+    outline: 3px solid #8d4860;
+    outline-offset: 2px;
+}
+
+.kantu-match-submit { margin-top: 4px; }
+
+.kantu-match-results {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #ead9d8;
+}
+
+.kantu-match-result-head span { color: #a15a37; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
+.kantu-match-result-head h3 { margin: 4px 0 14px; color: #4e3039; font-family: "Playfair Display", Georgia, serif; font-size: 24px; }
+
+.kantu-match-result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.kantu-match-card {
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 170px 1fr auto;
+    border: 1px solid #ead9d8;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.kantu-match-rank { padding: 10px 12px 7px; color: #9c3454; font-size: 10px; font-weight: 800; }
+.kantu-match-card img,
+.kantu-match-placeholder { width: 100%; height: 170px; object-fit: cover; background: #f6e9e9; }
+.kantu-match-placeholder { display: grid; place-items: center; color: #b66b81; font-size: 42px; }
+.kantu-match-card > div:nth-of-type(1) { padding: 12px; }
+.kantu-match-card h4 { margin: 0; color: #4d343c; font-size: 14px; }
+.kantu-match-card strong { display: block; margin-top: 4px; color: #92354f; font-size: 14px; }
+.kantu-match-card p { margin: 5px 0 0; color: #796b70; font-size: 10px; line-height: 1.4; }
+
+.kantu-match-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    padding: 0 12px 12px;
+}
+.kantu-match-card-actions button,
+.kantu-match-card-actions a {
+    min-height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #dcbfc5;
+    border-radius: 10px;
+    background: #fff;
+    color: #9a3651;
+    font-size: 10px;
+    font-weight: 800;
+}
+.kantu-match-card-actions button { border-color: #9c3454; background: #9c3454; color: #fff; }
+
+.kantu-claims-modal { width: min(860px, 96vw); }
+.kantu-claims-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.kantu-claims-grid label { display: grid; gap: 6px; }
+.kantu-claims-grid label.wide { grid-column: 1 / -1; }
+.kantu-claims-grid label > span { color: #59464d; font-size: 11px; font-weight: 800; }
+.kantu-claims-grid input,
+.kantu-claims-grid select,
+.kantu-claims-grid textarea {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+    border: 1px solid #e2cecf;
+    border-radius: 11px;
+    background: #fff;
+    color: #3e3035;
+    outline: none;
+}
+.kantu-claims-grid textarea { resize: vertical; line-height: 1.5; }
+.kantu-claims-grid input:focus,
+.kantu-claims-grid select:focus,
+.kantu-claims-grid textarea:focus { border-color: #aa546d; box-shadow: 0 0 0 3px rgba(141,72,96,.08); }
+.kantu-claim-honeypot { position: absolute !important; left: -9999px !important; }
+
+.kantu-claims-consent {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    margin: 16px 0;
+    color: #6d5d62;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.kantu-claims-consent input { margin-top: 2px; }
+.kantu-claims-message { min-height: 20px; margin-top: 10px; font-size: 11px; }
+.kantu-claims-message.success { padding: 10px 12px; border-radius: 10px; background: #edf8ef; color: #396648; }
+.kantu-claims-message.error { padding: 10px 12px; border-radius: 10px; background: #fff0f0; color: #a33243; }
+.kantu-claims-link { margin-top: 5px; color: #f0cbd5 !important; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Admin standalone + alert center */
+body.admin-standalone-mode { overflow: hidden; background: #f8f1ed; }
+body.admin-standalone-mode > header.site-header,
+body.admin-standalone-mode > main,
+body.admin-standalone-mode > footer,
+body.admin-standalone-mode > #accountModal,
+body.admin-standalone-mode > #authModal,
+body.admin-standalone-mode > #cartPanel,
+body.admin-standalone-mode > #checkoutModal,
+body.admin-standalone-mode > #notificationPanel { display: none !important; }
+body.admin-standalone-mode #adminModal {
+    display: flex !important;
+    padding: 0;
+    background: #f5eeea;
+    backdrop-filter: none;
+}
+body.admin-standalone-mode #adminModal .admin-panel {
+    width: min(1500px, 100vw);
+    max-width: none;
+    max-height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.admin-alert-button-wrap { display: flex; align-items: center; gap: 8px; }
+.admin-alert-bell {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e4ced2;
+    border-radius: 50%;
+    background: #fff9f6;
+    font-size: 18px;
+}
+.admin-alert-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 19px;
+    height: 19px;
+    display: grid;
+    place-items: center;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #b72042;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+}
+.admin-alert-count[hidden] { display: none !important; }
+
+.admin-alert-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.admin-alert-summary > div { padding: 13px; border: 1px solid #ead9d8; border-radius: 13px; background: #fff; }
+.admin-alert-summary span { display: block; color: #7c6c71; font-size: 10px; }
+.admin-alert-summary strong { display: block; margin-top: 3px; color: #51343d; font-size: 22px; }
+
+.admin-alert-list { display: grid; gap: 9px; }
+.admin-alert-card {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 13px;
+    border: 1px solid #ead9d8;
+    border-radius: 14px;
+    background: #fff;
+}
+.admin-alert-card::before { content: ""; width: 8px; height: 100%; min-height: 48px; border-radius: 999px; background: #d8c7ca; }
+.admin-alert-card.urgent::before { background: #bb1f42; }
+.admin-alert-card.warning::before { background: #d68b26; }
+.admin-alert-card.info::before { background: #5e8f77; }
+.admin-alert-card h4 { margin: 0; color: #493039; font-size: 12px; }
+.admin-alert-card p { margin: 4px 0 0; color: #75676b; font-size: 10px; line-height: 1.45; }
+.admin-alert-card small { display: block; margin-top: 4px; color: #9a8a8e; font-size: 9px; }
+.admin-alert-card button { min-height: 35px; padding: 7px 11px; border: 1px solid #d7bfc5; border-radius: 10px; background: #fff; color: #9c3454; font-size: 10px; font-weight: 800; }
+.admin-alert-sound-note { margin: 0 0 12px; padding: 9px 11px; border-radius: 10px; background: #fff3e5; color: #77552d; font-size: 10px; }
+
+.admin-claims-list { display: grid; gap: 12px; }
+.admin-claim-card { padding: 15px; border: 1px solid #ead9d8; border-radius: 15px; background: #fff; }
+.admin-claim-card-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.admin-claim-card-head h4 { margin: 0; color: #493039; }
+.admin-claim-card-head span { color: #a13a58; font-size: 10px; font-weight: 800; }
+.admin-claim-meta { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+.admin-claim-meta div { padding: 8px; border-radius: 9px; background: #faf6f3; font-size: 9px; color: #6f6065; }
+.admin-claim-meta strong { display: block; margin-top: 2px; color: #49343b; font-size: 10px; overflow-wrap: anywhere; }
+.admin-claim-body { padding: 10px 0; border-top: 1px solid #f0e3df; }
+.admin-claim-body strong { display: block; color: #5a4149; font-size: 10px; }
+.admin-claim-body p { margin: 3px 0 9px; color: #75676b; font-size: 10px; line-height: 1.5; white-space: pre-wrap; }
+.admin-claim-controls { display: grid; grid-template-columns: 160px 160px minmax(220px,1fr) auto; gap: 8px; align-items: end; }
+.admin-claim-controls label { display: grid; gap: 4px; color: #6c5960; font-size: 9px; font-weight: 800; }
+.admin-claim-controls select,
+.admin-claim-controls textarea { width: 100%; min-height: 38px; padding: 8px 9px; border: 1px solid #dec8cc; border-radius: 9px; background: #fff; }
+.admin-claim-controls textarea { min-height: 60px; resize: vertical; }
+.admin-claim-controls button { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 9px; background: #9c3454; color: #fff; font-size: 10px; font-weight: 800; }
+
+.admin-recommendation-fields { grid-column: 1 / -1; padding: 14px; border: 1px solid #ead8db; border-radius: 14px; background: #fff9f6; }
+.admin-recommendation-fields h4 { margin: 0 0 4px; color: #4d333b; }
+.admin-recommendation-fields > p { margin: 0 0 12px; color: #78686d; font-size: 10px; }
+.admin-recommendation-priority { display: grid; grid-template-columns: minmax(0,1fr) 80px; gap: 10px; align-items: end; margin-bottom: 12px; }
+.admin-recommendation-priority label { display: grid; gap: 5px; font-size: 10px; font-weight: 800; color: #5b454c; }
+.admin-recommendation-priority input { width: 100%; }
+.admin-recommendation-groups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.admin-recommendation-group { padding: 10px; border: 1px solid #eedfe0; border-radius: 11px; background: #fff; }
+.admin-recommendation-group strong { display: block; margin-bottom: 6px; color: #5b444c; font-size: 10px; }
+.admin-recommendation-checks { display: flex; flex-wrap: wrap; gap: 5px; }
+.admin-recommendation-checks label { display: flex; align-items: center; gap: 4px; padding: 5px 7px; border-radius: 8px; background: #faf1f3; color: #6f5960; font-size: 9px; }
+
+@media (max-width: 760px) {
+    .kantu-notification-panel { top: 72px; right: 8px; width: calc(100vw - 16px); }
+    .kantu-notification-actions { align-items: flex-start; flex-direction: column; }
+    .kantu-match-prompt { border-radius: 16px; flex-direction: column; }
+    .kantu-match-prompt button { width: 100%; }
+    .kantu-match-modal,
+    .kantu-claims-modal { width: 100%; max-height: 96vh; padding: 22px 16px; border-radius: 20px; }
+    .kantu-match-result-grid { grid-template-columns: 1fr; }
+    .kantu-claims-grid { grid-template-columns: 1fr; }
+    .kantu-claims-grid label.wide { grid-column: auto; }
+    .admin-alert-summary { grid-template-columns: 1fr; }
+    .admin-alert-card { grid-template-columns: 7px minmax(0,1fr); }
+    .admin-alert-card button { grid-column: 2; }
+    .admin-claim-meta { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .admin-claim-controls { grid-template-columns: 1fr; }
+    .admin-recommendation-groups { grid-template-columns: 1fr; }
+}
