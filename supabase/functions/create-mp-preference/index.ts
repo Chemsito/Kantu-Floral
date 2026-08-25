@@ -28,6 +28,7 @@ type MercadoPagoPreference = {
 type MercadoPagoEnvironment = "test" | "production";
 
 const RETRYABLE_PAYMENT_STATUSES = new Set(["pending", "rejected", "cancelled"]);
+const PREFERENCE_VALIDITY_MINUTES = 30;
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
     return new Response(JSON.stringify(body), {
@@ -226,10 +227,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
         });
 
         if (discountAmount > 0) {
-            // Checkout Pro no acepta una línea negativa de descuento de forma portable.
-            // Cuando existe promoción cobramos un único ítem cuyo precio es exactamente
-            // el total autoritativo persistido en orders. El webhook seguirá validando
-            // el monto pagado contra ese mismo total.
             mercadoPagoItems = [{
                 id: `order-${orderId}`,
                 title: order.promotion_code
@@ -267,10 +264,15 @@ Deno.serve(async (request: Request): Promise<Response> => {
         }
 
         const encodedOrderId = encodeURIComponent(orderId);
+        const preferenceStartsAt = new Date();
+        const preferenceExpiresAt = new Date(preferenceStartsAt.getTime() + PREFERENCE_VALIDITY_MINUTES * 60_000);
         const preferencePayload = {
             items: mercadoPagoItems,
             external_reference: String(orderId),
             auto_return: "approved",
+            expires: true,
+            expiration_date_from: preferenceStartsAt.toISOString(),
+            expiration_date_to: preferenceExpiresAt.toISOString(),
             back_urls: {
                 success: `${siteUrl}/index.html?payment=success&order_id=${encodedOrderId}`,
                 pending: `${siteUrl}/index.html?payment=pending&order_id=${encodedOrderId}`,
@@ -320,6 +322,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
             .maybeSingle();
         if (updateError) {
             console.error("No se pudo asociar la preferencia al pedido:", updateError);
+            const errorText = [updateError.message, updateError.details, updateError.hint].filter(Boolean).join(" ").toUpperCase();
+            if (errorText.includes("INSUFFICIENT_STOCK")) {
+                return jsonResponse({ error: "INSUFFICIENT_STOCK", message: "El stock cambió mientras preparábamos el pago. Actualiza tu carrito." }, 409);
+            }
             return jsonResponse({ error: "ORDER_PAYMENT_UPDATE_FAILED", message: "La preferencia fue creada, pero no pudimos asociarla al pedido." }, 500);
         }
         if (!updatedOrder) {
@@ -332,7 +338,8 @@ Deno.serve(async (request: Request): Promise<Response> => {
             ...(mercadoPagoEnvironment === "test" && preference.sandbox_init_point
                 ? { sandbox_init_point: preference.sandbox_init_point }
                 : {}),
-            environment: mercadoPagoEnvironment
+            environment: mercadoPagoEnvironment,
+            expires_at: preferenceExpiresAt.toISOString()
         });
     } catch (error) {
         console.error("Error inesperado creando la preferencia:", error);
