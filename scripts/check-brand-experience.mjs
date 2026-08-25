@@ -19,6 +19,8 @@ const jsContracts = [
     ["enhanceLeaflet", "Leaflet integration"],
     ["installCatalogSkeleton", "catalog skeleton"],
     ["ensureCheckoutMobileBar", "mobile checkout bar"],
+    ["total.textContent !== nextTotal", "mobile checkout DOM write guard"],
+    ["action.textContent !== nextLabel", "mobile checkout label write guard"],
     ["showBrandToast", "toast system"],
     ["initializeHeaderNavigation", "header active state"],
     ["Peluche hipoalergénico grande", "large plush real-catalog lookup"],
