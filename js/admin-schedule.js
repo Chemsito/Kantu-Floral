@@ -58,6 +58,10 @@
         if (stats) stats.insertAdjacentElement("afterend", card);
         else dashboard.appendChild(card);
 
+        card.querySelectorAll("input, textarea, select").forEach(control => {
+            control.setAttribute("autocomplete", control.getAttribute("autocomplete") || "off");
+        });
+
         document.getElementById("adminScheduleSave")?.addEventListener("click", saveSettings);
         return card;
     }

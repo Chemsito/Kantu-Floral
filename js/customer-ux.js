@@ -1,7 +1,6 @@
 /* =====================================================
    KANTU FLORAL - CUSTOMER UX PACK
    - Footer útil y conectado al catálogo
-   - Hero contextual según sesión
    - Búsqueda, colección y orden del catálogo
    - Botón flotante para volver arriba
    - Boleta disponible solo con pago aprobado

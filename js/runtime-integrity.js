@@ -14,15 +14,6 @@
         return document.getElementById(id);
     }
 
-    function ensureStyles() {
-        if (document.querySelector('link[data-kantu-runtime-integrity-style="true"]')) return;
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = "css/runtime-integrity.css";
-        link.dataset.kantuRuntimeIntegrityStyle = "true";
-        document.head.appendChild(link);
-    }
-
     function safeMoney(value) {
         return core.formatMoney(Number(value) || 0);
     }
@@ -302,7 +293,6 @@
     }
 
     function initialize() {
-        ensureStyles();
         preventBackdropDismissal();
         observeCatalog();
         observeAccountTabs();

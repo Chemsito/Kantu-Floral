@@ -7,25 +7,9 @@
 ===================================================== */
 
 (() => {
-    const STYLE_KEY = "data-kantu-ui-polish-select";
-    const BRAND_STYLE_KEY = "data-kantu-brand-experience";
     const selectValueDescriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
     const selectIndexDescriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "selectedIndex");
     const core = window.KantuCore;
-
-    function ensureStyle(href, attribute) {
-        if (document.querySelector(`link[${attribute}="true"]`)) return;
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = href;
-        link.setAttribute(attribute, "true");
-        document.head.appendChild(link);
-    }
-
-    function ensureStyles() {
-        ensureStyle("css/ui-polish-select.css", STYLE_KEY);
-        ensureStyle("css/brand-experience.css", BRAND_STYLE_KEY);
-    }
 
     function escapeHtml(value) {
         if (core?.escapeHtml) return core.escapeHtml(value);
@@ -764,8 +748,6 @@
         ensureCheckoutMobileBar();
         refreshGiftUpsell();
     }
-
-    ensureStyles();
     enhanceAll();
     enhanceBrandNode();
     installCatalogSkeleton();
