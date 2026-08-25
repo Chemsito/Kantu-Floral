@@ -1,0 +1,170 @@
+/* Kantu custom select overlay for prominent single-select controls */
+.kantu-select-shell {
+    position: relative;
+    width: 100%;
+}
+
+.kantu-select-shell > select.kantu-native-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-height: 1px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    clip: rect(0 0 0 0) !important;
+    overflow: hidden !important;
+}
+
+.kantu-select-trigger {
+    width: 100%;
+    min-height: var(--kantu-control-height, 46px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 13px 10px 14px;
+    border: 1px solid var(--kantu-control-border, #e5ccc9);
+    border-radius: var(--kantu-control-radius, 14px);
+    background: var(--kantu-control-bg, #fffdfb);
+    color: var(--kantu-control-text, #4b2b31);
+    box-shadow: var(--kantu-control-shadow, 0 7px 22px rgba(72,37,45,.045));
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
+
+.kantu-select-trigger:hover:not(:disabled) {
+    border-color: var(--kantu-control-border-hover, #cf9e9a);
+    background: var(--kantu-control-bg-hover, #fff9f8);
+}
+
+.kantu-select-trigger:focus-visible,
+.kantu-select-shell.is-open .kantu-select-trigger {
+    outline: 0;
+    border-color: var(--kantu-control-border-focus, #a83a57);
+    background: #fff;
+    box-shadow: var(--kantu-control-shadow-focus, 0 0 0 4px rgba(169,47,80,.14));
+}
+
+.kantu-select-trigger:disabled {
+    opacity: .62;
+    cursor: not-allowed;
+}
+
+.kantu-select-chevron {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border-radius: 6px;
+    position: relative;
+    background: #f7e9ec;
+}
+
+.kantu-select-chevron::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 6px;
+    height: 6px;
+    border-right: 1.7px solid #8e5060;
+    border-bottom: 1.7px solid #8e5060;
+    transform: rotate(45deg);
+    transition: transform .16s ease, top .16s ease;
+}
+
+.kantu-select-shell.is-open .kantu-select-chevron::before {
+    top: 7px;
+    transform: rotate(225deg);
+}
+
+.kantu-select-menu {
+    position: absolute;
+    z-index: 12000;
+    top: calc(100% + 7px);
+    left: 0;
+    right: 0;
+    max-height: min(320px, 46vh);
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid #e5cdcf;
+    border-radius: 15px;
+    background: rgba(255, 253, 251, .985);
+    box-shadow: 0 18px 46px rgba(71, 35, 45, .16);
+    backdrop-filter: blur(18px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px) scale(.985);
+    transform-origin: top center;
+    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+}
+
+.kantu-select-shell.is-open .kantu-select-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.kantu-select-option {
+    width: 100%;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 11px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #51343a;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.kantu-select-option:hover,
+.kantu-select-option:focus-visible,
+.kantu-select-option.is-active {
+    outline: 0;
+    background: #faedf0;
+    color: #7f2942;
+}
+
+.kantu-select-option.is-selected {
+    background: #f6dfe5;
+    color: #812c44;
+    font-weight: 750;
+}
+
+.kantu-select-option.is-selected::after {
+    content: "✓";
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 22px;
+    border-radius: 50%;
+    background: #a92f50;
+    color: #fff;
+    font-size: 12px;
+}
+
+.kantu-select-option:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .kantu-select-menu {
+        max-height: 42vh;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kantu-select-menu,
+    .kantu-select-chevron::before {
+        transition: none;
+    }
+}
