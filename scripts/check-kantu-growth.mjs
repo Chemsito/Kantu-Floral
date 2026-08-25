@@ -7,6 +7,7 @@ const admin = fs.readFileSync("js/admin-growth.js", "utf8");
 const standalone = fs.readFileSync("js/admin-standalone.js", "utf8");
 const css = fs.readFileSync("css/kantu-growth.css", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20260824213000_add_growth_notifications_and_claims.sql", "utf8");
+const hardeningMigration = fs.readFileSync("supabase/migrations/20260825145500_harden_roles_and_notification_feed.sql", "utf8");
 const edge = fs.readFileSync("supabase/functions/submit-customer-claim/index.ts", "utf8");
 const workflow = fs.readFileSync(".github/workflows/check.yml", "utf8");
 
@@ -38,9 +39,18 @@ assert.match(migration, /revoke all on function public\.service_submit_customer_
 assert.match(migration, /admin_operational_alerts/, "Debe existir el feed operativo Admin.");
 assert.match(migration, /recommendation_priority/, "Productos debe soportar prioridad comercial.");
 
+assert.match(hardeningMigration, /revoke update on table public\.profiles from authenticated/i, "Authenticated no debe conservar UPDATE global sobre profiles.");
+assert.match(hardeningMigration, /grant update \(full_name, phone, address, district, city, avatar_url\)/i, "El cliente solo debe editar columnas seguras del perfil.");
+assert.match(hardeningMigration, /profiles_guard_role_change/i, "Debe existir defensa en profundidad contra cambios de rol.");
+assert.doesNotMatch(hardeningMigration, /'florista'/i, "El rol operativo debe llamarse florist, no florista.");
+assert.match(hardeningMigration, /'florist'/i, "Las personalizaciones deben autorizar al rol florist.");
+assert.match(hardeningMigration, /get_customer_notification_feed\(\)[\s\S]*security invoker/i, "El feed público no debe permanecer SECURITY DEFINER.");
+assert.match(hardeningMigration, /private\.get_public_promotion_notification_feed/i, "La lectura privilegiada de promociones debe quedar fuera del esquema expuesto.");
+assert.match(hardeningMigration, /revoke all on function public\.get_customer_notification_feed\(\) from public/i, "El feed debe usar grants explícitos.");
+
 assert.match(edge, /service_submit_customer_claim/, "La Edge Function debe delegar validación al backend.");
 assert.match(edge, /consume_guest_checkout_rate_limit|p_fingerprint_hash/, "El formulario público debe estar protegido por rate limit.");
 assert.doesNotMatch(edge, /return jsonResponse\([^)]*serviceRoleKey/, "La Edge Function nunca debe devolver la clave de servicio.");
 assert.match(workflow, /submit-customer-claim\/index\.ts/, "CI debe hacer deno check de la Edge Function nueva.");
 
-console.log("Kantu growth, notifications and claims contracts OK");
+console.log("Kantu growth, notifications, claims and security hardening contracts OK");
