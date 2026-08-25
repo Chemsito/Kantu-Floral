@@ -15,7 +15,7 @@
     };
 
     const RECOMMENDATION_OPTIONS = Object.freeze({
-        audiences: [["pareja","Pareja"],["mama","Mamá"],["amiga","Amiga"],["familiar","Familiar"],["otro","Otra persona"]],
+        audiences: [["pareja","Pareja"],["mama","Mamá"],["papa","Papá"],["amiga","Amiga"],["familiar","Familiar"],["otro","Otra persona"]],
         occasions: [["cumpleanos","Cumpleaños"],["aniversario","Aniversario"],["amor","Te amo"],["perdon","Perdón"],["gracias","Gracias"],["primera_cita","Primera cita"],["sorpresa","Sorpresa"]],
         styles: [["romantico","Romántico"],["tierno","Tierno"],["elegante","Elegante"],["impactante","Impactante"],["alegre","Alegre"]]
     });
