@@ -1,0 +1,152 @@
+name: Consolidate Runtime Visual Once
+
+on:
+  push:
+    branches:
+      - refactor/consolidate-runtime-visual-patches
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    if: ${{ !contains(github.event.head_commit.message, '[visual-consolidated]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/consolidate-runtime-visual-patches
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Consolidate visual bootstrapping and audit patches
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const read = p => fs.readFileSync(p, 'utf8');
+          const write = (p, v) => fs.writeFileSync(p, v);
+          const must = (text, oldValue, newValue, label) => {
+            if (!text.includes(oldValue)) throw new Error(`Missing ${label}`);
+            return text.replace(oldValue, newValue);
+          };
+
+          // Storefront: make remaining always-on visual layers declarative.
+          {
+            let html = read('index.html');
+            const marker = '    <link rel="stylesheet" href="css/runtime-integrity.css" data-kantu-runtime-integrity-style="true">';
+            const links = `${marker}\n    <link rel="stylesheet" href="css/kantu-growth.css" data-kantu-growth-style="true">\n    <link rel="stylesheet" href="css/admin-polish.css" data-kantu-admin-polish="true">\n    <link rel="stylesheet" href="css/ux-audit.css" data-kantu-ux-audit="true">\n    <link rel="stylesheet" href="css/sakura.css?v=20260823-1149" data-kantu-sakura-style="true">`;
+            if (!html.includes('data-kantu-sakura-style="true"')) html = must(html, marker, links, 'storefront visual link marker');
+            write('index.html', html);
+          }
+
+          // Product detail: Kantu Growth + brand/select CSS are available before JS.
+          {
+            let html = read('producto.html');
+            const marker = '    <link rel="stylesheet" href="css/brand-experience.css" data-kantu-brand-experience="true">';
+            const replacement = `${marker}\n    <link rel="stylesheet" href="css/kantu-growth.css" data-kantu-growth-style="true">`;
+            if (!html.includes('data-kantu-growth-style="true"')) html = must(html, marker, replacement, 'product growth CSS marker');
+            write('producto.html', html);
+          }
+
+          // Staff: ui-polish.js no longer needs to create CSS links at runtime.
+          {
+            let html = read('staff.html');
+            const marker = '    <link rel="stylesheet" href="css/ui-polish.css" data-kantu-ui-polish="true">';
+            const replacement = `${marker}\n    <link rel="stylesheet" href="css/ui-polish-select.css" data-kantu-ui-polish-select="true">\n    <link rel="stylesheet" href="css/brand-experience.css" data-kantu-brand-experience="true">`;
+            if (!html.includes('data-kantu-brand-experience="true"')) html = must(html, marker, replacement, 'staff UI CSS marker');
+            write('staff.html', html);
+          }
+
+          // ui-polish: remove CSS injection bootstrap; keep dynamic component enhancement.
+          {
+            let js = read('js/ui-polish.js');
+            js = js.replace(/\n\s*const STYLE_KEY =[^\n]+;\n\s*const BRAND_STYLE_KEY =[^\n]+;/, '');
+            const start = js.indexOf('    function ensureStyle(');
+            const end = js.indexOf('    function escapeHtml(', start);
+            if (start >= 0 && end > start) js = js.slice(0, start) + js.slice(end);
+            js = js.replace(/\n\s*ensureStyles\(\);/g, '');
+            write('js/ui-polish.js', js);
+          }
+
+          // Runtime integrity: stylesheet is already in head.
+          {
+            let js = read('js/runtime-integrity.js');
+            const start = js.indexOf('    function ensureStyles()');
+            const end = js.indexOf('    function safeMoney(', start);
+            if (start >= 0 && end > start) js = js.slice(0, start) + js.slice(end);
+            js = js.replace(/\n\s*ensureStyles\(\);/g, '');
+            write('js/runtime-integrity.js', js);
+          }
+
+          // Kantu Growth: stylesheet is declarative on storefront/detail.
+          {
+            let js = read('js/kantu-growth.js');
+            const start = js.indexOf('    function ensureStyles()');
+            const end = js.indexOf('    function getStoreProducts(', start);
+            if (start >= 0 && end > start) js = js.slice(0, start) + js.slice(end);
+            js = js.replace(/\n\s*ensureStyles\(\);/g, '');
+            write('js/kantu-growth.js', js);
+          }
+
+          // Sakura: keep the visual scene, remove legacy hero cleanup and late CSS insertion.
+          {
+            let js = read('js/sakura.js');
+            const styleStart = js.indexOf('    function ensureSakuraStyles()');
+            const randomStart = js.indexOf('    function randomBetween(', styleStart);
+            if (styleStart >= 0 && randomStart > styleStart) js = js.slice(0, styleStart) + js.slice(randomStart);
+            js = js.replace(/\n\s*ensureSakuraStyles\(\);/g, '');
+            js = js.replace(/\n\s*removeLegacyHeroPromo\(\);/g, '');
+            if (js.includes('removeLegacyHeroPromo') || js.includes('ensureSakuraStyles')) throw new Error('Sakura legacy bootstrap remains');
+            write('js/sakura.js', js);
+          }
+
+          // Checkout flow owns promotion placement; no global DOM observer is needed.
+          {
+            let js = read('js/checkout-flow.js');
+            const oldValue = '        section.appendChild(heading(4, "Revisa y crea el pedido", "El pago se elige recién en el siguiente paso."));\n        summary.insertAdjacentElement("beforebegin", section);\n        section.appendChild(summary);';
+            const newValue = '        section.appendChild(heading(4, "Revisa y crea el pedido", "El pago se elige recién en el siguiente paso."));\n        summary.insertAdjacentElement("beforebegin", section);\n        const promotion = el("checkoutPromotionSection");\n        if (promotion) section.appendChild(promotion);\n        section.appendChild(summary);';
+            js = must(js, oldValue, newValue, 'checkout review placement');
+            write('js/checkout-flow.js', js);
+          }
+
+          // Admin schedule owns its autocomplete behavior.
+          {
+            let js = read('js/admin-schedule.js');
+            const marker = '        document.getElementById("adminScheduleSave")?.addEventListener("click", saveSettings);';
+            const replacement = '        card.querySelectorAll("input, textarea, select").forEach(control => {\n            control.setAttribute("autocomplete", control.getAttribute("autocomplete") || "off");\n        });\n\n' + marker;
+            if (!js.includes('card.querySelectorAll("input, textarea, select")')) js = must(js, marker, replacement, 'admin schedule autocomplete integration');
+            write('js/admin-schedule.js', js);
+          }
+
+          // The generic audit-fix sidecar is now redundant.
+          {
+            let js = read('js/experience-loader.js');
+            js = js.replace(/\n\s*loadScriptOnce\("js\/ux-audit-fixes\.js", "data-kantu-ux-audit-fixes", "true"\);/, '');
+            write('js/experience-loader.js', js);
+          }
+
+          // Remove stale Hero wording from comments.
+          {
+            let js = read('js/customer-ux.js');
+            js = js.replace('   - Hero contextual según sesión\n', '');
+            write('js/customer-ux.js', js);
+            let css = read('css/mobile.css');
+            css = css.replace('   Ajustes dedicados para navegacion, hero, catalogo,\n', '   Ajustes dedicados para navegacion, catalogo,\n');
+            write('css/mobile.css', css);
+          }
+          NODE
+
+      - name: Commit consolidation
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No consolidation changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html producto.html staff.html css/mobile.css js/ui-polish.js js/runtime-integrity.js js/kantu-growth.js js/sakura.js js/checkout-flow.js js/admin-schedule.js js/experience-loader.js js/customer-ux.js
+          git commit -m "Consolidate runtime visual patches [visual-consolidated]"
+          git push origin HEAD:refactor/consolidate-runtime-visual-patches
