@@ -11,6 +11,12 @@
         window.supabaseClient = supabaseClient;
     }
 
+    function removeLegacyHero() {
+        const legacyHero = document.querySelector("body:not(.product-detail-page) > main > .hero");
+        if (!legacyHero) return;
+        legacyHero.remove();
+    }
+
     function loadStyleOnce(href, dataAttribute, dataValue) {
         if (document.querySelector(`link[${dataAttribute}="${dataValue}"]`)) return;
 
@@ -30,6 +36,8 @@
         script.setAttribute(dataAttribute, dataValue);
         document.head.appendChild(script);
     }
+
+    removeLegacyHero();
 
     const isStandaloneAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
 
