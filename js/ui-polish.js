@@ -5,6 +5,8 @@
 
 (() => {
     const STYLE_KEY = "data-kantu-ui-polish-select";
+    const selectValueDescriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+    const selectIndexDescriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "selectedIndex");
 
     function ensureStyles() {
         if (document.querySelector(`link[${STYLE_KEY}="true"]`)) return;
@@ -34,6 +36,7 @@
     }
 
     function syncSelect(select, shell) {
+        if (!select?.isConnected || !shell?.isConnected) return;
         const trigger = shell.querySelector(".kantu-select-trigger");
         const label = shell.querySelector(".kantu-select-value");
         const selectedOption = select.options[select.selectedIndex];
@@ -46,6 +49,61 @@
             button.classList.toggle("is-selected", isSelected);
             button.setAttribute("aria-selected", String(isSelected));
             button.disabled = Boolean(option?.disabled);
+        });
+    }
+
+    function installProgrammaticSync(select, shell) {
+        if (select.dataset.kantuSelectProgrammaticSync === "true") return;
+
+        if (selectValueDescriptor?.get && selectValueDescriptor?.set) {
+            Object.defineProperty(select, "value", {
+                configurable: true,
+                get() {
+                    return selectValueDescriptor.get.call(this);
+                },
+                set(nextValue) {
+                    selectValueDescriptor.set.call(this, nextValue);
+                    queueMicrotask(() => syncSelect(this, shell));
+                }
+            });
+        }
+
+        if (selectIndexDescriptor?.get && selectIndexDescriptor?.set) {
+            Object.defineProperty(select, "selectedIndex", {
+                configurable: true,
+                get() {
+                    return selectIndexDescriptor.get.call(this);
+                },
+                set(nextIndex) {
+                    selectIndexDescriptor.set.call(this, nextIndex);
+                    queueMicrotask(() => syncSelect(this, shell));
+                }
+            });
+        }
+
+        select.dataset.kantuSelectProgrammaticSync = "true";
+    }
+
+    function rebuildMenu(select, shell, menu) {
+        menu.replaceChildren();
+        [...select.options].forEach((option, index) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "kantu-select-option";
+            button.setAttribute("role", "option");
+            button.dataset.optionIndex = String(index);
+            button.textContent = optionLabel(option);
+            button.disabled = option.disabled;
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (option.disabled) return;
+                select.selectedIndex = index;
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+                syncSelect(select, shell);
+                closeSelect(shell, true);
+            });
+            menu.appendChild(button);
         });
     }
 
@@ -83,35 +141,19 @@
         ).trim();
         trigger.setAttribute("aria-label", accessibleName);
 
-        [...select.options].forEach((option, index) => {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "kantu-select-option";
-            button.setAttribute("role", "option");
-            button.dataset.optionIndex = String(index);
-            button.textContent = optionLabel(option);
-            button.disabled = option.disabled;
-            button.addEventListener("click", event => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (option.disabled) return;
-                select.selectedIndex = index;
-                select.dispatchEvent(new Event("change", { bubbles: true }));
-                syncSelect(select, shell);
-                closeSelect(shell, true);
-            });
-            menu.appendChild(button);
-        });
-
         select.parentNode.insertBefore(shell, select);
         shell.append(select, trigger, menu);
         select.classList.add("kantu-native-select");
         select.dataset.kantuSelectEnhanced = "true";
 
+        rebuildMenu(select, shell, menu);
+        installProgrammaticSync(select, shell);
+
         trigger.addEventListener("click", event => {
             event.preventDefault();
             event.stopPropagation();
             if (select.disabled) return;
+            syncSelect(select, shell);
             const willOpen = !shell.classList.contains("is-open");
             closeOthers(shell);
             shell.classList.toggle("is-open", willOpen);
@@ -159,20 +201,17 @@
         });
 
         select.addEventListener("change", () => syncSelect(select, shell));
+        select.addEventListener("input", () => syncSelect(select, shell));
         select.addEventListener("focus", () => trigger.focus());
 
         const observer = new MutationObserver(() => {
             if (![...select.options].length) return;
             if (menu.children.length !== select.options.length) {
-                shell.replaceWith(select);
-                select.classList.remove("kantu-native-select");
-                delete select.dataset.kantuSelectEnhanced;
-                buildSelect(select);
-                return;
+                rebuildMenu(select, shell, menu);
             }
             syncSelect(select, shell);
         });
-        observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "selected"] });
+        observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "selected", "label"] });
 
         syncSelect(select, shell);
     }
@@ -203,6 +242,7 @@
     window.KantuUiPolish = {
         enhanceSelect: buildSelect,
         enhanceAll,
+        syncSelect,
         closeAll: () => closeOthers()
     };
 })();
