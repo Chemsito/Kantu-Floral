@@ -15,7 +15,7 @@ const jsContracts = [
     ["KantuDialog", "custom dialog API"],
     ["data-admin-delete-product", "Admin native-confirm adapter"],
     ["data-occasion-delete", "occasion native-confirm adapter"],
-    ["data-kantu-tooltip", "tooltip migration"],
+    ["dataset.kantuTooltip", "tooltip migration"],
     ["enhanceLeaflet", "Leaflet integration"],
     ["installCatalogSkeleton", "catalog skeleton"],
     ["ensureCheckoutMobileBar", "mobile checkout bar"],
