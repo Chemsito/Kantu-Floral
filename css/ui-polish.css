@@ -1,0 +1,487 @@
+/* =====================================================
+   KANTU FLORAL — UI POLISH
+   Sistema visual compartido para controles y elementos nativos
+===================================================== */
+
+:root {
+    --kantu-control-bg: #fffdfb;
+    --kantu-control-bg-hover: #fff9f8;
+    --kantu-control-bg-disabled: #f6efed;
+    --kantu-control-border: #e5ccc9;
+    --kantu-control-border-hover: #cf9e9a;
+    --kantu-control-border-focus: #a83a57;
+    --kantu-control-text: #4b2b31;
+    --kantu-control-muted: #8f7779;
+    --kantu-control-accent: #a92f50;
+    --kantu-control-accent-strong: #8e2945;
+    --kantu-control-ring: rgba(169, 47, 80, .14);
+    --kantu-control-error: #b33b45;
+    --kantu-control-success: #4b765d;
+    --kantu-control-radius: 14px;
+    --kantu-control-height: 46px;
+    --kantu-control-shadow: 0 7px 22px rgba(72, 37, 45, .045);
+    --kantu-control-shadow-focus: 0 0 0 4px var(--kantu-control-ring), 0 10px 26px rgba(72, 37, 45, .065);
+}
+
+/* Typography + predictable sizing */
+:where(input, select, textarea, button) {
+    font: inherit;
+    box-sizing: border-box;
+}
+
+:where(input, select, textarea)::placeholder {
+    color: #a48e90;
+    opacity: 1;
+}
+
+/* Shared field surface */
+:where(
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    input[type="search"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    select,
+    textarea
+) {
+    width: 100%;
+    min-height: var(--kantu-control-height);
+    border: 1px solid var(--kantu-control-border);
+    border-radius: var(--kantu-control-radius);
+    background-color: var(--kantu-control-bg);
+    color: var(--kantu-control-text);
+    padding: 11px 14px;
+    outline: 0;
+    box-shadow: var(--kantu-control-shadow);
+    transition:
+        border-color .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+}
+
+:where(
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    input[type="search"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    select,
+    textarea
+):hover:not(:disabled):not([readonly]) {
+    border-color: var(--kantu-control-border-hover);
+    background-color: var(--kantu-control-bg-hover);
+}
+
+:where(
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    input[type="search"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    select,
+    textarea
+):focus-visible {
+    border-color: var(--kantu-control-border-focus);
+    background-color: #fff;
+    box-shadow: var(--kantu-control-shadow-focus);
+}
+
+:where(input, select, textarea):disabled {
+    color: #9b888a;
+    background: var(--kantu-control-bg-disabled);
+    border-color: #e8dcda;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: .78;
+}
+
+:where(input, textarea)[readonly] {
+    background: #faf5f3;
+    color: #786467;
+}
+
+textarea {
+    min-height: 104px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* Labels and helper copy */
+:where(.form-group, .admin-product-form, .staff-shell, .account-modal, .checkout-modal) label {
+    color: #4d2a31;
+    font-weight: 650;
+    letter-spacing: -.01em;
+}
+
+:where(.form-group, .admin-product-form, .account-modal, .checkout-modal) small {
+    color: var(--kantu-control-muted);
+}
+
+/* Selects: remove OS arrow, keep native accessibility */
+select {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    padding-right: 42px;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #7f5862 50%),
+        linear-gradient(135deg, #7f5862 50%, transparent 50%);
+    background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 13px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+select:hover:not(:disabled) {
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--kantu-control-accent) 50%),
+        linear-gradient(135deg, var(--kantu-control-accent) 50%, transparent 50%);
+}
+
+select option,
+select optgroup {
+    color: #4b2b31;
+    background: #fffdfb;
+    font-family: "DM Sans", sans-serif;
+}
+
+/* Search controls */
+input[type="search"] {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    background:
+        linear-gradient(45deg, transparent 45%, #8d6870 45%, #8d6870 55%, transparent 55%),
+        linear-gradient(-45deg, transparent 45%, #8d6870 45%, #8d6870 55%, transparent 55%);
+    background-color: #f5e8ea;
+}
+
+/* Number controls */
+input[type="number"] {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Date/time browser affordances */
+:where(input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"]) {
+    color-scheme: light;
+}
+
+:where(input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"])::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: .7;
+    border-radius: 8px;
+    padding: 4px;
+    transition: background-color .16s ease, opacity .16s ease;
+}
+
+:where(input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"], input[type="week"])::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background: #f8e9ed;
+}
+
+/* Checkboxes and radios */
+:where(input[type="checkbox"], input[type="radio"]) {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+    margin: 0;
+    border: 1.5px solid #c9abae;
+    background: #fff;
+    display: inline-grid;
+    place-content: center;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+input[type="checkbox"] {
+    border-radius: 6px;
+}
+
+input[type="radio"] {
+    border-radius: 50%;
+}
+
+:where(input[type="checkbox"], input[type="radio"]):hover:not(:disabled) {
+    border-color: var(--kantu-control-accent);
+    transform: translateY(-1px);
+}
+
+:where(input[type="checkbox"], input[type="radio"]):focus-visible {
+    outline: 0;
+    border-color: var(--kantu-control-accent);
+    box-shadow: 0 0 0 4px var(--kantu-control-ring);
+}
+
+input[type="checkbox"]::before {
+    content: "";
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) scale(0);
+    transform-origin: center;
+    transition: transform .13s ease;
+}
+
+input[type="radio"]::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    transform: scale(0);
+    transition: transform .13s ease;
+}
+
+:where(input[type="checkbox"], input[type="radio"]):checked {
+    border-color: var(--kantu-control-accent);
+    background: var(--kantu-control-accent);
+}
+
+input[type="checkbox"]:checked::before {
+    transform: rotate(-45deg) scale(1);
+}
+
+input[type="radio"]:checked::before {
+    transform: scale(1);
+}
+
+:where(input[type="checkbox"], input[type="radio"]):disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* File upload */
+input[type="file"] {
+    width: 100%;
+    color: var(--kantu-control-muted);
+    border: 1px dashed #d9babe;
+    border-radius: var(--kantu-control-radius);
+    background: #fffaf9;
+    padding: 8px;
+}
+
+input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    border: 1px solid #debcc2;
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: #f8e9ed;
+    color: #7e3047;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: #f2dbe1;
+    border-color: #c8909c;
+}
+
+/* Range sliders */
+input[type="range"] {
+    width: 100%;
+    height: 22px;
+    margin: 0;
+    accent-color: var(--kantu-control-accent);
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #eadcdf;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--kantu-control-accent);
+    box-shadow: 0 2px 8px rgba(103, 37, 55, .24);
+}
+
+/* Generic unclassed buttons — prevent raw browser appearance */
+button:not([class]) {
+    min-height: 40px;
+    padding: 9px 14px;
+    border: 1px solid #dfc5c8;
+    border-radius: 11px;
+    background: #fffaf9;
+    color: #713246;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+
+button:not([class]):hover:not(:disabled) {
+    border-color: #c9959d;
+    background: #f9ebee;
+    transform: translateY(-1px);
+}
+
+button:not([class]):focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 4px var(--kantu-control-ring);
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+/* Native details/summary affordance */
+details > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Validation states */
+:where(input, select, textarea)[aria-invalid="true"],
+:where(input, select, textarea).error,
+.form-group.has-error :where(input, select, textarea) {
+    border-color: var(--kantu-control-error) !important;
+    box-shadow: 0 0 0 4px rgba(179, 59, 69, .11) !important;
+}
+
+:where(input, select, textarea).success,
+.form-group.has-success :where(input, select, textarea) {
+    border-color: #7ca38c !important;
+    box-shadow: 0 0 0 4px rgba(75, 118, 93, .1) !important;
+}
+
+/* Focus language shared across interactive UI */
+:where(a, button, [role="button"], [tabindex="0"]):focus-visible {
+    outline: 2px solid rgba(169, 47, 80, .68);
+    outline-offset: 3px;
+}
+
+/* Scrollbars shared with modal polish */
+:where(html, body, .modal, .cart-panel, .account-modal, .admin-modal, .staff-shell, [class*="-list"], [class*="-panel"]) {
+    scrollbar-color: #c98a98 #f7efed;
+    scrollbar-width: thin;
+}
+
+:where(html, body, .modal, .cart-panel, .account-modal, .admin-modal, .staff-shell, [class*="-list"], [class*="-panel"])::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+:where(html, body, .modal, .cart-panel, .account-modal, .admin-modal, .staff-shell, [class*="-list"], [class*="-panel"])::-webkit-scrollbar-track {
+    background: #f7efed;
+    border-radius: 999px;
+}
+
+:where(html, body, .modal, .cart-panel, .account-modal, .admin-modal, .staff-shell, [class*="-list"], [class*="-panel"])::-webkit-scrollbar-thumb {
+    background: linear-gradient(#d5a0ab, #bb7283);
+    border: 2px solid #f7efed;
+    border-radius: 999px;
+}
+
+:where(html, body, .modal, .cart-panel, .account-modal, .admin-modal, .staff-shell, [class*="-list"], [class*="-panel"])::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(#c98a98, #a9586d);
+}
+
+/* Catalog toolbars and filters */
+:where(.catalog-toolbar, .customer-toolbar, .admin-toolbar, .admin-payment-filters, .staff-filter-row) :where(input, select) {
+    min-height: 44px;
+}
+
+:where(.catalog-toolbar, .customer-toolbar, .admin-toolbar, .staff-filter-row) label {
+    color: #70545a;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+}
+
+/* Make grouped checkbox filters look intentional instead of form-default */
+:where(.admin-payment-filters, .promotion-rule-options, .manual-method-selector, .manual-bank-buttons) label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 11px;
+    border: 1px solid #ead6d8;
+    border-radius: 999px;
+    background: #fffaf9;
+    cursor: pointer;
+    transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+:where(.admin-payment-filters, .promotion-rule-options) label:has(input:checked) {
+    border-color: #c88090;
+    background: #f9e9ed;
+    box-shadow: 0 3px 10px rgba(112, 44, 62, .06);
+}
+
+/* Compact control support on small screens */
+@media (max-width: 640px) {
+    :root {
+        --kantu-control-height: 44px;
+        --kantu-control-radius: 12px;
+    }
+
+    :where(
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"],
+        input[type="url"],
+        input[type="number"],
+        input[type="search"],
+        input[type="date"],
+        input[type="time"],
+        input[type="datetime-local"],
+        select,
+        textarea
+    ) {
+        font-size: 16px; /* prevents iOS zoom */
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :where(input, select, textarea, button) {
+        transition: none !important;
+    }
+}
