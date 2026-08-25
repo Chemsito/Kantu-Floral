@@ -23,11 +23,6 @@ body {
         var(--cream);
 }
 
-/* Guard de primer paint mientras el HTML legacy termina de retirarse de la plantilla. */
-.hero {
-    display: none !important;
-    background: none !important;
-}
 
 .site-header {
     background: rgba(255, 250, 246, .94);

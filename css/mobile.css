@@ -15,8 +15,7 @@
     body {
         -webkit-text-size-adjust: 100%;
     }
-
-    header {
+    .site-header {
         padding-top: env(safe-area-inset-top, 0px);
     }
 
@@ -106,30 +105,8 @@
         color: var(--primary-dark);
     }
 
-    .hero {
-        --hero-image-height: clamp(340px, 49vw, 500px);
-    }
 
-    .hero::before {
-        background-position: 49% center;
-    }
 
-    .hero-content {
-        width: min(760px, calc(100% - 28px));
-        margin-top: 0;
-        grid-template-columns: minmax(0, 1fr) auto;
-        grid-template-areas:
-            "label actions"
-            "title actions"
-            "copy actions";
-        column-gap: 24px;
-        padding: 17px 19px;
-        border-radius: 0 0 18px 18px;
-    }
-
-    .hero-buttons {
-        flex-wrap: wrap;
-    }
 
     .section {
         padding-left: 20px;
@@ -212,68 +189,13 @@
         display: none;
     }
 
-    .hero {
-        --hero-image-height: clamp(255px, 69vw, 380px);
-        padding-top: var(--hero-image-height);
-    }
 
-    .hero::before {
-        background-position: 53% center;
-    }
 
-    .hero::after {
-        background: linear-gradient(180deg, transparent 78%, rgba(255,250,246,.16) 100%);
-    }
 
-    .hero-content {
-        width: 100%;
-        margin: 0;
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "label"
-            "title"
-            "copy"
-            "actions";
-        row-gap: 5px;
-        padding: 20px var(--mobile-page-padding) 22px;
-        border-left: 0;
-        border-right: 0;
-        border-radius: 0;
-        box-shadow: 0 12px 30px rgba(107, 65, 61, .08);
-        backdrop-filter: none;
-    }
 
-    .hero-label {
-        justify-self: start;
-        font-size: 9px;
-    }
 
-    .hero h1 {
-        margin: 7px 0 4px;
-        font-size: clamp(27px, 8.4vw, 34px);
-        line-height: 1.06;
-    }
 
-    .hero p {
-        max-width: 620px;
-        font-size: 13.5px;
-        line-height: 1.55;
-    }
 
-    .hero-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 9px;
-        width: 100%;
-        margin-top: 13px;
-    }
-
-    .hero-buttons .btn {
-        width: 100%;
-        min-width: 0;
-        min-height: 45px;
-        padding: 12px 14px;
-    }
 
     #catalogo,
     .section {
@@ -822,25 +744,9 @@
         font-size: 11px;
     }
 
-    .hero {
-        --hero-image-height: clamp(240px, 72vw, 330px);
-    }
 
-    .hero::before {
-        background-position: 54% center;
-    }
 
-    .hero-content {
-        padding: 18px 13px 20px;
-    }
 
-    .hero h1 {
-        font-size: clamp(26px, 8.7vw, 31px);
-    }
-
-    .hero-buttons {
-        grid-template-columns: 1fr;
-    }
 
     .section-heading h2 {
         font-size: 31px;

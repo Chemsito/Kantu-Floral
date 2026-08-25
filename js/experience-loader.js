@@ -11,22 +11,6 @@
         window.supabaseClient = supabaseClient;
     }
 
-    function removeLegacyHero() {
-        const legacyHero = document.querySelector("body:not(.product-detail-page) > main > .hero");
-        if (!legacyHero) return;
-        legacyHero.remove();
-    }
-
-    function loadStyleOnce(href, dataAttribute, dataValue) {
-        if (document.querySelector(`link[${dataAttribute}="${dataValue}"]`)) return;
-
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = href;
-        link.setAttribute(dataAttribute, dataValue);
-        document.head.appendChild(link);
-    }
-
     function loadScriptOnce(src, dataAttribute, dataValue) {
         if (document.querySelector(`script[${dataAttribute}="${dataValue}"]`)) return;
 
@@ -37,11 +21,7 @@
         document.head.appendChild(script);
     }
 
-    removeLegacyHero();
-
     const isStandaloneAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
-
-    loadStyleOnce("css/ui-polish.css", "data-kantu-ui-polish", "true");
     loadScriptOnce("js/ui-polish.js", "data-kantu-ui-polish-script", "true");
 
     loadScriptOnce("js/admin-standalone.js", "data-kantu-admin-standalone", "true");
