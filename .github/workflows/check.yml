@@ -43,6 +43,7 @@ jobs:
           supabase/functions/create-guest-mp-preference/index.ts
           supabase/functions/guest-order-create/index.ts
           supabase/functions/guest-order-customizations/index.ts
+          supabase/functions/submit-customer-claim/index.ts
 
   browser-smoke:
     runs-on: ubuntu-latest
