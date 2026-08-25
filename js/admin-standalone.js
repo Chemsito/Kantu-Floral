@@ -24,11 +24,14 @@
         button.addEventListener("click", event => {
             event.preventDefault();
             event.stopImmediatePropagation();
-            const opened = window.open(adminUrl(), "kantu-admin", "noopener");
-            if (!opened && typeof showAccountMessage === "function") {
-                showAccountMessage("Tu navegador bloqueó la pestaña del panel. Permite ventanas emergentes e inténtalo nuevamente.");
+            const opened = window.open(adminUrl(), "kantu-admin");
+            if (!opened) {
+                if (typeof showAccountMessage === "function") {
+                    showAccountMessage("Tu navegador bloqueó la pestaña del panel. Permite ventanas emergentes e inténtalo nuevamente.");
+                }
                 return;
             }
+            try { opened.opener = null; } catch { /* aislamiento best-effort */ }
             if (typeof closeAccount === "function") closeAccount();
         }, true);
     }
