@@ -21,10 +21,18 @@ test("cliente ve campana, Kantu Match y Libro de Reclamaciones", async ({ page }
 
     await page.locator("#kantuMatchButton").click();
     await expect(page.locator("#kantuMatchModal")).toHaveClass(/show/);
-    await page.locator('input[name="matchAudience"][value="pareja"]').check();
-    await page.locator('input[name="matchOccasion"][value="aniversario"]').check();
-    await page.locator('input[name="matchStyle"][value="romantico"]').check();
-    await page.locator('input[name="matchBudget"][value="100"]').check();
+
+    // El cliente selecciona las tarjetas visibles; los radios quedan dentro del label estilizado.
+    await page.locator('label:has(input[name="matchAudience"][value="pareja"])').click();
+    await page.locator('label:has(input[name="matchOccasion"][value="aniversario"])').click();
+    await page.locator('label:has(input[name="matchStyle"][value="romantico"])').click();
+    await page.locator('label:has(input[name="matchBudget"][value="100"])').click();
+
+    await expect(page.locator('input[name="matchAudience"][value="pareja"]')).toBeChecked();
+    await expect(page.locator('input[name="matchOccasion"][value="aniversario"]')).toBeChecked();
+    await expect(page.locator('input[name="matchStyle"][value="romantico"]')).toBeChecked();
+    await expect(page.locator('input[name="matchBudget"][value="100"]')).toBeChecked();
+
     await page.locator("#kantuMatchForm").evaluate(form => form.requestSubmit());
     await expect(page.locator("#kantuMatchResults")).toBeVisible();
     await expect(page.locator(".kantu-match-card").first()).toContainText("Ramo romántico prioritario");
