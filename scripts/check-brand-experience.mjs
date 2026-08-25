@@ -10,6 +10,9 @@ function assert(condition, message) {
 
 const js = read("js/ui-polish.js");
 const css = read("css/brand-experience.css");
+const brandCss = read("css/brand.css");
+const customerUxCss = read("css/customer-ux.css");
+const experienceLoader = read("js/experience-loader.js");
 
 const jsContracts = [
     ["KantuDialog", "custom dialog API"],
@@ -54,5 +57,13 @@ const cssContracts = [
 for (const [needle, label] of cssContracts) {
     assert(css.includes(needle), `Missing ${label}: ${needle}`);
 }
+
+assert(brandCss.includes(".site-header"), "Brand header rules must be scoped to .site-header");
+assert(!brandCss.includes("HERO DE MARCA"), "Obsolete brand hero CSS must be removed");
+assert(!brandCss.includes("707398768_122100348543339245"), "Obsolete brand hero image must be removed");
+assert(brandCss.includes("display: none !important"), "First-paint guard must hide the legacy hero before runtime cleanup");
+assert(!customerUxCss.includes("El bloque promocional del hero"), "Late customer-UX hero hide must be removed");
+assert(experienceLoader.includes("function removeLegacyHero"), "Experience loader must remove the legacy hero from the runtime DOM");
+assert(experienceLoader.includes('body:not(.product-detail-page) > main > .hero'), "Legacy hero cleanup must be storefront-scoped");
 
 console.log("Brand experience contracts OK");
