@@ -6,6 +6,12 @@
 
     let overviewLoading = null;
     let upsellBusy = false;
+    const requiredCheckoutComplements = Object.freeze([
+        "Globo burbuja grande",
+        "Globo metálico mini",
+        "Globo metálico pequeño",
+        "Globo metálico grande"
+    ]);
     const sourceLabels = Object.freeze({
         product_created: "Producto creado",
         stock_increase: "Aumento de stock",
@@ -39,15 +45,21 @@
 
     function getComplementProducts() {
         if (typeof products === "undefined" || !Array.isArray(products)) return [];
-        return products
+        const available = products
             .filter(product => product?.active !== false)
             .filter(product => product?.category === "complementos")
             .filter(product => Number(product?.stock) > 0)
             .slice()
             .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))
                 || (Number(b.units_sold) || 0) - (Number(a.units_sold) || 0)
-                || Number(a.id) - Number(b.id))
-            .slice(0, 4);
+                || Number(a.id) - Number(b.id));
+
+        const requiredNames = new Set(requiredCheckoutComplements);
+        const regular = available.filter(product => !requiredNames.has(String(product?.name || ""))).slice(0, 4);
+        const required = requiredCheckoutComplements
+            .map(name => available.find(product => String(product?.name || "") === name))
+            .filter(Boolean);
+        return [...regular, ...required];
     }
 
     function ensureUpsellSection() {
