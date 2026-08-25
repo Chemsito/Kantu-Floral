@@ -204,6 +204,8 @@
         section.className = "checkout-flow-section checkout-review-flow-section";
         section.appendChild(heading(4, "Revisa y crea el pedido", "El pago se elige recién en el siguiente paso."));
         summary.insertAdjacentElement("beforebegin", section);
+        const promotion = el("checkoutPromotionSection");
+        if (promotion) section.appendChild(promotion);
         section.appendChild(summary);
         if (error) section.appendChild(error);
         section.appendChild(button);

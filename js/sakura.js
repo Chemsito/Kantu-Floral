@@ -5,21 +5,6 @@
     const MOBILE = window.matchMedia("(max-width: 720px)");
     const SAKURA_VERSION = "20260823-1149";
 
-    function ensureSakuraStyles() {
-        let link = document.querySelector('link[data-kantu-sakura-style="true"]');
-        if (!link) {
-            link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.dataset.kantuSakuraStyle = "true";
-            document.head.appendChild(link);
-        }
-        link.href = `css/sakura.css?v=${SAKURA_VERSION}`;
-    }
-
-    function removeLegacyHeroPromo() {
-        document.querySelector(".hero")?.remove();
-    }
-
     function randomBetween(min, max) {
         return min + Math.random() * (max - min);
     }
@@ -209,12 +194,8 @@
     }
 
     function initializeSakuraExperience() {
-        ensureSakuraStyles();
-        removeLegacyHeroPromo();
         createSakuraScene();
     }
-
-    ensureSakuraStyles();
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", initializeSakuraExperience, { once: true });
     } else {

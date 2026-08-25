@@ -30,15 +30,6 @@
         budgets: [[60, "Hasta S/ 60"], [100, "S/ 60 – S/ 100"], [180, "S/ 100 – S/ 180"], [999999, "Más de S/ 180"]]
     });
 
-    function ensureStyles() {
-        if (document.querySelector('link[data-kantu-growth-style="true"]')) return;
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = "css/kantu-growth.css";
-        link.dataset.kantuGrowthStyle = "true";
-        document.head.appendChild(link);
-    }
-
     function getStoreProducts() {
         try {
             return typeof products !== "undefined" && Array.isArray(products) ? products : [];
@@ -538,7 +529,6 @@
     }
 
     async function initialize() {
-        ensureStyles();
         ensureNotificationUi();
         ensureMatchUi();
         ensureClaimsUi();

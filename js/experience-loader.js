@@ -44,7 +44,6 @@
     loadScriptOnce("js/guest-checkout.js", "data-kantu-guest-checkout", "true");
     loadScriptOnce("js/guest-customization-router.js", "data-kantu-guest-customization-router", "true");
     loadScriptOnce("js/checkout-review-editing.js", "data-kantu-checkout-review-editing", "true");
-    loadScriptOnce("js/ux-audit-fixes.js", "data-kantu-ux-audit-fixes", "true");
     loadScriptOnce("js/runtime-integrity.js", "data-kantu-runtime-integrity", "true");
     loadScriptOnce("js/admin-growth.js", "data-kantu-admin-growth", "true");
     if (!isStandaloneAdmin) {
