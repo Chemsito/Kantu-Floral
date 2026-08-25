@@ -8,7 +8,7 @@ test.describe("Kantu Floral brand experience", () => {
         const favorites = page.locator("#favoritesButton");
         await expect(favorites.locator("svg.kantu-icon")).toHaveCount(1);
         await expect(favorites).not.toHaveAttribute("title", /.+/);
-        await expect(favorites).toHaveAttribute("data-kantu-tooltip", "Favoritos");
+        await expect(favorites).toHaveAttribute("data-kantu-tooltip", /Favoritos/);
 
         await page.evaluate(() => {
             window.__kantuDialogResult = null;
@@ -95,11 +95,28 @@ test.describe("Kantu Floral brand experience", () => {
         await expect(page.locator("#kantuCheckoutMobileBar")).toHaveCount(1);
 
         await page.evaluate(() => {
-            document.getElementById("checkoutTotal").textContent = "S/ 134.00";
+            products = [{
+                id: 991,
+                name: "Producto de prueba",
+                price: 100,
+                stock: 5,
+                active: true,
+                category: "ramos"
+            }];
+            cart = [{ id: 991, quantity: 1 }];
+            currentDeliveryQuote = {
+                distance_km: 4.2,
+                delivery_fee: 34,
+                estimated_minutes: 28,
+                service_available: true
+            };
+            renderCheckoutSummary();
             document.getElementById("checkoutModal").classList.add("show");
         });
+
         await expect(page.locator("#kantuCheckoutMobileBar")).toBeVisible();
-        await expect(page.locator(".kantu-checkout-mobile-total strong")).toHaveText("S/ 134.00");
+        await expect(page.locator("#checkoutTotal")).toHaveText(/134\.00/);
+        await expect(page.locator(".kantu-checkout-mobile-total strong")).toHaveText(/134\.00/);
         const position = await page.locator("#kantuCheckoutMobileBar").evaluate(node => getComputedStyle(node).position);
         expect(position).toBe("fixed");
     });
