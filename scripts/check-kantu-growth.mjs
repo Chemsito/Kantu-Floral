@@ -20,7 +20,6 @@ const workflow = fs.readFileSync(".github/workflows/check.yml", "utf8");
 assert.match(loader, /kantu-growth\.js/, "El loader debe cargar Kantu Match y notificaciones del cliente.");
 assert.match(loader, /admin-growth\.js/, "El loader debe cargar las alertas administrativas.");
 assert.match(loader, /admin-standalone\.js/, "El panel Admin debe poder abrirse en una pestaña dedicada.");
-
 assert.match(customer, /notificationButton/, "Debe existir la campana de notificaciones junto al carrito.");
 assert.match(customer, /get_customer_notification_feed/, "El cliente debe consumir el feed autoritativo de notificaciones.");
 assert.match(customer, /AudioContext/, "Las notificaciones deben soportar sonido dentro de la página.");
@@ -28,7 +27,6 @@ assert.match(customer, /KANTU MATCH/, "Debe existir Kantu Match.");
 assert.match(customer, /recommendation_priority/, "Kantu Match debe considerar la prioridad comercial configurada por Admin.");
 assert.match(customer, /submit-customer-claim/, "El Libro de Reclamaciones debe usar la Edge Function controlada.");
 assert.doesNotMatch(customer, /SUPABASE_SERVICE_ROLE_KEY/, "El frontend nunca debe contener service_role.");
-
 assert.match(admin, /admin_operational_alerts/, "Admin debe consumir alertas operativas del servidor.");
 assert.match(admin, /5 \* 60_000/, "Las alertas urgentes deben poder repetir el aviso sonoro.");
 assert.match(admin, /customer_claims/, "Admin debe gestionar el Libro de Reclamaciones.");
@@ -55,17 +53,16 @@ assert.match(hardeningMigration, /private\.get_public_promotion_notification_fee
 assert.match(hardeningMigration, /revoke all on function public\.get_customer_notification_feed\(\) from public/i, "El feed debe usar grants explícitos.");
 
 assert.match(reservationMigration, /private\.order_stock_reservations/i, "Mercado Pago debe disponer de reservas de stock autoritativas.");
-assert.match(reservationMigration, /grant execute on function public\.reserve_order_stock_for_payment\(bigint, integer\) to service_role/i, "Solo service_role debe poder reservar stock para pagos.");
+assert.match(reservationMigration, /grant execute on function public\.reserve_order_stock_for_payment\(bigint,\s*integer\) to service_role/i, "Solo service_role debe poder reservar stock para pagos.");
 assert.match(reservationMigration, /orders_release_stock_reservation/i, "Pagos rechazados o cancelados deben liberar reservas.");
 assert.match(reservationMigration, /kantu-expire-stock-reservations/i, "Las reservas abandonadas deben tener limpieza periódica.");
-assert.match(reservationMigration, /state = 'consumed'/i, "La confirmación pagada debe consumir una reserva sin volver a descontar stock.");
+assert.match(reservationMigration, /state = 'consumed'|state='consumed'/i, "La confirmación pagada debe consumir una reserva sin volver a descontar stock.");
 assert.match(reservationTriggerMigration, /orders_reserve_stock_on_mp_preference/i, "Asignar una preferencia de Mercado Pago debe reservar stock en la misma transacción.");
 assert.match(reservationFixMigration, /on conflict on constraint order_stock_reservations_pkey/i, "El upsert de reservas debe usar un conflict target no ambiguo.");
 assert.match(signedPreference, /PREFERENCE_VALIDITY_MINUTES\s*=\s*30/, "La preferencia autenticada debe vencer antes de liberar la reserva.");
 assert.match(signedPreference, /expires:\s*true/, "La preferencia autenticada debe tener expiración en Mercado Pago.");
 assert.match(guestPreference, /PREFERENCE_VALIDITY_MINUTES\s*=\s*30/, "La preferencia invitada debe vencer antes de liberar la reserva.");
 assert.match(guestPreference, /expires:\s*true/, "La preferencia invitada debe tener expiración en Mercado Pago.");
-
 assert.match(matchOpsMigration, /recommendation_audiences\s*=\s*case p\.category/i, "Las señales existentes de categoría deben materializarse para Kantu Match.");
 assert.match(matchOpsMigration, /payment_attention/i, "Admin debe alertar pagos aprobados que sigan pendientes.");
 assert.match(matchOpsMigration, /match_configuration/i, "Admin debe alertar productos que todavía necesiten configuración de Kantu Match.");
