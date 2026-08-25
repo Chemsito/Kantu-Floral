@@ -1,24 +1,34 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Kantu Floral global UI polish", () => {
-    test("styles native controls consistently in the storefront", async ({ page }) => {
+    test("replaces catalog native dropdowns with Kantu menus", async ({ page }) => {
         await page.goto("/index.html");
         await expect(page.locator("link[data-kantu-ui-polish='true']")).toHaveCount(1);
+        await expect(page.locator("script[data-kantu-ui-polish-script='true']")).toHaveCount(1);
+        await expect(page.locator("#catalogSort")).toHaveCount(1);
 
-        const styles = await page.locator("#adminOrderFilter").evaluate(element => {
+        const shell = page.locator(".kantu-select-shell", { has: page.locator("#catalogSort") });
+        await expect(shell).toHaveCount(1);
+        const trigger = shell.locator(".kantu-select-trigger");
+        await expect(trigger).toContainText("Recomendados");
+
+        await trigger.click();
+        await expect(shell).toHaveClass(/is-open/);
+        await expect(shell.locator(".kantu-select-option")).toHaveCount(6);
+        await shell.locator(".kantu-select-option", { hasText: "Más pedidos" }).click();
+        await expect(page.locator("#catalogSort")).toHaveValue("popular");
+        await expect(trigger).toContainText("Más pedidos");
+
+        const triggerStyles = await trigger.evaluate(element => {
             const computed = getComputedStyle(element);
             return {
-                appearance: computed.appearance,
-                borderRadius: computed.borderRadius,
-                minHeight: computed.minHeight,
-                backgroundImage: computed.backgroundImage
+                radius: computed.borderRadius,
+                height: computed.minHeight,
+                background: computed.backgroundColor
             };
         });
-
-        expect(styles.appearance).toBe("none");
-        expect(parseFloat(styles.borderRadius)).toBeGreaterThanOrEqual(10);
-        expect(parseFloat(styles.minHeight)).toBeGreaterThanOrEqual(44);
-        expect(styles.backgroundImage).not.toBe("none");
+        expect(parseFloat(triggerStyles.radius)).toBeGreaterThanOrEqual(10);
+        expect(parseFloat(triggerStyles.height)).toBeGreaterThanOrEqual(44);
 
         const checkboxAppearance = await page.locator("#adminPaymentsView input[type='checkbox']").first().evaluate(element => getComputedStyle(element).appearance);
         expect(checkboxAppearance).toBe("none");
