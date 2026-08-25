@@ -1,0 +1,165 @@
+name: Cleanup Legacy Source Once
+
+on:
+  push:
+    branches:
+      - refactor/remove-legacy-source-and-late-css
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: ${{ !contains(github.event.head_commit.message, '[cleanup-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/remove-legacy-source-and-late-css
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Remove legacy source and late visual bootstrap
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          function read(path) { return fs.readFileSync(path, 'utf8'); }
+          function write(path, value) { fs.writeFileSync(path, value); }
+          function mustReplace(text, search, replacement, label) {
+            if (!text.includes(search)) throw new Error(`Missing expected ${label}`);
+            return text.replace(search, replacement);
+          }
+
+          // 1) index.html: remove the retired hero physically and preload final visual layers.
+          {
+            let html = read('index.html');
+            const heroStart = html.indexOf('    <!-- =========================\n         HERO\n    ========================== -->');
+            const activeOrder = html.indexOf('        <section class="active-order-section"', heroStart);
+            if (heroStart < 0 || activeOrder < 0) throw new Error('Legacy hero source block not found');
+            const beforeHero = html.slice(0, heroStart);
+            const afterHero = html.slice(activeOrder);
+            html = beforeHero + '    <main id="inicio">\n' + afterHero;
+            html = html.replace('    <main id="inicio">\n        <section class="active-order-section"', '    <main id="inicio">\n        <section class="active-order-section"');
+
+            const criticalMarker = '    <link rel="stylesheet" href="css/stabilization.css" data-kantu-stabilization="true">';
+            const criticalStyles = `${criticalMarker}\n    <link rel="stylesheet" href="css/ui-polish.css" data-kantu-ui-polish="true">\n    <link rel="stylesheet" href="css/ui-polish-select.css" data-kantu-ui-polish-select="true">\n    <link rel="stylesheet" href="css/brand-experience.css" data-kantu-brand-experience="true">\n    <link rel="stylesheet" href="css/customer-ux.css" data-kantu-customer-ux-style="true">\n    <link rel="stylesheet" href="css/runtime-integrity.css" data-kantu-runtime-integrity-style="true">`;
+            html = mustReplace(html, criticalMarker, criticalStyles, 'critical stylesheet marker');
+            if (html.includes('<section class="hero"') || html.includes('Haz que cada momento florezca.')) {
+              throw new Error('Legacy hero still present in index source');
+            }
+            write('index.html', html);
+          }
+
+          // 2) styles.css: remove only obsolete hero rules, keep shared button styles.
+          {
+            let css = read('css/styles.css');
+            const selectors = [
+              '.hero', '.hero-content', '.hero-label', '.hero h1', '.hero p', '.hero-buttons'
+            ];
+            for (const selector of selectors) {
+              const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              css = css.replace(new RegExp(`\\n?${escaped}\\s*\\{[^{}]*\\}\\n?`, 'g'), '\n');
+            }
+            css = css.replace(/\/\* =========================\n   HERO\n========================= \*\/\n*/g, '');
+            css = css.replace(/\/\* =========================\n   HERO\n=========================\*\/\n*/g, '');
+            css = css.replace(/^header\s*\{/m, '.site-header {');
+            if (css.includes('images.unsplash.com/photo-1490750967868-88aa4486c946')) {
+              throw new Error('Old Unsplash hero reference remains');
+            }
+            write('css/styles.css', css);
+          }
+
+          // 3) mobile.css: remove all responsive rules that target the retired hero.
+          {
+            let css = read('css/mobile.css');
+            const heroRule = /\n\s*\.hero(?:-content|-label|-buttons)?(?:\s+h1|\s+p|::before|::after|\s+\.btn)?\s*\{[^{}]*\}\n/g;
+            let previous;
+            do {
+              previous = css;
+              css = css.replace(heroRule, '\n');
+            } while (css !== previous);
+            css = css.replace(/^\s*header\s*\{/m, '    .site-header {');
+            write('css/mobile.css', css);
+          }
+
+          // 4) customer-ux.js: remove dead hero/session behavior and late CSS injection.
+          {
+            let js = read('js/customer-ux.js');
+            const start = js.indexOf('    async function syncHeroForSession');
+            const end = js.indexOf('    function initializeScrollTopButton', start);
+            if (start >= 0 && end > start) js = js.slice(0, start) + js.slice(end);
+            js = js.replace(/\n\s*initializeHeroSessionBehavior\(\);/g, '');
+            js = js.replace(/\n\s*function ensureStyles\(\) \{[\s\S]*?\n\s*\}\n(?=\n\s*function normalizeSearch)/, '\n');
+            js = js.replace(/\n\s*ensureStyles\(\);/g, '');
+            if (js.includes('syncHeroForSession') || js.includes('initializeHeroSessionBehavior')) {
+              throw new Error('Dead hero session logic remains');
+            }
+            write('js/customer-ux.js', js);
+          }
+
+          // 5) app.js: HTML owns brand metadata now; remove duplicate runtime SEO/brand bootstrapping.
+          {
+            let js = read('js/app.js');
+            const start = js.indexOf('function loadKantuBrandIdentity()');
+            const end = js.indexOf('function readFavoriteIds()', start);
+            if (start < 0 || end <= start) throw new Error('App metadata bootstrap block not found');
+            js = js.slice(0, start) + js.slice(end);
+            if (js.includes('ensureSeoMetadata') || js.includes('loadKantuBrandIdentity')) {
+              throw new Error('Duplicate metadata bootstrap remains');
+            }
+            write('js/app.js', js);
+          }
+
+          // 6) experience loader: CSS is declarative now and source hero is gone.
+          {
+            let js = read('js/experience-loader.js');
+            js = js.replace(/\n\s*function removeLegacyHero\(\) \{[\s\S]*?\n\s*\}\n(?=\n\s*function loadStyleOnce)/, '\n');
+            js = js.replace(/\n\s*function loadStyleOnce\(href, dataAttribute, dataValue\) \{[\s\S]*?\n\s*\}\n(?=\n\s*function loadScriptOnce)/, '\n');
+            js = js.replace(/\n\s*removeLegacyHero\(\);/g, '');
+            js = js.replace(/\n\s*loadStyleOnce\("css\/ui-polish\.css", "data-kantu-ui-polish", "true"\);/g, '');
+            write('js/experience-loader.js', js);
+          }
+
+          // 7) brand.css: source no longer needs the transitional first-paint guard.
+          {
+            let css = read('css/brand.css');
+            css = css.replace(/\n\/\* Guard de primer paint[\s\S]*?\.hero \{\n\s*display: none !important;\n\s*background: none !important;\n\}\n/, '\n');
+            write('css/brand.css', css);
+          }
+
+          // 8) stabilization.css: global header contamination is gone.
+          {
+            let css = read('css/stabilization.css');
+            css = css.replace(/\/\* Evita que el selector global header[\s\S]*?\.staff-header \{[\s\S]*?\}\n\n/, '');
+            write('css/stabilization.css', css);
+          }
+
+          // 9) producto.html: preload UI component styles so product detail also has stable first paint.
+          {
+            let html = read('producto.html');
+            const marker = '    <link rel="stylesheet" href="css/ui-polish.css" data-kantu-ui-polish="true">';
+            const replacement = `${marker}\n    <link rel="stylesheet" href="css/ui-polish-select.css" data-kantu-ui-polish-select="true">\n    <link rel="stylesheet" href="css/brand-experience.css" data-kantu-brand-experience="true">`;
+            if (!html.includes('data-kantu-brand-experience="true"')) {
+              html = mustReplace(html, marker, replacement, 'product UI stylesheet marker');
+            }
+            write('producto.html', html);
+          }
+          NODE
+
+      - name: Commit deterministic cleanup
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No cleanup changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html producto.html css/styles.css css/brand.css css/mobile.css css/stabilization.css js/app.js js/customer-ux.js js/experience-loader.js
+          git commit -m "Remove legacy source and late visual bootstrap [cleanup-applied]"
+          git push origin HEAD:refactor/remove-legacy-source-and-late-css
