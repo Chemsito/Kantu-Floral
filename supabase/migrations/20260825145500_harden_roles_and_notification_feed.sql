@@ -76,7 +76,7 @@ grant execute on function public.get_order_item_customizations(bigint) to authen
 
 -- 3) El feed público deja de ejecutar una función SECURITY DEFINER expuesta.
 -- Los helpers privilegiados viven en `private`, que no forma parte del Data API.
-grant usage on schema private to anon, authenticated;
+grant usage on schema private to anon, authenticated, service_role;
 
 create or replace function private.get_public_promotion_notification_feed()
 returns table(notification_key text, kind text, title text, body text, severity text, action_url text, created_at timestamptz)
@@ -198,7 +198,15 @@ stable
 security invoker
 set search_path = ''
 as $$
-  with feed as (
+  with featured_products as (
+    select p.*
+    from public.products p
+    where p.active
+      and p.featured
+      and p.stock > 0
+    order by p.created_at desc nulls last, p.id desc
+    limit 10
+  ), feed as (
     select * from private.get_public_promotion_notification_feed()
     union all
     select
@@ -209,10 +217,7 @@ as $$
       'info'::text,
       ('producto.html?id=' || p.id::text)::text,
       coalesce(p.created_at, now())
-    from public.products p
-    where p.active and p.featured and p.stock > 0
-    order by created_at desc
-    limit 10
+    from featured_products p
   ), personal as (
     select * from private.get_customer_order_notification_feed()
     union all
