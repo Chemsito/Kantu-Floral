@@ -18,7 +18,7 @@
 
     const MATCH_OPTIONS = Object.freeze({
         audiences: [
-            ["pareja", "❤️ Pareja"], ["mama", "🌷 Mamá"], ["amiga", "✨ Amiga"], ["familiar", "🎁 Familiar"], ["otro", "💐 Otra persona"]
+            ["pareja", "❤️ Pareja"], ["mama", "🌷 Mamá"], ["papa", "🎁 Papá"], ["amiga", "✨ Amiga"], ["familiar", "🎁 Familiar"], ["otro", "💐 Otra persona"]
         ],
         occasions: [
             ["cumpleanos", "🎂 Cumpleaños"], ["aniversario", "🥂 Aniversario"], ["amor", "❤️ Te amo"], ["perdon", "🤍 Perdón"],
@@ -71,6 +71,11 @@
             .from("customer_notification_reads")
             .select("notification_key")
             .eq("user_id", notificationState.userId);
+        if (result.error) {
+            console.error("No se pudo cargar el estado de lectura de notificaciones:", result.error);
+            notificationState.reads = new Set();
+            return;
+        }
         notificationState.reads = new Set((result.data || []).map(row => String(row.notification_key)));
     }
 
@@ -153,19 +158,30 @@
         });
     }
 
+    function showNotificationPersistenceError() {
+        const label = document.getElementById("notificationSoundStatus");
+        if (label) label.textContent = "No pudimos guardar el cambio. Inténtalo nuevamente.";
+    }
+
     async function markNotificationRead(key) {
         const normalized = String(key || "");
         if (!normalized || notificationState.reads.has(normalized)) return;
-        notificationState.reads.add(normalized);
+
         if (notificationState.userId) {
-            await supabaseClient.from("customer_notification_reads").upsert({
+            const result = await supabaseClient.from("customer_notification_reads").upsert({
                 user_id: notificationState.userId,
                 notification_key: normalized,
                 read_at: new Date().toISOString()
             });
-        } else {
-            writeGuestReads();
+            if (result.error) {
+                console.error("No se pudo guardar la lectura de la notificación:", result.error);
+                showNotificationPersistenceError();
+                return;
+            }
         }
+
+        notificationState.reads.add(normalized);
+        if (!notificationState.userId) writeGuestReads();
         syncNotificationBadge();
         renderNotifications();
     }
@@ -173,18 +189,31 @@
     async function markAllNotificationsRead() {
         const unread = notificationState.items.filter(item => !notificationState.reads.has(String(item.notification_key)));
         if (!unread.length) return;
-        unread.forEach(item => notificationState.reads.add(String(item.notification_key)));
-        if (notificationState.userId) {
-            await supabaseClient.from("customer_notification_reads").upsert(unread.map(item => ({
-                user_id: notificationState.userId,
-                notification_key: String(item.notification_key),
-                read_at: new Date().toISOString()
-            })));
-        } else {
-            writeGuestReads();
+        const keys = unread.map(item => String(item.notification_key));
+        const button = document.getElementById("notificationMarkAll");
+        if (button) button.disabled = true;
+
+        try {
+            if (notificationState.userId) {
+                const result = await supabaseClient.from("customer_notification_reads").upsert(keys.map(notificationKey => ({
+                    user_id: notificationState.userId,
+                    notification_key: notificationKey,
+                    read_at: new Date().toISOString()
+                })));
+                if (result.error) {
+                    console.error("No se pudieron guardar las lecturas de notificaciones:", result.error);
+                    showNotificationPersistenceError();
+                    return;
+                }
+            }
+
+            keys.forEach(key => notificationState.reads.add(key));
+            if (!notificationState.userId) writeGuestReads();
+            syncNotificationBadge();
+            renderNotifications();
+        } finally {
+            if (button) button.disabled = false;
         }
-        syncNotificationBadge();
-        renderNotifications();
     }
 
     function syncNotificationBadge() {
@@ -201,6 +230,15 @@
         return "🔔";
     }
 
+    function notificationActionUrl(value) {
+        const action = String(value || "");
+        if (action.startsWith("producto.html")) return action;
+        if (action.startsWith("#")) {
+            return document.body.classList.contains("product-detail-page") ? `index.html${action}` : action;
+        }
+        return document.body.classList.contains("product-detail-page") ? "index.html#catalogo" : "#catalogo";
+    }
+
     function renderNotifications() {
         const list = document.getElementById("notificationList");
         if (!list) return;
@@ -211,9 +249,7 @@
         list.innerHTML = notificationState.items.map(item => {
             const key = String(item.notification_key);
             const read = notificationState.reads.has(key);
-            const safeUrl = String(item.action_url || "").startsWith("#") || String(item.action_url || "").startsWith("producto.html")
-                ? String(item.action_url)
-                : "#catalogo";
+            const safeUrl = notificationActionUrl(item.action_url);
             return `<a class="kantu-notification-item${read ? " read" : " unread"}" href="${core.escapeHtml(safeUrl)}" data-notification-key="${core.escapeHtml(key)}">
                 <span class="kantu-notification-icon" aria-hidden="true">${notificationIcon(item.kind)}</span>
                 <span class="kantu-notification-copy"><strong>${core.escapeHtml(item.title || "Notificación")}</strong><small>${core.escapeHtml(item.body || "")}</small></span>
