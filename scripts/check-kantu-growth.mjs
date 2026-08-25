@@ -7,7 +7,7 @@ const admin = fs.readFileSync("js/admin-growth.js", "utf8");
 const standalone = fs.readFileSync("js/admin-standalone.js", "utf8");
 const css = fs.readFileSync("css/kantu-growth.css", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20260824213000_add_growth_notifications_and_claims.sql", "utf8");
-const hardeningMigration = fs.readFileSync("supabase/migrations/20260825145500_harden_roles_and_notification_feed.sql", "utf8");
+const hardeningMigration = fs.readFileSync("supabase/migrations/20260825145025_harden_roles_and_notification_feed.sql", "utf8");
 const edge = fs.readFileSync("supabase/functions/submit-customer-claim/index.ts", "utf8");
 const workflow = fs.readFileSync(".github/workflows/check.yml", "utf8");
 
