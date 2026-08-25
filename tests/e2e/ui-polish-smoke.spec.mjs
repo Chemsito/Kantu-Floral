@@ -19,6 +19,10 @@ test.describe("Kantu Floral global UI polish", () => {
         await expect(page.locator("#catalogSort")).toHaveValue("popular");
         await expect(trigger).toContainText("Más pedidos");
 
+        await page.locator("#catalogReset").click();
+        await expect(page.locator("#catalogSort")).toHaveValue("recommended");
+        await expect(trigger).toContainText("Recomendados");
+
         const triggerStyles = await trigger.evaluate(element => {
             const computed = getComputedStyle(element);
             return {
@@ -41,8 +45,9 @@ test.describe("Kantu Floral global UI polish", () => {
         expect(accent).toBe("#a92f50");
     });
 
-    test("shares the visual system with staff through customization styles", async ({ page }) => {
+    test("shares the visual system with staff", async ({ page }) => {
         await page.goto("/staff.html");
+        await expect(page.locator("link[data-kantu-ui-polish='true']")).toHaveCount(1);
         const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--kantu-control-accent").trim());
         expect(accent).toBe("#a92f50");
     });
