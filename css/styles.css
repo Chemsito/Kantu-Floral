@@ -50,7 +50,7 @@ a {
    HEADER
 ========================= */
 
-header {
+.site-header {
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -173,73 +173,6 @@ nav a:hover {
 
 .mobile-menu {
     display: none;
-}
-
-/* =========================
-   HERO
-========================= */
-
-.hero {
-    min-height: 600px;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(42, 25, 33, 0.78),
-            rgba(42, 25, 33, 0.25)
-        ),
-        url("https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1800&q=85")
-        center / cover;
-
-    display: flex;
-    align-items: center;
-}
-
-.hero-content {
-    max-width: 1250px;
-    width: 100%;
-    margin: auto;
-    padding: 80px 25px;
-    color: white;
-}
-
-.hero-label {
-    display: inline-block;
-
-    padding: 8px 15px;
-    border-radius: 30px;
-
-    background: rgba(255,255,255,0.16);
-    backdrop-filter: blur(10px);
-
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-}
-
-.hero h1 {
-    max-width: 650px;
-    margin: 20px 0;
-
-    font-family: "Playfair Display", serif;
-    font-size: clamp(48px, 7vw, 82px);
-    line-height: 1.02;
-}
-
-.hero p {
-    max-width: 520px;
-    margin-bottom: 30px;
-
-    color: rgba(255,255,255,.9);
-    font-size: 17px;
-    line-height: 1.7;
-}
-
-.hero-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
 }
 
 .btn {
@@ -1424,17 +1357,11 @@ body.admin-open { overflow: hidden; }
         white-space: nowrap;
     }
 
-    .hero {
-        min-height: 540px;
-    }
+    
 
-    .hero-content {
-        padding: 60px 20px;
-    }
+    
 
-    .hero h1 {
-        font-size: 48px;
-    }
+    
 
     .section {
         padding: 65px 18px;

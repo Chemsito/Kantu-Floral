@@ -78,15 +78,6 @@
         }
     });
 
-    function ensureStyles() {
-        if (document.querySelector('link[data-kantu-customer-ux-style="true"]')) return;
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = "css/customer-ux.css";
-        link.dataset.kantuCustomerUxStyle = "true";
-        document.head.appendChild(link);
-    }
-
     function normalizeSearch(value) {
         return String(value || "")
             .normalize("NFD")
@@ -294,27 +285,6 @@
         }
     }
 
-    async function syncHeroForSession(userOverride = undefined) {
-        const heroContent = document.querySelector(".hero-content");
-        if (!heroContent || !window.supabaseClient?.auth) return;
-
-        let user = userOverride;
-        if (userOverride === undefined) {
-            const { data } = await supabaseClient.auth.getSession();
-            user = data?.session?.user || null;
-        }
-
-        heroContent.hidden = Boolean(user);
-        heroContent.setAttribute("aria-hidden", String(Boolean(user)));
-    }
-
-    function initializeHeroSessionBehavior() {
-        syncHeroForSession();
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-            window.setTimeout(() => syncHeroForSession(session?.user || null), 0);
-        });
-    }
-
     function initializeScrollTopButton() {
         if (document.getElementById("scrollTopButton")) return;
 
@@ -516,18 +486,14 @@
     }
 
     function initializeCustomerUxPack() {
-        ensureStyles();
         installCatalogRenderer();
         renderCatalogToolbar();
-        initializeHeroSessionBehavior();
         initializeScrollTopButton();
         installReceiptPaymentGate();
         renderFooterExperience();
         loadProductPopularity();
         if (typeof renderProducts === "function") renderProducts();
     }
-
-    ensureStyles();
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
             window.setTimeout(initializeCustomerUxPack, 0);
