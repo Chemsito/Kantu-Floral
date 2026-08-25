@@ -667,10 +667,12 @@
         const sync = () => {
             const action = bar.querySelector(".kantu-checkout-mobile-action");
             const total = bar.querySelector(".kantu-checkout-mobile-total strong");
-            if (total) total.textContent = sourceTotal.textContent || "S/ 0.00";
+            const nextTotal = sourceTotal.textContent || "S/ 0.00";
+            const nextLabel = sourceButton.disabled ? "Procesando..." : "Crear pedido";
+            if (total && total.textContent !== nextTotal) total.textContent = nextTotal;
             if (action) {
-                action.disabled = sourceButton.disabled;
-                action.textContent = sourceButton.disabled ? "Procesando..." : "Crear pedido";
+                if (action.disabled !== sourceButton.disabled) action.disabled = sourceButton.disabled;
+                if (action.textContent !== nextLabel) action.textContent = nextLabel;
             }
         };
         sync();
