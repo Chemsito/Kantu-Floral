@@ -1,0 +1,21 @@
+{
+  "name": "Kantu Floral | Flores que cuentan historias",
+  "short_name": "Kantu Floral",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffaf6",
+  "theme_color": "#c44762",
+  "icons": [
+    {
+      "src": "assets/brand/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/brand/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
