@@ -11,6 +11,16 @@
         window.supabaseClient = supabaseClient;
     }
 
+    function loadStyleOnce(href, dataAttribute, dataValue) {
+        if (document.querySelector(`link[${dataAttribute}="${dataValue}"]`)) return;
+
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = href;
+        link.setAttribute(dataAttribute, dataValue);
+        document.head.appendChild(link);
+    }
+
     function loadScriptOnce(src, dataAttribute, dataValue) {
         if (document.querySelector(`script[${dataAttribute}="${dataValue}"]`)) return;
 
@@ -22,6 +32,8 @@
     }
 
     const isStandaloneAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
+
+    loadStyleOnce("css/ui-polish.css", "data-kantu-ui-polish", "true");
 
     loadScriptOnce("js/admin-standalone.js", "data-kantu-admin-standalone", "true");
     loadScriptOnce("js/navigation-bridge.js", "data-kantu-navigation-bridge", "true");
