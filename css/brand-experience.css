@@ -1,0 +1,760 @@
+/* =====================================================
+   KANTU FLORAL — BRAND EXPERIENCE SYSTEM
+   Capa compartida de identidad visual para tienda, checkout, Admin y Staff.
+===================================================== */
+
+:root {
+    --kantu-bg: #fffaf7;
+    --kantu-surface: #fffdfb;
+    --kantu-surface-soft: #fff5f3;
+    --kantu-surface-tint: #fbecef;
+    --kantu-ink: #3d2a2f;
+    --kantu-muted: #7d6a70;
+    --kantu-border: #ead8d5;
+    --kantu-border-strong: #d9b6ba;
+    --kantu-brand: #9f2f50;
+    --kantu-brand-strong: #7f1734;
+    --kantu-brand-soft: #f8e6eb;
+    --kantu-success: #347251;
+    --kantu-warning: #8a5a12;
+    --kantu-danger: #a33143;
+
+    --kantu-space-1: 4px;
+    --kantu-space-2: 8px;
+    --kantu-space-3: 12px;
+    --kantu-space-4: 16px;
+    --kantu-space-5: 20px;
+    --kantu-space-6: 24px;
+    --kantu-space-8: 32px;
+
+    --kantu-radius-xs: 8px;
+    --kantu-radius-sm: 12px;
+    --kantu-radius-md: 16px;
+    --kantu-radius-lg: 22px;
+    --kantu-radius-xl: 28px;
+    --kantu-radius-pill: 999px;
+
+    --kantu-shadow-xs: 0 5px 16px rgba(74, 39, 48, .05);
+    --kantu-shadow-sm: 0 10px 28px rgba(74, 39, 48, .075);
+    --kantu-shadow-md: 0 18px 48px rgba(74, 39, 48, .12);
+    --kantu-shadow-lg: 0 28px 80px rgba(49, 24, 31, .20);
+
+    --kantu-motion-fast: 140ms;
+    --kantu-motion-base: 200ms;
+    --kantu-motion-slow: 320ms;
+    --kantu-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* =====================================================
+   MOTION + FOCUS LANGUAGE
+===================================================== */
+
+:where(.btn, .icon-button, .user-button, .category-btn, .product-card, .checkout-upsell-item,
+       .admin-product-card, .admin-order-card, .admin-payment-card, .staff-order-card,
+       .staff-stat, .kantu-select-trigger, .kantu-select-option) {
+    transition-duration: var(--kantu-motion-base) !important;
+    transition-timing-function: var(--kantu-ease) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* =====================================================
+   KANTU ICON SYSTEM
+===================================================== */
+
+.kantu-icon {
+    width: 1.15em;
+    height: 1.15em;
+    display: inline-block;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.16em;
+}
+
+.icon-button .kantu-icon,
+.close-modal .kantu-icon,
+.scroll-top-button .kantu-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.feature-icon .kantu-icon,
+.staff-access-icon .kantu-icon,
+.staff-empty > span .kantu-icon {
+    width: 30px;
+    height: 30px;
+}
+
+/* =====================================================
+   TOOLTIPS — replaces browser title bubbles
+===================================================== */
+
+[data-kantu-tooltip] {
+    position: relative;
+}
+
+[data-kantu-tooltip]::after,
+[data-kantu-tooltip]::before {
+    position: absolute;
+    z-index: 16000;
+    left: 50%;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 5px);
+    transition: opacity var(--kantu-motion-fast) var(--kantu-ease),
+        transform var(--kantu-motion-fast) var(--kantu-ease),
+        visibility var(--kantu-motion-fast) var(--kantu-ease);
+}
+
+[data-kantu-tooltip]::after {
+    content: attr(data-kantu-tooltip);
+    bottom: calc(100% + 10px);
+    width: max-content;
+    max-width: min(260px, 78vw);
+    padding: 8px 10px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 9px;
+    background: #3b272d;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(35, 19, 24, .18);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+}
+
+[data-kantu-tooltip]::before {
+    content: "";
+    bottom: calc(100% + 5px);
+    width: 8px;
+    height: 8px;
+    background: #3b272d;
+    rotate: 45deg;
+}
+
+[data-kantu-tooltip]:hover::after,
+[data-kantu-tooltip]:hover::before,
+[data-kantu-tooltip]:focus-visible::after,
+[data-kantu-tooltip]:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+/* =====================================================
+   DIALOGS — replaces native confirm() visual interruptions
+===================================================== */
+
+.kantu-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20050;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(42, 24, 29, .48);
+    backdrop-filter: blur(8px);
+    animation: kantuFadeIn var(--kantu-motion-base) var(--kantu-ease);
+}
+
+.kantu-dialog-overlay[hidden] { display: none !important; }
+
+.kantu-dialog {
+    width: min(440px, 100%);
+    padding: 22px;
+    border: 1px solid rgba(159, 47, 80, .14);
+    border-radius: var(--kantu-radius-lg);
+    background: var(--kantu-surface);
+    box-shadow: var(--kantu-shadow-lg);
+    animation: kantuDialogIn var(--kantu-motion-slow) var(--kantu-ease);
+}
+
+.kantu-dialog-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    background: var(--kantu-brand-soft);
+    color: var(--kantu-brand);
+}
+
+.kantu-dialog.danger .kantu-dialog-icon {
+    background: #fdecef;
+    color: var(--kantu-danger);
+}
+
+.kantu-dialog h3 {
+    margin: 0;
+    color: var(--kantu-ink);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 24px;
+}
+
+.kantu-dialog p {
+    margin: 9px 0 0;
+    color: var(--kantu-muted);
+    line-height: 1.55;
+}
+
+.kantu-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.kantu-dialog-actions button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.kantu-dialog-cancel {
+    border: 1px solid var(--kantu-border);
+    background: #fff;
+    color: #654e54;
+}
+
+.kantu-dialog-confirm {
+    border: 1px solid var(--kantu-brand);
+    background: var(--kantu-brand);
+    color: #fff;
+}
+
+.kantu-dialog.danger .kantu-dialog-confirm {
+    border-color: var(--kantu-danger);
+    background: var(--kantu-danger);
+}
+
+@keyframes kantuFadeIn { from { opacity: 0; } }
+@keyframes kantuDialogIn { from { opacity: 0; transform: translateY(12px) scale(.985); } }
+
+/* =====================================================
+   LEAFLET / MAP — brand integration
+===================================================== */
+
+.leaflet-container {
+    font-family: "DM Sans", system-ui, sans-serif !important;
+    background: #f6efec !important;
+}
+
+.leaflet-control-zoom {
+    overflow: hidden;
+    border: 1px solid rgba(159, 47, 80, .14) !important;
+    border-radius: 13px !important;
+    box-shadow: var(--kantu-shadow-sm) !important;
+}
+
+.leaflet-control-zoom a {
+    display: grid !important;
+    place-items: center;
+    width: 38px !important;
+    height: 38px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #eee0dd !important;
+    background: rgba(255, 253, 251, .97) !important;
+    color: var(--kantu-brand-strong) !important;
+    font: 700 20px/1 "DM Sans", sans-serif !important;
+}
+
+.leaflet-control-zoom a:last-child { border-bottom: 0 !important; }
+.leaflet-control-zoom a:hover { background: var(--kantu-brand-soft) !important; }
+
+.leaflet-control-attribution {
+    border-radius: 8px 0 0 0;
+    background: rgba(255, 253, 251, .88) !important;
+    color: #88777b !important;
+    font-size: 9px !important;
+    backdrop-filter: blur(8px);
+}
+
+.leaflet-control-attribution a { color: var(--kantu-brand) !important; }
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background: var(--kantu-surface) !important;
+    color: var(--kantu-ink) !important;
+}
+.leaflet-popup-content-wrapper { border-radius: 14px !important; box-shadow: var(--kantu-shadow-md) !important; }
+
+/* =====================================================
+   SKELETONS + LOADING
+===================================================== */
+
+.kantu-product-skeleton {
+    min-height: 360px;
+    overflow: hidden;
+    border: 1px solid #eee2df;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.kantu-skeleton-media,
+.kantu-skeleton-line {
+    position: relative;
+    overflow: hidden;
+    background: #f2e9e7;
+}
+
+.kantu-skeleton-media { height: 230px; }
+.kantu-skeleton-body { display: grid; gap: 10px; padding: 16px; }
+.kantu-skeleton-line { height: 12px; border-radius: 999px; }
+.kantu-skeleton-line.wide { width: 82%; }
+.kantu-skeleton-line.medium { width: 58%; }
+.kantu-skeleton-line.short { width: 36%; }
+
+.kantu-skeleton-media::after,
+.kantu-skeleton-line::after,
+.kantu-loading-state::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    translate: -100% 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+    animation: kantuShimmer 1.35s infinite;
+}
+
+.kantu-loading-state {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #eee2df;
+    border-radius: 12px;
+    background: #faf4f2;
+    color: #8b777c;
+}
+
+@keyframes kantuShimmer { to { translate: 100% 0; } }
+
+/* =====================================================
+   EMPTY / ERROR / SUCCESS STATES
+===================================================== */
+
+.kantu-state,
+:where(.staff-empty, .occasion-reminder-empty, .commerce-empty) {
+    border: 1px solid #eadedb;
+    border-radius: var(--kantu-radius-md);
+    background: linear-gradient(145deg, #fffdfb, #fff7f5);
+    color: var(--kantu-muted);
+}
+
+.kantu-state h3,
+.kantu-state strong,
+:where(.staff-empty, .occasion-reminder-empty) h3,
+:where(.staff-empty, .occasion-reminder-empty) strong {
+    color: var(--kantu-ink);
+}
+
+:where(.admin-message, .account-message, .staff-message, .checkout-error, .occasion-reminder-status) {
+    border-radius: 12px !important;
+    border: 1px solid transparent;
+}
+
+:where(.admin-message, .account-message, .staff-message, .occasion-reminder-status).success {
+    border-color: rgba(52,114,81,.18);
+    background: #f0f8f3 !important;
+    color: var(--kantu-success) !important;
+}
+
+:where(.admin-message, .account-message, .staff-message, .checkout-error, .occasion-reminder-status).error,
+.checkout-error:not(:empty) {
+    border-color: rgba(163,49,67,.18);
+    background: #fff1f3 !important;
+    color: var(--kantu-danger) !important;
+}
+
+/* =====================================================
+   PRODUCT CARDS — stronger hierarchy and complete names
+===================================================== */
+
+.product-card {
+    border: 1px solid rgba(159, 47, 80, .10) !important;
+    border-radius: var(--kantu-radius-lg) !important;
+    background: var(--kantu-surface) !important;
+    box-shadow: var(--kantu-shadow-xs);
+    overflow: hidden;
+}
+
+.product-card:hover {
+    translate: 0 -3px;
+    border-color: rgba(159, 47, 80, .22) !important;
+    box-shadow: var(--kantu-shadow-sm);
+}
+
+.product-card .product-image img {
+    transition: transform var(--kantu-motion-slow) var(--kantu-ease);
+}
+.product-card:hover .product-image img { transform: scale(1.025); }
+
+.product-info h3,
+.product-card h3 {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    line-height: 1.28;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+}
+
+.product-card .price { font-variant-numeric: tabular-nums; }
+.product-card .add-cart { box-shadow: 0 5px 14px rgba(127,23,52,.12); }
+
+/* =====================================================
+   GIFT UPSELL — complete names + visual hierarchy
+===================================================== */
+
+.checkout-upsell-section {
+    border-radius: var(--kantu-radius-lg) !important;
+    background: linear-gradient(145deg, #fffaf8, #fff5f4) !important;
+    box-shadow: var(--kantu-shadow-xs);
+}
+
+.checkout-upsell-list {
+    gap: 12px !important;
+}
+
+.checkout-upsell-item {
+    align-items: start !important;
+    min-height: 142px;
+    padding: 12px !important;
+    border-radius: var(--kantu-radius-md) !important;
+    background: var(--kantu-surface) !important;
+    box-shadow: 0 4px 16px rgba(72,37,45,.035);
+}
+
+.checkout-upsell-item:hover {
+    border-color: rgba(159, 47, 80, .22) !important;
+    box-shadow: var(--kantu-shadow-xs);
+}
+
+.checkout-upsell-item img,
+.checkout-upsell-placeholder {
+    width: 66px !important;
+    height: 66px !important;
+    border-radius: 13px !important;
+}
+
+.checkout-upsell-info {
+    display: flex;
+    min-width: 0;
+    min-height: 116px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.checkout-upsell-info strong {
+    display: block;
+    overflow: visible !important;
+    max-width: 100%;
+    color: var(--kantu-ink) !important;
+    font-size: 12px !important;
+    line-height: 1.35;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+}
+
+.checkout-upsell-info span {
+    margin: 4px 0 9px !important;
+    color: var(--kantu-brand) !important;
+    font-weight: 800 !important;
+}
+
+.checkout-upsell-add {
+    margin-top: auto;
+    min-height: 36px !important;
+    border-radius: 10px !important;
+    background: var(--kantu-brand) !important;
+    box-shadow: 0 5px 14px rgba(127,23,52,.13);
+}
+.checkout-upsell-add:hover:not(:disabled) { background: var(--kantu-brand-strong) !important; transform: translateY(-1px); }
+
+/* =====================================================
+   CHECKOUT — desktop review + mobile sticky action
+===================================================== */
+
+@media (min-width: 761px) {
+    .checkout-review-flow-section {
+        top: 12px !important;
+        max-height: calc(100vh - 120px);
+        overflow: auto;
+        border-color: rgba(159,47,80,.14) !important;
+        background: rgba(255,253,251,.98) !important;
+        box-shadow: var(--kantu-shadow-sm);
+        scrollbar-width: thin;
+    }
+
+    .checkout-review-flow-section .checkout-total-row {
+        position: sticky;
+        bottom: -1px;
+        margin-inline: -4px;
+        padding: 13px 4px 5px;
+        background: linear-gradient(transparent, #fffdfb 28%);
+    }
+}
+
+.kantu-checkout-mobile-bar {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    #checkoutModal.show .kantu-checkout-mobile-bar {
+        position: fixed;
+        z-index: 13050;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px max(14px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+        border-top: 1px solid rgba(159,47,80,.13);
+        background: rgba(255,253,251,.96);
+        box-shadow: 0 -14px 36px rgba(57,31,38,.12);
+        backdrop-filter: blur(16px);
+    }
+
+    #checkoutModal.show .checkout-modal {
+        padding-bottom: 94px !important;
+    }
+
+    .kantu-checkout-mobile-total small,
+    .kantu-checkout-mobile-total strong { display: block; }
+    .kantu-checkout-mobile-total small { color: var(--kantu-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .kantu-checkout-mobile-total strong { margin-top: 2px; color: var(--kantu-ink); font-size: 18px; }
+    .kantu-checkout-mobile-action {
+        min-height: 46px;
+        padding: 10px 17px;
+        border: 0;
+        border-radius: 13px;
+        background: var(--kantu-brand);
+        color: #fff;
+        font-weight: 800;
+        box-shadow: 0 8px 20px rgba(127,23,52,.18);
+    }
+    .kantu-checkout-mobile-action:disabled { opacity: .55; }
+}
+
+/* =====================================================
+   ADMIN — compact professional console
+===================================================== */
+
+.admin-modal {
+    background: var(--kantu-surface) !important;
+}
+
+:where(.admin-product-card, .admin-order-card, .admin-payment-card, .commerce-overview-card,
+       .inventory-ledger-card, .admin-schedule-card) {
+    border-color: var(--kantu-border) !important;
+    border-radius: var(--kantu-radius-lg) !important;
+    box-shadow: var(--kantu-shadow-xs);
+}
+
+:where(.admin-product-card, .admin-order-card, .admin-payment-card):hover {
+    border-color: var(--kantu-border-strong) !important;
+    box-shadow: var(--kantu-shadow-sm);
+}
+
+[data-admin-view] {
+    border-radius: 11px !important;
+    transition: background-color var(--kantu-motion-fast) var(--kantu-ease), color var(--kantu-motion-fast) var(--kantu-ease) !important;
+}
+[data-admin-view].active {
+    background: var(--kantu-brand-soft) !important;
+    color: var(--kantu-brand-strong) !important;
+    font-weight: 800;
+}
+
+:where(.admin-toolbar, .admin-payment-filters, .inventory-ledger-heading) {
+    position: relative;
+    z-index: 2;
+}
+
+.admin-product-actions,
+.admin-payment-actions {
+    gap: 8px !important;
+}
+
+/* =====================================================
+   STAFF — same brand, operational character retained
+===================================================== */
+
+.staff-header {
+    background: rgba(255,250,247,.94) !important;
+    border-color: var(--kantu-border) !important;
+    box-shadow: 0 8px 24px rgba(69,42,36,.035);
+}
+
+.staff-section {
+    border-color: var(--kantu-border) !important;
+    border-radius: var(--kantu-radius-lg) !important;
+    box-shadow: var(--kantu-shadow-sm) !important;
+}
+
+.staff-stat,
+.staff-order-card,
+.staff-team-row,
+.staff-team-search {
+    border-color: var(--kantu-border) !important;
+    border-radius: var(--kantu-radius-md) !important;
+}
+
+.staff-order-card:hover,
+.staff-stat:hover {
+    border-color: var(--kantu-border-strong) !important;
+    box-shadow: var(--kantu-shadow-xs);
+}
+
+.staff-primary-button,
+.staff-action-button {
+    background: var(--kantu-brand) !important;
+    border-radius: 12px !important;
+}
+
+/* =====================================================
+   TOAST SYSTEM
+===================================================== */
+
+.kantu-toast-stack {
+    position: fixed;
+    z-index: 21000;
+    top: 84px;
+    right: 18px;
+    display: grid;
+    width: min(360px, calc(100vw - 28px));
+    gap: 9px;
+    pointer-events: none;
+}
+
+.kantu-toast-card {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 30px;
+    gap: 10px;
+    align-items: center;
+    padding: 11px 11px 11px 12px;
+    border: 1px solid var(--kantu-border);
+    border-radius: 15px;
+    background: rgba(255,253,251,.98);
+    color: var(--kantu-ink);
+    box-shadow: var(--kantu-shadow-md);
+    pointer-events: auto;
+    animation: kantuToastIn var(--kantu-motion-slow) var(--kantu-ease);
+}
+
+.kantu-toast-card.success { border-color: rgba(52,114,81,.24); }
+.kantu-toast-card.error { border-color: rgba(163,49,67,.24); }
+.kantu-toast-card.warning { border-color: rgba(138,90,18,.24); }
+
+.kantu-toast-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: var(--kantu-brand-soft);
+    color: var(--kantu-brand);
+}
+.kantu-toast-card.success .kantu-toast-icon { background: #edf7f0; color: var(--kantu-success); }
+.kantu-toast-card.error .kantu-toast-icon { background: #fdecef; color: var(--kantu-danger); }
+.kantu-toast-card.warning .kantu-toast-icon { background: #fff5e4; color: var(--kantu-warning); }
+
+.kantu-toast-message { min-width: 0; font-size: 13px; font-weight: 650; line-height: 1.4; }
+.kantu-toast-close { width: 30px; height: 30px; border: 0; border-radius: 9px; background: transparent; color: #8b767b; cursor: pointer; }
+.kantu-toast-close:hover { background: #f8eeee; color: var(--kantu-brand); }
+
+@keyframes kantuToastIn { from { opacity: 0; transform: translateX(14px) scale(.98); } }
+
+/* =====================================================
+   HEADER — one application, consistent navigation
+===================================================== */
+
+.site-header {
+    transition: background-color var(--kantu-motion-base) var(--kantu-ease),
+        box-shadow var(--kantu-motion-base) var(--kantu-ease),
+        border-color var(--kantu-motion-base) var(--kantu-ease) !important;
+}
+
+.site-header.kantu-scrolled {
+    background: rgba(255,250,247,.94) !important;
+    border-bottom-color: rgba(159,47,80,.10) !important;
+    box-shadow: 0 8px 28px rgba(63,34,42,.07);
+    backdrop-filter: blur(18px);
+}
+
+.site-header nav a,
+.site-header nav button {
+    position: relative;
+}
+
+.site-header nav a::after,
+.site-header nav button::after {
+    content: "";
+    position: absolute;
+    right: 14%;
+    bottom: -7px;
+    left: 14%;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--kantu-brand);
+    opacity: 0;
+    transform: scaleX(.5);
+    transition: opacity var(--kantu-motion-fast) var(--kantu-ease), transform var(--kantu-motion-fast) var(--kantu-ease);
+}
+
+.site-header nav :where(a, button).kantu-current,
+.site-header nav :where(a, button)[aria-current="page"],
+.site-header nav :where(a, button)[aria-current="true"] {
+    color: var(--kantu-brand-strong) !important;
+    font-weight: 800;
+}
+
+.site-header nav :where(a, button).kantu-current::after,
+.site-header nav :where(a, button)[aria-current]::after {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+/* =====================================================
+   SHARED COMPONENT CONSOLIDATION — reduce CSS divergence
+===================================================== */
+
+:where(.checkout-flow-section, .checkout-gift-section, .checkout-schedule-section,
+       .checkout-upsell-section, .commerce-overview-card, .inventory-ledger-card,
+       .admin-schedule-card, .staff-section) {
+    border-radius: var(--kantu-radius-lg);
+}
+
+:where(.checkout-surprise-option, .checkout-recipient-toggle, .staff-info-box,
+       .commerce-panel, .occasion-reminder-card) {
+    border-radius: var(--kantu-radius-md);
+}
+
+:where(.btn, .checkout-upsell-add, .staff-primary-button, .staff-secondary-button,
+       .staff-action-button, .admin-refresh) {
+    border-radius: var(--kantu-radius-sm);
+}
+
+@media (max-width: 520px) {
+    .kantu-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .kantu-dialog-actions button { width: 100%; }
+    .kantu-toast-stack { top: 72px; right: 14px; }
+    .checkout-upsell-item { min-height: 0; }
+    .checkout-upsell-info { min-height: 106px; }
+}
