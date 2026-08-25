@@ -95,6 +95,11 @@
     font-weight: 800;
 }
 
+.kantu-notification-actions button:disabled {
+    opacity: .45;
+    cursor: wait;
+}
+
 .kantu-notification-list {
     max-height: 480px;
     overflow-y: auto;
@@ -466,17 +471,114 @@ body.admin-standalone-mode #adminModal .admin-panel {
 .admin-claim-controls textarea { min-height: 60px; resize: vertical; }
 .admin-claim-controls button { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 9px; background: #9c3454; color: #fff; font-size: 10px; font-weight: 800; }
 
-.admin-recommendation-fields { grid-column: 1 / -1; padding: 14px; border: 1px solid #ead8db; border-radius: 14px; background: #fff9f6; }
-.admin-recommendation-fields h4 { margin: 0 0 4px; color: #4d333b; }
-.admin-recommendation-fields > p { margin: 0 0 12px; color: #78686d; font-size: 10px; }
-.admin-recommendation-priority { display: grid; grid-template-columns: minmax(0,1fr) 80px; gap: 10px; align-items: end; margin-bottom: 12px; }
-.admin-recommendation-priority label { display: grid; gap: 5px; font-size: 10px; font-weight: 800; color: #5b454c; }
+.admin-recommendation-fields {
+    grid-column: 1 / -1;
+    padding: 18px;
+    border: 1px solid #ead8db;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fffaf8 0%, #fff7f5 100%);
+    box-shadow: 0 12px 34px rgba(85, 44, 58, .05);
+}
+.admin-recommendation-fields h4 { margin: 0 0 5px; color: #4d333b; font-size: 15px; }
+.admin-recommendation-fields > p { max-width: 840px; margin: 0 0 16px; color: #78686d; font-size: 10px; line-height: 1.5; }
+.admin-recommendation-priority { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 12px; align-items: end; margin-bottom: 16px; }
+.admin-recommendation-priority label { display: grid; gap: 6px; font-size: 10px; font-weight: 800; color: #5b454c; }
 .admin-recommendation-priority input { width: 100%; }
-.admin-recommendation-groups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
-.admin-recommendation-group { padding: 10px; border: 1px solid #eedfe0; border-radius: 11px; background: #fff; }
-.admin-recommendation-group strong { display: block; margin-bottom: 6px; color: #5b444c; font-size: 10px; }
-.admin-recommendation-checks { display: flex; flex-wrap: wrap; gap: 5px; }
-.admin-recommendation-checks label { display: flex; align-items: center; gap: 4px; padding: 5px 7px; border-radius: 8px; background: #faf1f3; color: #6f5960; font-size: 9px; }
+.admin-recommendation-priority input[type="number"] {
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #dec9ce;
+    border-radius: 11px;
+    background: #fff;
+    color: #4c343b;
+    font-weight: 800;
+}
+.admin-recommendation-groups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.admin-recommendation-group {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #eadcdf;
+    border-radius: 14px;
+    background: rgba(255,255,255,.86);
+}
+.admin-recommendation-group strong {
+    display: block;
+    margin-bottom: 9px;
+    color: #573f47;
+    font-size: 10px;
+    letter-spacing: .15px;
+}
+.admin-recommendation-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.admin-recommendation-checks label {
+    position: relative;
+    display: block;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    user-select: none;
+}
+.admin-recommendation-checks input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+.admin-recommendation-checks span {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border: 1px solid #e4d4d8;
+    border-radius: 999px;
+    background: #fff;
+    color: #68555c;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.2;
+    box-shadow: 0 2px 7px rgba(79, 43, 55, .025);
+    transition: border-color .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.admin-recommendation-checks span::before {
+    content: "";
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d2bdc3;
+    border-radius: 50%;
+    background: #fff;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    transition: .16s ease;
+}
+.admin-recommendation-checks label:hover span {
+    border-color: #caa9b3;
+    background: #fffafb;
+    transform: translateY(-1px);
+}
+.admin-recommendation-checks input:checked + span {
+    border-color: #9f3d59;
+    background: #fff0f4;
+    color: #7d2943;
+    box-shadow: 0 5px 14px rgba(159, 61, 89, .10);
+}
+.admin-recommendation-checks input:checked + span::before {
+    content: "✓";
+    border-color: #9f3d59;
+    background: #9f3d59;
+}
+.admin-recommendation-checks input:focus-visible + span {
+    outline: 3px solid rgba(141, 72, 96, .22);
+    outline-offset: 2px;
+}
 
 @media (max-width: 760px) {
     .kantu-notification-panel { top: 72px; right: 8px; width: calc(100vw - 16px); }
@@ -493,5 +595,7 @@ body.admin-standalone-mode #adminModal .admin-panel {
     .admin-alert-card button { grid-column: 2; }
     .admin-claim-meta { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .admin-claim-controls { grid-template-columns: 1fr; }
+    .admin-recommendation-priority { grid-template-columns: 1fr; }
     .admin-recommendation-groups { grid-template-columns: 1fr; }
+    .admin-recommendation-checks span { min-height: 38px; padding: 8px 11px; }
 }
