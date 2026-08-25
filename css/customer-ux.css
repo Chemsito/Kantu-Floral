@@ -1,10 +1,5 @@
 /* KANTU FLORAL - CUSTOMER UX PACK */
 
-/* El bloque promocional del hero fue retirado permanentemente de la experiencia. */
-.hero {
-    display: none !important;
-}
-
 .catalog-tools {
     display: grid;
     grid-template-columns: minmax(240px, 1.5fr) minmax(180px, .8fr) minmax(170px, .7fr) auto;
