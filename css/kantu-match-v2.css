@@ -1,0 +1,84 @@
+/* Kantu Floral - Kantu Match v2 */
+
+.kantu-match-modal[data-kantu-match-v2="true"] {
+    position: relative;
+    scroll-padding-top: 64px;
+    scrollbar-gutter: stable;
+}
+
+.kantu-match-sticky-close {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    height: 0;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+}
+
+.kantu-match-sticky-close #kantuMatchClose {
+    position: relative !important;
+    top: 10px !important;
+    right: 8px !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px;
+    min-height: 48px;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    border: 1px solid #e4c8cc;
+    border-radius: 50%;
+    background: rgba(255, 250, 247, .97);
+    color: #a62f50;
+    box-shadow: 0 9px 24px rgba(76, 42, 51, .16);
+    font-size: 27px !important;
+    font-weight: 400;
+    line-height: 1;
+    pointer-events: auto;
+    backdrop-filter: blur(10px);
+    transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+.kantu-match-sticky-close #kantuMatchClose:hover {
+    transform: scale(1.04);
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(76, 42, 51, .2);
+}
+
+.kantu-match-sticky-close #kantuMatchClose:focus-visible {
+    outline: 3px solid rgba(166, 47, 80, .28);
+    outline-offset: 3px;
+}
+
+.kantu-match-modal[data-kantu-match-v2="true"] .kantu-match-choices {
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+}
+
+.kantu-match-modal[data-kantu-match-v2="true"] .kantu-match-choice span {
+    min-height: 48px;
+    padding-inline: 10px;
+}
+
+.kantu-match-modal[data-kantu-match-v2="true"] .kantu-match-card[data-kantu-match-primary="true"] {
+    border-color: #e6d2d2;
+}
+
+.kantu-match-modal[data-kantu-match-v2="true"] .kantu-match-card p {
+    min-height: 30px;
+}
+
+@media (max-width: 640px) {
+    .kantu-match-sticky-close #kantuMatchClose {
+        top: 7px !important;
+        right: 4px !important;
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px;
+        min-height: 46px;
+    }
+
+    .kantu-match-modal[data-kantu-match-v2="true"] .kantu-match-choices {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
