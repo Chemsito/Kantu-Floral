@@ -6,7 +6,7 @@ test.describe("Kantu Floral brand experience", () => {
         await expect(page.locator("link[data-kantu-brand-experience='true']")).toHaveCount(1);
 
         const favorites = page.locator("#favoritesButton");
-        await expect(favorites.locator("svg.kantu-icon")).toHaveCount(1);
+        await expect(favorites.locator("svg.kantu-icon, svg.kantu-source-icon")).toHaveCount(1);
         await expect(favorites).not.toHaveAttribute("title", /.+/);
         await expect(favorites).not.toHaveAttribute("data-kantu-tooltip", /.+/);
 
