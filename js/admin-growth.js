@@ -337,6 +337,22 @@
         if (action === "resume") processAdminAlarmSchedule();
     }
 
+    function installAdminAlertActionDelegation() {
+        if (document.documentElement.dataset.kantuAdminAlertDelegation === "true") return;
+        document.documentElement.dataset.kantuAdminAlertDelegation = "true";
+        document.addEventListener("click", event => {
+            const list = el("adminAlertsList");
+            if (!list) return;
+            const control = event.target.closest?.("[data-alert-control]");
+            if (control && list.contains(control)) {
+                handleAdminAlertControl(control);
+                return;
+            }
+            const review = event.target.closest?.("[data-admin-alert-action]");
+            if (review && list.contains(review)) openAdminAlertTarget(review);
+        });
+    }
+
     function refreshAdminAlertTiming() {
         const now = Date.now();
         let rerender = false;
@@ -394,18 +410,6 @@
                 <div class="admin-alert-actions"><button type="button" class="admin-alert-review" data-admin-alert-action="${core.escapeHtml(row.action_view || "dashboard")}" data-alert-entity="${core.escapeHtml(row.entity_id || "")}">Revisar</button>${urgentControls}</div>
             </article>`;
         }).join("");
-        if (list.dataset.kantuAlertActionsBound !== "true") {
-            list.dataset.kantuAlertActionsBound = "true";
-            list.addEventListener("click", event => {
-                const control = event.target.closest?.("[data-alert-control]");
-                if (control) {
-                    handleAdminAlertControl(control);
-                    return;
-                }
-                const review = event.target.closest?.("[data-admin-alert-action]");
-                if (review) openAdminAlertTarget(review);
-            });
-        }
     }
 
     async function loadAdminAlerts({ forceSound = false } = {}) {
@@ -607,6 +611,7 @@
     function initialize() {
         ensureStyles();
         alertState.memory = readAdminAlertMemory();
+        installAdminAlertActionDelegation();
         ensureAdminGrowthViews();
         installRecommendationHooks();
         startAdminAlertPolling();
