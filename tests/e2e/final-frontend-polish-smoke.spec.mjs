@@ -7,15 +7,23 @@ test("storefront exposes real help content and clean compact header controls", a
     await expect(page.locator("#ayuda-delivery")).toBeVisible();
     await expect(page.locator("#ayuda-pagos")).toBeVisible();
 
-    await expect(page.locator('footer a[href="#ayuda-faq"]')).toHaveCount(1);
-    await expect(page.locator('footer a[href="#ayuda-delivery"]')).toHaveCount(1);
-    await expect(page.locator('footer a[href="#ayuda-pagos"]')).toHaveCount(1);
+    const faqHelp = page.locator('footer [data-footer-help="faq"]');
+    const deliveryHelp = page.locator('footer [data-footer-help="delivery"]');
+    const paymentsHelp = page.locator('footer [data-footer-help="payments"]');
+    await expect(faqHelp).toHaveCount(1);
+    await expect(deliveryHelp).toHaveCount(1);
+    await expect(paymentsHelp).toHaveCount(1);
+
+    await faqHelp.click();
+    await expect(page.locator("#footerInfoModal")).toBeVisible();
+    await expect(page.locator("#footerInfoTitle")).toHaveText("Preguntas frecuentes");
+    await page.locator("#footerInfoClose").click();
 
     for (const selector of ["#favoritesButton", "#cartButton"]) {
         const control = page.locator(selector);
         await expect(control).not.toHaveAttribute("title", /.+/);
         await expect(control).not.toHaveAttribute("data-kantu-tooltip", /.+/);
-        await expect(control.locator("svg.kantu-source-icon")).toHaveCount(1);
+        await expect(control.locator("svg.kantu-source-icon, svg.kantu-icon")).toHaveCount(1);
     }
 });
 
