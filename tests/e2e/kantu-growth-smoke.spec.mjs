@@ -2,10 +2,19 @@ import { test, expect } from "@playwright/test";
 
 test("cliente ve campana, Kantu Match y Libro de Reclamaciones", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => Boolean(window.KantuGrowth), null, { timeout: 15000 });
+    await page.waitForFunction(() => Boolean(window.KantuGrowth) && Boolean(window.KantuHeaderControls), null, { timeout: 15000 });
 
+    const favorites = page.locator("#favoritesButton");
+    const cart = page.locator("#cartButton");
     const bell = page.locator("#notificationButton");
     await expect(bell).toHaveCount(1);
+    await expect(favorites).not.toHaveAttribute("title", /.+/);
+    await expect(cart).not.toHaveAttribute("title", /.+/);
+    await expect(bell).not.toHaveAttribute("title", /.+/);
+    await expect(favorites).not.toHaveAttribute("data-kantu-tooltip", /.+/);
+    await expect(cart).not.toHaveAttribute("data-kantu-tooltip", /.+/);
+    await expect(bell).not.toHaveAttribute("data-kantu-tooltip", /.+/);
+
     await bell.click();
     await expect(page.locator("#notificationPanel")).toBeVisible();
     await page.locator("#notificationClose").click();
