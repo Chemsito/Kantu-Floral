@@ -78,26 +78,28 @@
         }
 
         let resolved = false;
-        const { data: subscriptionData } = supabaseClient.auth.onAuthStateChange((event, session) => {
+        let authSubscription = null;
+        const authListener = supabaseClient.auth.onAuthStateChange((event, session) => {
             if (resolved || !session) return;
             if (["PASSWORD_RECOVERY", "SIGNED_IN"].includes(event)) {
                 resolved = true;
-                subscriptionData?.subscription?.unsubscribe();
+                authSubscription?.unsubscribe();
                 showForm();
             }
         });
+        authSubscription = authListener.data?.subscription || null;
 
         window.setTimeout(async () => {
             if (resolved) return;
             const retry = await supabaseClient.auth.getSession();
             if (retry.data?.session) {
                 resolved = true;
-                subscriptionData?.subscription?.unsubscribe();
+                authSubscription?.unsubscribe();
                 showForm();
                 return;
             }
             resolved = true;
-            subscriptionData?.subscription?.unsubscribe();
+            authSubscription?.unsubscribe();
             showExpired();
         }, 2200);
     }
