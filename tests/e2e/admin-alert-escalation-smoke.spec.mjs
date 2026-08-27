@@ -23,7 +23,10 @@ test("Admin urgent alerts can be acknowledged, snoozed and cleaned when resolved
             return baseRpc(name, ...args);
         };
         document.getElementById("adminModal")?.classList.add("show");
-        if (typeof switchAdminView === "function") switchAdminView("alerts");
+        const content = document.getElementById("adminContent");
+        const alertsView = document.getElementById("adminAlertsView");
+        if (content) content.hidden = false;
+        if (alertsView) alertsView.hidden = false;
     });
 
     await page.evaluate(() => window.KantuAdminGrowth.refreshAlerts());
