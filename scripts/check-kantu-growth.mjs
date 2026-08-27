@@ -43,7 +43,12 @@ assert.match(customer, /recommendation_priority/, "Kantu Match debe considerar l
 assert.match(customer, /submit-customer-claim/, "El Libro de Reclamaciones debe usar la Edge Function controlada.");
 assert.doesNotMatch(customer, /SUPABASE_SERVICE_ROLE_KEY/, "El frontend nunca debe contener service_role.");
 assert.match(admin, /admin_operational_alerts/, "Admin debe consumir alertas operativas del servidor.");
-assert.match(admin, /5 \* 60_000/, "Las alertas urgentes deben poder repetir el aviso sonoro cada 5 minutos.");
+assert.match(admin, /5 \* 60_000[\s\S]*10 \* 60_000[\s\S]*15 \* 60_000[\s\S]*30 \* 60_000/, "La escalada urgente debe cubrir 5, 10, 15 y 30 minutos.");
+assert.match(admin, /ADMIN_ALERT_REPEAT_MS\s*=\s*30 \* 60_000/, "Después de 30 minutos la alarma debe repetir cada 30 minutos.");
+assert.match(admin, /Estoy atendiendo/, "Admin debe permitir reconocer una alerta y detener su repetición.");
+assert.match(admin, /Silenciar 30 min/, "Admin debe permitir silenciar temporalmente una alerta.");
+assert.match(admin, /kantu_admin_alert_state_v2/, "El reconocimiento y silencio deben persistir localmente.");
+assert.match(admin, /cleanupResolvedAlertMemory/, "Las alertas resueltas deben limpiar su estado temporal.");
 assert.match(admin, /customer_claims/, "Admin debe gestionar el Libro de Reclamaciones.");
 assert.match(admin, /\["papa","Papá"\]/, "Admin debe poder clasificar productos como ideales para Papá.");
 assert.match(admin, /recommendation_priority/, "Admin debe controlar la prioridad comercial de Kantu Match.");
