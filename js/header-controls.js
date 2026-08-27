@@ -1,4 +1,4 @@
-/* Kantu Floral - limpieza de controles compactos del header */
+/* Kantu Floral - limpieza estable de controles compactos del header */
 
 (() => {
     const HEADER_CONTROL_IDS = Object.freeze([
@@ -7,15 +7,25 @@
         "notificationButton"
     ]);
 
-    function cleanHeaderControlTooltips() {
+    function cleanControl(control) {
+        if (!(control instanceof Element)) return false;
+        control.removeAttribute("title");
+        control.removeAttribute("data-kantu-tooltip");
+        if (control.dataset) delete control.dataset.kantuTooltip;
+        return true;
+    }
+
+    function cleanHeaderControlTooltips(root = document) {
         let cleaned = 0;
         HEADER_CONTROL_IDS.forEach(id => {
-            const control = document.getElementById(id);
-            if (!control) return;
-            control.removeAttribute("title");
-            control.removeAttribute("data-kantu-tooltip");
-            if (control.dataset) delete control.dataset.kantuTooltip;
-            cleaned += 1;
+            const control = root.querySelector?.(`#${CSS.escape(id)}`) || (root.id === id ? root : null) || document.getElementById(id);
+            if (control && cleanControl(control)) cleaned += 1;
+        });
+
+        // Defensa adicional: ningún tooltip visual debe materializarse dentro
+        // del grupo compacto de acciones del header. Los aria-label se conservan.
+        document.querySelectorAll(".header-actions [data-kantu-tooltip], .header-actions [title]").forEach(node => {
+            if (cleanControl(node)) cleaned += 1;
         });
         return cleaned;
     }
@@ -23,16 +33,35 @@
     function initialize() {
         cleanHeaderControlTooltips();
 
-        // La campana se crea dinámicamente por Kantu Growth. Reintentamos por unos
-        // segundos y luego detenemos el timer; no dejamos un observer global vivo.
-        let attempts = 0;
-        const timer = window.setInterval(() => {
-            attempts += 1;
-            cleanHeaderControlTooltips();
-            if (document.getElementById("notificationButton") || attempts >= 20) {
-                window.clearInterval(timer);
+        const headerActions = document.querySelector(".header-actions");
+        if (!headerActions || headerActions.dataset.kantuTooltipGuard === "true") return;
+        headerActions.dataset.kantuTooltipGuard = "true";
+
+        // UI Polish convierte `title` en pseudo-tooltips. Algunos controles del
+        // header se crean o actualizan después, así que un reintento temporal no
+        // bastaba y podía reaparecer una franja oscura recortada en el borde superior.
+        // Este observer está limitado exclusivamente a .header-actions.
+        const observer = new MutationObserver(mutations => {
+            let shouldClean = false;
+            for (const mutation of mutations) {
+                if (mutation.type === "childList") {
+                    shouldClean = true;
+                    break;
+                }
+                if (mutation.type === "attributes" && ["title", "data-kantu-tooltip"].includes(mutation.attributeName)) {
+                    shouldClean = true;
+                    break;
+                }
             }
-        }, 250);
+            if (shouldClean) queueMicrotask(() => cleanHeaderControlTooltips(headerActions));
+        });
+
+        observer.observe(headerActions, {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            attributeFilter: ["title", "data-kantu-tooltip"]
+        });
     }
 
     window.KantuHeaderControls = Object.freeze({
