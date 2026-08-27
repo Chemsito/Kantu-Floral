@@ -226,6 +226,219 @@
     max-width: 100%;
 }
 
+/* Producto activo: switch Kantu totalmente clickeable. */
+#adminContent .admin-checkbox:has(#adminProductActive) {
+    position: relative;
+    z-index: 5;
+    display: block;
+    min-height: 64px;
+    margin: 8px 0 20px;
+    padding: 13px 16px 13px 78px;
+    border: 1px solid #e6d3d0;
+    border-radius: 17px;
+    background: linear-gradient(180deg, #fffefd 0%, #fff9f6 100%);
+    color: #4b343a;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 8px 22px rgba(74, 42, 49, .045);
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive):hover {
+    border-color: #d8aaa9;
+    background: #fff8f7;
+    transform: translateY(-1px);
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive):has(input:checked) {
+    border-color: #cf8f9c;
+    background: linear-gradient(180deg, #fff7f9 0%, #fff1f4 100%);
+    box-shadow: 0 10px 26px rgba(159, 47, 80, .08);
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive):has(input:focus-visible) {
+    outline: 3px solid rgba(169, 47, 80, .16);
+    outline-offset: 2px;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive)::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 50%;
+    width: 46px;
+    height: 27px;
+    border: 1px solid #d7c0bd;
+    border-radius: 999px;
+    background: #eadfdd;
+    transform: translateY(-50%);
+    transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive)::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 7px rgba(63, 39, 44, .18);
+    transform: translateY(-50%);
+    transition: left .18s ease, box-shadow .18s ease;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive):has(input:checked)::before {
+    border-color: #a92f50;
+    background: linear-gradient(135deg, #a92f50, #c34e70);
+    box-shadow: 0 5px 14px rgba(169, 47, 80, .18);
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive):has(input:checked)::after {
+    left: 39px;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive) #adminProductActive {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive) > span {
+    position: relative;
+    z-index: 1;
+    display: block;
+    font-size: 13px;
+    font-weight: 780;
+    line-height: 1.35;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive) > span::after {
+    content: "Oculto: no aparece en el catálogo";
+    display: block;
+    margin-top: 3px;
+    color: #8b7679;
+    font-size: 11px;
+    font-weight: 560;
+}
+
+#adminContent .admin-checkbox:has(#adminProductActive):has(input:checked) > span::after {
+    content: "Activo: visible para clientes";
+    color: #8b3b55;
+}
+
+/* Filtros de comprobantes: chips compactos, sin checkboxes verticales. */
+#adminPaymentFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    align-items: center;
+}
+
+#adminPaymentFilters label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 1px solid #e2cfcb;
+    border-radius: 999px;
+    background: #fffdfb;
+    color: #715e63;
+    font-size: 12px;
+    font-weight: 690;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 5px 14px rgba(69, 38, 46, .035);
+    transition: border-color .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+#adminPaymentFilters label:hover {
+    border-color: #ca929d;
+    background: #fff7f8;
+    transform: translateY(-1px);
+}
+
+#adminPaymentFilters label::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid #d1b5b7;
+    border-radius: 6px;
+    background: #fff;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+
+#adminPaymentFilters label:has(input:checked) {
+    border-color: #d07d91;
+    background: #fff0f4;
+    color: #8e2f4b;
+    box-shadow: 0 7px 18px rgba(153, 50, 77, .07);
+}
+
+#adminPaymentFilters label:has(input:checked)::before {
+    content: "✓";
+    border-color: #ad3154;
+    background: #ad3154;
+}
+
+#adminPaymentFilters label:has(input:focus-visible) {
+    outline: 3px solid rgba(169, 47, 80, .15);
+    outline-offset: 2px;
+}
+
+#adminPaymentFilters input[type="checkbox"] {
+    position: absolute;
+    width: 1px !important;
+    height: 1px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Campana Admin: más visible y separada del botón cerrar. */
+#adminModal .admin-header .admin-alert-button-wrap {
+    margin-left: auto;
+    margin-right: 58px;
+    align-self: center;
+}
+
+#adminModal .admin-header .admin-alert-bell {
+    width: 49px;
+    height: 49px;
+    border-color: #dfc3c8;
+    background: #fff8f6;
+    font-size: 21px;
+    box-shadow: 0 8px 20px rgba(91, 48, 60, .08);
+    transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+#adminModal .admin-header .admin-alert-bell:hover {
+    border-color: #cb8c99;
+    background: #fff0f3;
+    box-shadow: 0 10px 24px rgba(145, 48, 75, .12);
+    transform: translateY(-1px);
+}
+
 @media (max-width: 760px) {
     #adminContent .admin-schedule-grid {
         grid-template-columns: 1fr;
@@ -241,5 +454,15 @@
 
     #adminContent .admin-delivery-capacity-row {
         grid-template-columns: 1fr;
+    }
+
+    #adminModal .admin-header .admin-alert-button-wrap {
+        margin-right: 48px;
+    }
+
+    #adminModal .admin-header .admin-alert-bell {
+        width: 46px;
+        height: 46px;
+        font-size: 20px;
     }
 }
