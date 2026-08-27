@@ -37,10 +37,9 @@
         if (!headerActions || headerActions.dataset.kantuTooltipGuard === "true") return;
         headerActions.dataset.kantuTooltipGuard = "true";
 
-        // UI Polish convierte `title` en pseudo-tooltips. Algunos controles del
-        // header se crean o actualizan después, así que un reintento temporal no
-        // bastaba y podía reaparecer una franja oscura recortada en el borde superior.
-        // Este observer está limitado exclusivamente a .header-actions.
+        // El guard anterior usaba reintentos temporales (attempts >= 20). Eso no
+        // cubría títulos añadidos más tarde. Ahora observamos solo .header-actions,
+        // sin instalar un observer global sobre el documento.
         const observer = new MutationObserver(mutations => {
             let shouldClean = false;
             for (const mutation of mutations) {
