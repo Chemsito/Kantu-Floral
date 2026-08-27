@@ -1,14 +1,14 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Kantu Floral brand experience", () => {
-    test("uses Kantu icons, tooltips, dialogs and header polish", async ({ page }) => {
+    test("uses Kantu icons, dialogs and header polish", async ({ page }) => {
         await page.goto("/index.html");
         await expect(page.locator("link[data-kantu-brand-experience='true']")).toHaveCount(1);
 
         const favorites = page.locator("#favoritesButton");
         await expect(favorites.locator("svg.kantu-icon")).toHaveCount(1);
         await expect(favorites).not.toHaveAttribute("title", /.+/);
-        await expect(favorites).toHaveAttribute("data-kantu-tooltip", /Favoritos/);
+        await expect(favorites).not.toHaveAttribute("data-kantu-tooltip", /.+/);
 
         await page.evaluate(() => {
             window.__kantuDialogResult = null;
