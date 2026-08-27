@@ -48,6 +48,7 @@
     loadScriptOnce("js/admin-growth.js", "data-kantu-admin-growth", "true");
     if (!isStandaloneAdmin) {
         loadScriptOnce("js/kantu-growth.js", "data-kantu-growth", "true");
+        loadScriptOnce("js/kantu-match-v2.js", "data-kantu-match-v2", "true");
     }
     loadScriptOnce("js/header-controls.js", "data-kantu-header-controls", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
