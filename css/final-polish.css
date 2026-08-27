@@ -1,0 +1,307 @@
+/* Kantu Floral — pulido final compartido */
+
+.logo-icon img,
+.staff-brand-mark img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+.header-actions .kantu-source-icon,
+.mobile-menu .kantu-source-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* =========================
+   AYUDA / CONFIANZA
+========================= */
+.store-help-section {
+    padding: clamp(48px, 7vw, 82px) clamp(18px, 5vw, 72px);
+    background: #fff8f5;
+    border-top: 1px solid var(--kantu-border, #ead8d5);
+}
+
+.store-help-inner {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+}
+
+.store-help-heading {
+    max-width: 720px;
+    margin-bottom: 26px;
+}
+
+.store-help-heading span {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--kantu-brand, #9f2f50);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+
+.store-help-heading h2 {
+    margin: 0;
+    color: var(--kantu-ink, #3d2a2f);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(30px, 4vw, 44px);
+}
+
+.store-help-heading p {
+    margin: 10px 0 0;
+    color: var(--kantu-muted, #7d6a70);
+    line-height: 1.6;
+}
+
+.store-help-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.store-help-card {
+    scroll-margin-top: 110px;
+    padding: 22px;
+    border: 1px solid var(--kantu-border, #ead8d5);
+    border-radius: var(--kantu-radius-lg, 22px);
+    background: var(--kantu-surface, #fffdfb);
+    box-shadow: var(--kantu-shadow-xs, 0 5px 16px rgba(74, 39, 48, .05));
+}
+
+.store-help-card h3 {
+    margin: 0 0 9px;
+    color: var(--kantu-ink, #3d2a2f);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 22px;
+}
+
+.store-help-card p {
+    margin: 0;
+    color: var(--kantu-muted, #7d6a70);
+    line-height: 1.58;
+}
+
+.store-help-card strong {
+    color: var(--kantu-ink, #3d2a2f);
+}
+
+/* =========================
+   PRODUCT DETAIL
+========================= */
+.product-detail-skeleton {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+    gap: clamp(28px, 5vw, 64px);
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 56px) clamp(18px, 4vw, 36px) 64px;
+}
+
+.product-detail-skeleton-media,
+.product-detail-skeleton-line,
+.product-detail-skeleton-button {
+    position: relative;
+    overflow: hidden;
+    background: #f3e8e5;
+}
+
+.product-detail-skeleton-media::after,
+.product-detail-skeleton-line::after,
+.product-detail-skeleton-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+    animation: kantuFinalSkeleton 1.25s ease-in-out infinite;
+}
+
+.product-detail-skeleton-media {
+    min-height: min(64vw, 560px);
+    border-radius: var(--kantu-radius-xl, 28px);
+}
+
+.product-detail-skeleton-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+}
+
+.product-detail-skeleton-line {
+    height: 16px;
+    border-radius: 999px;
+}
+
+.product-detail-skeleton-line.eyebrow { width: 34%; height: 12px; }
+.product-detail-skeleton-line.title { width: 86%; height: 42px; border-radius: 14px; }
+.product-detail-skeleton-line.medium { width: 72%; }
+.product-detail-skeleton-line.short { width: 48%; }
+.product-detail-skeleton-line.price { width: 38%; height: 30px; margin-top: 18px; }
+
+.product-detail-skeleton-actions {
+    display: grid;
+    grid-template-columns: 1.35fr .75fr;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.product-detail-skeleton-button {
+    height: 48px;
+    border-radius: 14px;
+}
+
+@keyframes kantuFinalSkeleton {
+    100% { transform: translateX(100%); }
+}
+
+.product-compact-footer {
+    padding: 32px clamp(18px, 5vw, 60px);
+    border-top: 1px solid var(--kantu-border, #ead8d5);
+    background: #fff8f5;
+}
+
+.product-compact-footer-inner {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+}
+
+.product-compact-footer strong {
+    display: block;
+    color: var(--kantu-ink, #3d2a2f);
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 20px;
+}
+
+.product-compact-footer p {
+    margin: 5px 0 0;
+    color: var(--kantu-muted, #7d6a70);
+}
+
+.product-compact-footer-links {
+    display: flex;
+    gap: 12px 18px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.product-compact-footer a {
+    color: var(--kantu-brand, #9f2f50);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.product-compact-footer a:hover,
+.product-compact-footer a:focus-visible {
+    text-decoration: underline;
+}
+
+/* =========================
+   STAFF
+========================= */
+.staff-brand-mark {
+    overflow: hidden;
+    padding: 5px;
+    background: #fff !important;
+    border: 1px solid var(--kantu-border, #ead8d5);
+}
+
+.staff-static-icon {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.staff-access-icon .staff-static-icon,
+.staff-empty > span .staff-static-icon {
+    width: 34px;
+    height: 34px;
+}
+
+@media (max-width: 760px) {
+    .store-help-grid { grid-template-columns: 1fr; }
+
+    .product-detail-skeleton {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .product-detail-skeleton-media { min-height: 76vw; }
+
+    .product-compact-footer-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .product-compact-footer-links { justify-content: flex-start; }
+}
+
+@media (max-width: 640px) {
+    .staff-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center !important;
+        gap: 10px 12px !important;
+        padding: 12px 14px !important;
+    }
+
+    .staff-brand {
+        min-width: 0;
+    }
+
+    .staff-brand > span:last-child {
+        min-width: 0;
+    }
+
+    .staff-brand strong,
+    .staff-brand small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .staff-header-actions {
+        grid-column: 1 / -1;
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important;
+    }
+
+    .staff-identity {
+        grid-column: 1 / -1;
+        width: 100% !important;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    .staff-header-actions .staff-secondary-button {
+        width: 100%;
+        min-height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .product-detail-skeleton-media::after,
+    .product-detail-skeleton-line::after,
+    .product-detail-skeleton-button::after {
+        animation: none;
+    }
+}
