@@ -394,8 +394,18 @@
                 <div class="admin-alert-actions"><button type="button" class="admin-alert-review" data-admin-alert-action="${core.escapeHtml(row.action_view || "dashboard")}" data-alert-entity="${core.escapeHtml(row.entity_id || "")}">Revisar</button>${urgentControls}</div>
             </article>`;
         }).join("");
-        list.querySelectorAll("[data-admin-alert-action]").forEach(button => button.addEventListener("click", () => openAdminAlertTarget(button)));
-        list.querySelectorAll("[data-alert-control]").forEach(button => button.addEventListener("click", () => handleAdminAlertControl(button)));
+        if (list.dataset.kantuAlertActionsBound !== "true") {
+            list.dataset.kantuAlertActionsBound = "true";
+            list.addEventListener("click", event => {
+                const control = event.target.closest?.("[data-alert-control]");
+                if (control) {
+                    handleAdminAlertControl(control);
+                    return;
+                }
+                const review = event.target.closest?.("[data-admin-alert-action]");
+                if (review) openAdminAlertTarget(review);
+            });
+        }
     }
 
     async function loadAdminAlerts({ forceSound = false } = {}) {
