@@ -18,13 +18,8 @@ jobs:
           ref: feat/admin-alert-escalation
           fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Apply alert escalation
-        run: node scripts/apply-admin-alert-escalation.mjs
+        run: python3 scripts/apply-admin-alert-escalation.py
 
       - name: Commit transformed sources
         run: |
