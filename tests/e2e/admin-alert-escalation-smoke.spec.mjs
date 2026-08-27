@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("Admin urgent alerts can be acknowledged, snoozed and cleaned when resolved", async ({ page }) => {
-    await page.goto("/?admin=1", { waitUntil: "domcontentloaded" });
+    await page.goto("/index.html", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => Boolean(window.KantuAdminGrowth && window.supabaseClient), null, { timeout: 15000 });
 
     await page.evaluate(() => {
