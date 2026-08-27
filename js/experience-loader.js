@@ -49,6 +49,7 @@
     if (!isStandaloneAdmin) {
         loadScriptOnce("js/kantu-growth.js", "data-kantu-growth", "true");
     }
+    loadScriptOnce("js/header-controls.js", "data-kantu-header-controls", "true");
     loadScriptOnce("js/admin-image-upload.js", "data-kantu-admin-image-upload", "true");
     loadScriptOnce("js/sakura.js?v=20260823-1149", "data-kantu-sakura", "true");
 })();

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const loader = fs.readFileSync("js/experience-loader.js", "utf8");
 const customer = fs.readFileSync("js/kantu-growth.js", "utf8");
+const headerControls = fs.readFileSync("js/header-controls.js", "utf8");
 const admin = fs.readFileSync("js/admin-growth.js", "utf8");
 const standalone = fs.readFileSync("js/admin-standalone.js", "utf8");
 const css = fs.readFileSync("css/kantu-growth.css", "utf8");
@@ -13,6 +14,7 @@ const reservationMigration = fs.readFileSync("supabase/migrations/20260825151900
 const reservationTriggerMigration = fs.readFileSync("supabase/migrations/20260825152042_reserve_stock_on_mp_preference.sql", "utf8");
 const reservationFixMigration = fs.readFileSync("supabase/migrations/20260825152359_fix_stock_reservation_conflict_target.sql", "utf8");
 const matchOpsMigration = fs.readFileSync("supabase/migrations/20260825153020_activate_match_signals_and_ops_alerts.sql", "utf8");
+const actionableMatchMigration = fs.readFileSync("supabase/migrations/20260827005000_make_match_alerts_actionable.sql", "utf8");
 const notificationPapaMigration = fs.readFileSync("supabase/migrations/20260825171423_fix_notification_reads_and_add_papa_match.sql", "utf8");
 const signedPreference = fs.readFileSync("supabase/functions/create-mp-preference/index.ts", "utf8");
 const guestPreference = fs.readFileSync("supabase/functions/create-guest-mp-preference/index.ts", "utf8");
@@ -21,8 +23,15 @@ const workflow = fs.readFileSync(".github/workflows/check.yml", "utf8");
 
 assert.match(loader, /kantu-growth\.js/, "El loader debe cargar Kantu Match y notificaciones del cliente.");
 assert.match(loader, /admin-growth\.js/, "El loader debe cargar las alertas administrativas.");
+assert.match(loader, /header-controls\.js/, "El loader debe retirar los tooltips innecesarios de los controles compactos del header.");
 assert.match(loader, /admin-standalone\.js/, "El panel Admin debe poder abrirse en una pestaña dedicada.");
 assert.match(productDetail, /js\/kantu-growth\.js/, "La ficha de producto debe conservar la misma campana de notificaciones del header.");
+assert.match(productDetail, /js\/header-controls\.js/, "La ficha de producto debe limpiar también los tooltips del header.");
+assert.doesNotMatch(productDetail, /id="favoritesButton"[^>]*title=/, "Favoritos no debe mostrar un globo superior innecesario.");
+assert.doesNotMatch(productDetail, /id="cartButton"[^>]*title=/, "Carrito no debe mostrar un globo superior innecesario.");
+assert.match(headerControls, /favoritesButton[\s\S]*cartButton[\s\S]*notificationButton/, "Favoritos, carrito y notificaciones deben quedar excluidos de los tooltips visuales.");
+assert.match(headerControls, /removeAttribute\("data-kantu-tooltip"\)/, "La limpieza debe retirar tooltips Kantu ya materializados.");
+assert.match(headerControls, /attempts\s*>=\s*20/, "La limpieza de la campana dinámica debe detener sus reintentos y no dejar un observer global.");
 assert.match(customer, /notificationButton/, "Debe existir la campana de notificaciones junto al carrito.");
 assert.match(customer, /get_customer_notification_feed/, "El cliente debe consumir el feed autoritativo de notificaciones.");
 assert.match(customer, /showNotificationPersistenceError/, "La UI no debe fingir que una lectura se guardó si Supabase falla.");
@@ -34,7 +43,7 @@ assert.match(customer, /recommendation_priority/, "Kantu Match debe considerar l
 assert.match(customer, /submit-customer-claim/, "El Libro de Reclamaciones debe usar la Edge Function controlada.");
 assert.doesNotMatch(customer, /SUPABASE_SERVICE_ROLE_KEY/, "El frontend nunca debe contener service_role.");
 assert.match(admin, /admin_operational_alerts/, "Admin debe consumir alertas operativas del servidor.");
-assert.match(admin, /5 \* 60_000/, "Las alertas urgentes deben poder repetir el aviso sonoro.");
+assert.match(admin, /5 \* 60_000/, "Las alertas urgentes deben poder repetir el aviso sonoro cada 5 minutos.");
 assert.match(admin, /customer_claims/, "Admin debe gestionar el Libro de Reclamaciones.");
 assert.match(admin, /\["papa","Papá"\]/, "Admin debe poder clasificar productos como ideales para Papá.");
 assert.match(admin, /recommendation_priority/, "Admin debe controlar la prioridad comercial de Kantu Match.");
@@ -76,6 +85,10 @@ assert.match(matchOpsMigration, /recommendation_audiences\s*=\s*case p\.category
 assert.match(matchOpsMigration, /payment_attention/i, "Admin debe alertar pagos aprobados que sigan pendientes.");
 assert.match(matchOpsMigration, /match_configuration/i, "Admin debe alertar productos que todavía necesiten configuración de Kantu Match.");
 assert.match(matchOpsMigration, /payment_reservation/i, "Admin debe alertar reservas de pago que permanezcan atascadas.");
+assert.match(actionableMatchMigration, /'match_configuration'::text[\s\S]*'urgent'::text/, "Kantu Match pendiente debe usar la alarma urgente que se repite cada 5 minutos.");
+assert.match(actionableMatchMigration, /Kantu Match · '[\s\S]*max\(m\.name\)[\s\S]*necesita configuración/, "Una sola alerta de Kantu Match debe nombrar el producto pendiente.");
+assert.match(actionableMatchMigration, /faltan: audiencia, ocasión, estilo y prioridad comercial/, "La alerta debe explicar exactamente qué configuración falta.");
+assert.match(actionableMatchMigration, /min\(m\.id\)::text as entity_id/, "Revisar debe apuntar al producto pendiente en Admin.");
 assert.match(notificationPapaMigration, /'papa'/i, "La base debe aceptar Papá como audiencia de recomendación.");
 assert.match(notificationPapaMigration, /grant update on table public\.customer_notification_reads to authenticated/i, "Usuarios autenticados deben poder persistir upserts de lecturas.");
 assert.match(notificationPapaMigration, /customer_notification_reads_update_own/i, "La persistencia de lecturas debe seguir limitada por RLS al propio usuario.");
@@ -85,4 +98,4 @@ assert.match(edge, /consume_guest_checkout_rate_limit|p_fingerprint_hash/, "El f
 assert.doesNotMatch(edge, /return jsonResponse\([^)]*serviceRoleKey/, "La Edge Function nunca debe devolver la clave de servicio.");
 assert.match(workflow, /submit-customer-claim\/index\.ts/, "CI debe hacer deno check de la Edge Function nueva.");
 
-console.log("Kantu growth, payments, notifications, claims and security hardening contracts OK");
+console.log("Kantu growth, actionable alerts, header controls, payments, notifications, claims and security hardening contracts OK");
