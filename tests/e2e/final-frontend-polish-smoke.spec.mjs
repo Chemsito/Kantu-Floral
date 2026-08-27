@@ -25,8 +25,9 @@ test("password reset uses Kantu identity and verifies access before form use", a
     await expect(page.locator('link[rel="icon"][href="assets/brand/favicon.ico"]')).toHaveCount(1);
     await expect(page.locator(".reset-card")).toBeVisible();
     await expect(page.locator("#resetAccessState")).toContainText(/Verificando|enlace|sesión/i);
-    await expect(page.locator('[data-password-toggle="newPassword"]')).toBeVisible();
+    await expect(page.locator('[data-password-toggle="newPassword"]')).toHaveCount(1);
     await expect(page.locator("#resetStrength")).toHaveCount(1);
+    await expect(page.locator("#newPasswordForm")).toBeHidden();
 });
 
 test("staff mobile header keeps identity and actions readable", async ({ page }) => {
