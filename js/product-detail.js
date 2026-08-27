@@ -213,7 +213,7 @@
                     <p id="productDetailStatus" class="product-detail-status" role="status" aria-live="polite"></p>
 
                     <div class="product-detail-next">
-                        Al agregarlo, tu carrito seguirá disponible en la tienda principal. En checkout podrás indicar destinatario, mensaje para tarjeta y, cuando Kantu active horarios, programar la entrega.
+                        Al agregarlo, tu carrito seguirá disponible en la tienda principal. En checkout podrás indicar destinatario, mensaje para tarjeta, dirección y programar la entrega según la disponibilidad mostrada.
                     </div>
                 </section>
             </div>

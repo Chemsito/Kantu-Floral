@@ -37,6 +37,7 @@
     <link rel="stylesheet" href="css/ui-polish.css" data-kantu-ui-polish="true">
     <link rel="stylesheet" href="css/ui-polish-select.css" data-kantu-ui-polish-select="true">
     <link rel="stylesheet" href="css/brand-experience.css" data-kantu-brand-experience="true">
+    <link rel="stylesheet" href="css/final-polish.css" data-kantu-final-polish="true">
     <link rel="stylesheet" href="css/kantu-growth.css" data-kantu-growth-style="true">
 
     <title>Producto | Kantu Floral</title>
@@ -45,7 +46,7 @@
     <header class="site-header product-detail-site-header">
         <div class="navbar">
             <a href="index.html#inicio" class="logo" aria-label="Kantu Floral, ir al inicio">
-                <div class="logo-icon" aria-hidden="true">✿</div>
+                <div class="logo-icon" aria-hidden="true"><img src="assets/brand/kantu-mark-512.png" alt=""></div>
                 <div class="logo-text">Kantu Floral</div>
             </a>
 
@@ -58,21 +59,50 @@
             </nav>
 
             <div class="header-actions">
-                <button type="button" class="icon-button" id="favoritesButton" aria-label="Ver productos favoritos">♡</button>
-                <button type="button" class="icon-button" id="cartButton" aria-label="Abrir carrito">
-                    <span aria-hidden="true">🛒</span>
+                <button type="button" class="icon-button" id="favoritesButton" data-kantu-icon-ready="true" aria-label="Ver productos favoritos"><svg class="kantu-source-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></button>
+                <button type="button" class="icon-button" id="cartButton" data-kantu-icon-ready="true" aria-label="Abrir carrito">
+                    <span aria-hidden="true"><svg class="kantu-source-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/><path d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H6"/></svg></span>
                     <span class="cart-button-label" id="cartButtonLabel">Carrito</span>
                     <span class="cart-count" id="cartCount" aria-live="polite">0</span>
                 </button>
                 <button type="button" class="user-button" id="loginButton">Iniciar sesión</button>
-                <button type="button" class="icon-button mobile-menu" aria-controls="siteNavigation" aria-expanded="false" aria-label="Abrir menú de navegación"><span aria-hidden="true">☰</span></button>
+                <button type="button" class="icon-button mobile-menu" aria-controls="siteNavigation" aria-expanded="false" aria-label="Abrir menú de navegación"><span aria-hidden="true"><svg class="kantu-source-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span></button>
             </div>
         </div>
     </header>
 
     <main class="product-page-shell" id="productDetailRoot">
-        <div class="product-detail-loading" role="status" aria-live="polite">Cargando producto...</div>
+        <div class="product-detail-skeleton" role="status" aria-live="polite" aria-label="Cargando producto">
+            <div class="product-detail-skeleton-media"></div>
+            <div class="product-detail-skeleton-copy">
+                <div class="product-detail-skeleton-line eyebrow"></div>
+                <div class="product-detail-skeleton-line title"></div>
+                <div class="product-detail-skeleton-line medium"></div>
+                <div class="product-detail-skeleton-line short"></div>
+                <div class="product-detail-skeleton-line price"></div>
+                <div class="product-detail-skeleton-actions">
+                    <div class="product-detail-skeleton-button"></div>
+                    <div class="product-detail-skeleton-button"></div>
+                </div>
+            </div>
+        </div>
     </main>
+
+
+    <footer class="product-compact-footer">
+        <div class="product-compact-footer-inner">
+            <div>
+                <strong>Kantu Floral</strong>
+                <p>Flores que cuentan historias · Arequipa</p>
+            </div>
+            <nav class="product-compact-footer-links" aria-label="Ayuda y contacto">
+                <a href="index.html#ayuda-faq">Preguntas frecuentes</a>
+                <a href="index.html#ayuda-delivery">Delivery</a>
+                <a href="index.html#ayuda-pagos">Métodos de pago</a>
+                <a href="https://wa.me/51967539019" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            </nav>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
     <script src="js/supabase.js"></script>
