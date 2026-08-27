@@ -24,6 +24,9 @@ assert.doesNotMatch(index, /href="#catalogo">Preguntas frecuentes/, "FAQ no debe
 assert.doesNotMatch(index, /href="#catalogo">Delivery/, "Delivery no debe redirigir engañosamente al catálogo.");
 assert.doesNotMatch(index, /href="#catalogo">Métodos de pago/, "Métodos de pago no debe redirigir engañosamente al catálogo.");
 assert.match(index, /data-kantu-icon-ready="true"/, "Los iconos principales deben nacer listos en el HTML y evitar flashes legacy.");
+assert.doesNotMatch(index, /🔴 Google|>🚚<|>🌷<|>💌</, "La tienda no debe conservar iconografía emoji provisional en bloques principales.");
+assert.match(index, /class="google-mark"/, "Google debe usar una marca visual limpia en lugar del punto rojo provisional.");
+assert.match(finalCss, /\.google-mark/, "El distintivo de Google debe tener estilo propio.");
 assert.match(auth, /loginForm\.hidden\s*=\s*type\s*!==\s*"login"/, "Auth debe usar hidden en lugar de estilos inline para cambiar vistas.");
 
 assert.match(product, /product-detail-skeleton/, "Producto debe iniciar con skeleton estructural.");
@@ -33,6 +36,7 @@ assert.doesNotMatch(productJs, /cuando Kantu active horarios/i, "El detalle no d
 assert.match(productJs, /programar la entrega según la disponibilidad mostrada/i, "El copy debe reflejar programación de entrega actual.");
 
 assert.doesNotMatch(staff, />✿<|>🔒<|>🛵</, "Staff no debe depender de emoji legacy en sus estados principales.");
+assert.doesNotMatch(staff, /30 min por pedido/, "Staff no debe mostrar un SLA hardcodeado en el HTML.");
 assert.match(staff, /kantu-mark-512\.png/, "Staff debe usar el isotipo real de Kantu.");
 assert.match(finalCss, /@media \(max-width: 640px\)[\s\S]*\.staff-header-actions/, "El header móvil de Staff debe tener layout específico.");
 
