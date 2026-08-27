@@ -53,6 +53,7 @@
     <link rel="stylesheet" href="css/ui-polish.css" data-kantu-ui-polish="true">
     <link rel="stylesheet" href="css/ui-polish-select.css" data-kantu-ui-polish-select="true">
     <link rel="stylesheet" href="css/brand-experience.css" data-kantu-brand-experience="true">
+    <link rel="stylesheet" href="css/final-polish.css" data-kantu-final-polish="true">
     <link rel="stylesheet" href="css/customer-ux.css" data-kantu-customer-ux-style="true">
     <link rel="stylesheet" href="css/runtime-integrity.css" data-kantu-runtime-integrity-style="true">
     <link rel="stylesheet" href="css/kantu-growth.css" data-kantu-growth-style="true">
@@ -69,7 +70,7 @@
     <header class="site-header">
         <div class="navbar">
             <a href="#inicio" class="logo" aria-label="Kantu Floral, ir al inicio">
-                <div class="logo-icon" aria-hidden="true">✿</div>
+                <div class="logo-icon" aria-hidden="true"><img src="assets/brand/kantu-mark-512.png" alt=""></div>
                 <div class="logo-text">Kantu Floral</div>
             </a>
 
@@ -82,10 +83,10 @@
             </nav>
 
             <div class="header-actions">
-                <button type="button" class="icon-button" id="favoritesButton" title="Favoritos" aria-label="Ver productos favoritos">♡</button>
+                <button type="button" class="icon-button" id="favoritesButton" data-kantu-icon-ready="true" aria-label="Ver productos favoritos"><svg class="kantu-source-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></button>
 
-                <button type="button" class="icon-button" id="cartButton" title="Carrito" aria-label="Abrir carrito">
-                    <span aria-hidden="true">🛒</span>
+                <button type="button" class="icon-button" id="cartButton" data-kantu-icon-ready="true" aria-label="Abrir carrito">
+                    <span aria-hidden="true"><svg class="kantu-source-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/><path d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H6"/></svg></span>
                     <span class="cart-button-label" id="cartButtonLabel">Carrito</span>
                     <span class="cart-count" id="cartCount" aria-live="polite">0</span>
                 </button>
@@ -99,7 +100,7 @@
                     aria-expanded="false"
                     aria-label="Abrir menú de navegación"
                 >
-                    <span aria-hidden="true">☰</span>
+                    <span aria-hidden="true"><svg class="kantu-source-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span>
                 </button>
             </div>
         </div>
@@ -160,6 +161,31 @@
     <!-- =========================
          FOOTER
     ========================== -->
+
+    <section class="store-help-section" id="ayuda" aria-labelledby="storeHelpTitle">
+        <div class="store-help-inner">
+            <div class="store-help-heading">
+                <span>Compra con tranquilidad</span>
+                <h2 id="storeHelpTitle">Información antes de hacer tu pedido</h2>
+                <p>Lo esencial sobre compra, entrega y pago sin sacarte del catálogo.</p>
+            </div>
+            <div class="store-help-grid">
+                <article class="store-help-card" id="ayuda-faq">
+                    <h3>Preguntas frecuentes</h3>
+                    <p><strong>¿Cómo compro?</strong> Elige tu arreglo, agrega los complementos que quieras y completa los datos del destinatario en checkout. Antes de confirmar verás el resumen, disponibilidad y costo de entrega.</p>
+                </article>
+                <article class="store-help-card" id="ayuda-delivery">
+                    <h3>Delivery</h3>
+                    <p>Realizamos entregas programadas en Arequipa según la cobertura y disponibilidad que muestre el checkout. El costo se calcula con la dirección de entrega antes de confirmar el pedido.</p>
+                </article>
+                <article class="store-help-card" id="ayuda-pagos">
+                    <h3>Métodos de pago</h3>
+                    <p>Los medios habilitados se muestran durante el checkout. Los pagos en línea se procesan mediante Mercado Pago y, cuando corresponda, Kantu puede validar comprobantes de Yape, Plin o transferencia.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <footer id="contacto">
         <div class="footer-content">
             <div class="footer-column">
@@ -179,9 +205,9 @@
 
             <div class="footer-column">
                 <h4>Ayuda</h4>
-                <a href="#catalogo">Preguntas frecuentes</a>
-                <a href="#catalogo">Delivery</a>
-                <a href="#catalogo">Métodos de pago</a>
+                <a href="#ayuda-faq">Preguntas frecuentes</a>
+                <a href="#ayuda-delivery">Delivery</a>
+                <a href="#ayuda-pagos">Métodos de pago</a>
             </div>
 
             <div class="footer-column">
@@ -233,7 +259,7 @@
             </div>
 
             <!-- REGISTER -->
-            <div id="registerForm" style="display:none;">
+            <div id="registerForm" hidden>
                 <h2>Crear cuenta</h2>
                 <p class="modal-subtitle">Regístrate para disfrutar de una experiencia personalizada.</p>
 
@@ -287,7 +313,7 @@
             </div>
 
             <!-- FORGOT PASSWORD -->
-            <div id="forgotForm" style="display:none;">
+            <div id="forgotForm" hidden>
                 <h2>Recuperar contraseña</h2>
                 <p class="modal-subtitle">
                     Introduce tu correo y te enviaremos instrucciones para restablecer tu contraseña.

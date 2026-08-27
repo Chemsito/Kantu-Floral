@@ -32,9 +32,9 @@ function switchAuth(type) {
     const forgotForm = document.getElementById("forgotForm");
     if (!loginForm || !registerForm || !forgotForm) return;
 
-    loginForm.style.display = type === "login" ? "block" : "none";
-    registerForm.style.display = type === "register" ? "block" : "none";
-    forgotForm.style.display = type === "forgot" ? "block" : "none";
+    loginForm.hidden = type !== "login";
+    registerForm.hidden = type !== "register";
+    forgotForm.hidden = type !== "forgot";
 }
 
 async function register(event) {
