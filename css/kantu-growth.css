@@ -603,3 +603,28 @@ body.admin-standalone-mode #adminModal .admin-panel {
     .admin-recommendation-groups { grid-template-columns: 1fr; }
     .admin-recommendation-checks span { min-height: 38px; padding: 8px 11px; }
 }
+
+
+/* Admin alert escalation v2 */
+.admin-alert-card-copy { min-width: 0; }
+.admin-alert-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 7px; color: #8b777d; font-size: 9px; }
+.admin-alert-severity { padding: 3px 7px; border-radius: 999px; background: #f6ebed; color: #874154; font-weight: 800; }
+.admin-alert-card.urgent .admin-alert-severity { background: #fff0f2; color: #a31e3f; }
+.admin-alert-timing { color: #96502e; font-weight: 800; }
+.admin-alert-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 330px; }
+.admin-alert-card .admin-alert-actions button { min-height: 36px; padding: 7px 10px; }
+.admin-alert-card .admin-alert-review { border-color: #a5405d; background: #9c3454; color: #fff; }
+.admin-alert-card .admin-alert-secondary { border-color: #d8bdc5; background: #fff7f8; color: #8d3450; }
+.admin-alert-card .admin-alert-quiet { border-color: #e2d5ca; background: #fffaf4; color: #765b45; }
+.admin-alert-card.is-acknowledged { background: #fbfaf8; border-color: #ddd4cf; }
+.admin-alert-card.is-acknowledged::before { background: #6f8d7c; }
+.admin-alert-card.is-snoozed { background: #fffaf4; }
+.admin-alert-sound-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-alert-sound-note span { min-width: 0; }
+.admin-alert-sound-note button { flex: 0 0 auto; min-height: 34px; padding: 6px 10px; border: 1px solid #d7b78f; border-radius: 9px; background: #fffaf4; color: #79522f; font-size: 9px; font-weight: 800; }
+.admin-alert-sound-note button[hidden] { display: none !important; }
+@media (max-width: 760px) {
+    .admin-alert-card .admin-alert-actions { grid-column: 2; max-width: none; justify-content: flex-start; }
+    .admin-alert-card .admin-alert-actions button { grid-column: auto; flex: 1 1 120px; }
+    .admin-alert-sound-note { align-items: flex-start; flex-direction: column; }
+}
