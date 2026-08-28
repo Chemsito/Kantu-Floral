@@ -629,8 +629,7 @@
         startAdminAlertPolling();
 
         const arm = () => armAdminAudio();
-        document.addEventListener("pointerdown", arm, { once: true, capture: true });
-        document.addEventListener("keydown", arm, { once: true, capture: true });
+        document.addEventListener("click", arm, { once: true, capture: true });
         document.addEventListener("visibilitychange", () => {
             if (!document.hidden) refreshAdminAlertTiming();
         });
