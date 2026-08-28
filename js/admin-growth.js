@@ -3,6 +3,8 @@
 (() => {
     const core = window.KantuCore;
     if (!core || typeof supabaseClient === "undefined") return;
+    if (window.__KantuAdminGrowthLoaded === true) return;
+    window.__KantuAdminGrowthLoaded = true;
 
     const alertState = {
         rows: [],
@@ -12,6 +14,7 @@
         audioContext: null,
         pollTimer: null,
         timingTimer: null,
+        memoryLoaded: false,
         memory: {}
     };
 
@@ -337,10 +340,11 @@
         if (action === "resume") processAdminAlarmSchedule();
     }
 
+    let adminAlertActionHandler = null;
+
     function installAdminAlertActionDelegation() {
-        if (document.documentElement.dataset.kantuAdminAlertDelegation === "true") return;
-        document.documentElement.dataset.kantuAdminAlertDelegation = "true";
-        document.addEventListener("click", event => {
+        if (adminAlertActionHandler) return;
+        adminAlertActionHandler = event => {
             const list = el("adminAlertsList");
             if (!list) return;
             const control = event.target.closest?.("[data-alert-control]");
@@ -350,7 +354,17 @@
             }
             const review = event.target.closest?.("[data-admin-alert-action]");
             if (review && list.contains(review)) openAdminAlertTarget(review);
-        });
+        };
+        document.addEventListener("click", adminAlertActionHandler, true);
+    }
+
+    function ensureAdminAlertRuntime() {
+        if (!alertState.memoryLoaded) {
+            alertState.memory = readAdminAlertMemory();
+            alertState.memoryLoaded = true;
+        }
+        installAdminAlertActionDelegation();
+        return ensureAdminGrowthViews();
     }
 
     function refreshAdminAlertTiming() {
@@ -413,7 +427,7 @@
     }
 
     async function loadAdminAlerts({ forceSound = false } = {}) {
-        if (!ensureAdminGrowthViews()) return;
+        if (!ensureAdminAlertRuntime()) return;
         const result = await supabaseClient.rpc("admin_operational_alerts");
         if (result.error) {
             const list = el("adminAlertsList");
@@ -610,9 +624,7 @@
 
     function initialize() {
         ensureStyles();
-        alertState.memory = readAdminAlertMemory();
-        installAdminAlertActionDelegation();
-        ensureAdminGrowthViews();
+        ensureAdminAlertRuntime();
         installRecommendationHooks();
         startAdminAlertPolling();
 

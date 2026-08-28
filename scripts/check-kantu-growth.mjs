@@ -49,6 +49,10 @@ assert.match(admin, /Estoy atendiendo/, "Admin debe permitir reconocer una alert
 assert.match(admin, /Silenciar 30 min/, "Admin debe permitir silenciar temporalmente una alerta.");
 assert.match(admin, /kantu_admin_alert_state_v2/, "El reconocimiento y silencio deben persistir localmente.");
 assert.match(admin, /cleanupResolvedAlertMemory/, "Las alertas resueltas deben limpiar su estado temporal.");
+assert.match(admin, /__KantuAdminGrowthLoaded/, "Admin Growth debe ser singleton para no duplicar timers ni estados.");
+assert.match(admin, /function ensureAdminAlertRuntime\(\)/, "refreshAlerts debe poder completar su runtime aunque initialize todavía no haya terminado.");
+assert.match(admin, /async function loadAdminAlerts[\s\S]*ensureAdminAlertRuntime\(\)/, "La carga de alertas debe garantizar memoria, vista y acciones antes de renderizar.");
+assert.match(admin, /addEventListener\("click", adminAlertActionHandler, true\)/, "Las acciones del Centro de alertas deben capturarse de forma estable ante capas UI intermedias.");
 assert.match(admin, /customer_claims/, "Admin debe gestionar el Libro de Reclamaciones.");
 assert.match(admin, /\["papa","Papá"\]/, "Admin debe poder clasificar productos como ideales para Papá.");
 assert.match(admin, /recommendation_priority/, "Admin debe controlar la prioridad comercial de Kantu Match.");
