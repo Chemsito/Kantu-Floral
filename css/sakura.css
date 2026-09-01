@@ -139,11 +139,29 @@ body > footer {
     backdrop-filter: blur(1.2px);
 }
 
+/*
+ * Mantener la barra de búsqueda/orden por encima de las categorías.
+ * El select personalizado vive dentro de .catalog-tools; si toolbar y
+ * categorías comparten el mismo z-index, las categorías (que aparecen
+ * después en el DOM) pueden pintarse encima del menú desplegable en móvil.
+ */
 #catalogo .section-heading,
 #catalogo .categories,
 #catalogo .catalog-tools {
     position: relative;
+}
+
+#catalogo .section-heading {
     z-index: 1;
+}
+
+#catalogo .categories {
+    z-index: 2;
+}
+
+#catalogo .catalog-tools {
+    z-index: 10;
+    overflow: visible;
 }
 
 .product-card {

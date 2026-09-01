@@ -38,6 +38,33 @@ test.describe("Kantu Floral global UI polish", () => {
         expect(checkboxAppearance).toBe("none");
     });
 
+    test("keeps catalog dropdown above category chips on mobile", async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto("/index.html");
+
+        const shell = page.locator(".kantu-select-shell", { has: page.locator("#catalogSort") });
+        const trigger = shell.locator(".kantu-select-trigger");
+        const menu = shell.locator(".kantu-select-menu");
+
+        await trigger.click();
+        await expect(shell).toHaveClass(/is-open/);
+        await expect(menu).toBeVisible();
+
+        const stacking = await page.evaluate(() => {
+            const tools = document.querySelector("#catalogo .catalog-tools");
+            const categories = document.querySelector("#catalogo .categories");
+            const openMenu = document.querySelector("#catalogo .kantu-select-shell.is-open .kantu-select-menu");
+            return {
+                tools: Number.parseInt(getComputedStyle(tools).zIndex, 10) || 0,
+                categories: Number.parseInt(getComputedStyle(categories).zIndex, 10) || 0,
+                menu: Number.parseInt(getComputedStyle(openMenu).zIndex, 10) || 0
+            };
+        });
+
+        expect(stacking.tools).toBeGreaterThan(stacking.categories);
+        expect(stacking.menu).toBeGreaterThan(1000);
+    });
+
     test("loads the same visual system on product detail", async ({ page }) => {
         await page.goto("/producto.html?id=1");
         await expect(page.locator("link[data-kantu-ui-polish='true']")).toHaveCount(1);
