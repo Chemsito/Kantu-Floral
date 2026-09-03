@@ -43,13 +43,13 @@ test.describe("Kantu Floral Admin inventory navigation", () => {
         await expect(page.locator("#adminProductsView #inventoryLedgerCard")).toHaveCount(0);
 
         await page.locator("#adminInventorySearch").fill("Rosa");
-        await expect(page.locator('[data-test-inventory-row="rosa"]')).toBeVisible();
-        await expect(page.locator('[data-test-inventory-row="girasol"]')).toBeHidden();
+        await expect(page.locator('[data-test-inventory-row="rosa"]')).not.toHaveAttribute("hidden", "");
+        await expect(page.locator('[data-test-inventory-row="girasol"]')).toHaveAttribute("hidden", "");
         await expect(page.locator("#adminInventoryFilterCount")).toContainText("1 de 2");
 
         await page.locator("#adminInventoryFilterClear").click();
-        await expect(page.locator('[data-test-inventory-row="rosa"]')).toBeVisible();
-        await expect(page.locator('[data-test-inventory-row="girasol"]')).toBeVisible();
+        await expect(page.locator('[data-test-inventory-row="rosa"]')).not.toHaveAttribute("hidden", "");
+        await expect(page.locator('[data-test-inventory-row="girasol"]')).not.toHaveAttribute("hidden", "");
         await expect(page.locator("#adminInventoryFilterCount")).toContainText("2 movimientos");
 
         expect(pageErrors).toEqual([]);
