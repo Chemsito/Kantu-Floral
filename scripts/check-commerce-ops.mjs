@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const migration = fs.readFileSync("supabase/migrations/20260823212500_add_commerce_operations.sql", "utf8");
 const sourceFix = fs.readFileSync("supabase/migrations/20260823213200_clarify_inventory_movement_sources.sql", "utf8");
 const module = fs.readFileSync("js/commerce-ops.js", "utf8");
+const inventoryView = fs.readFileSync("js/admin-inventory-view.js", "utf8");
 const loader = fs.readFileSync("js/experience-loader.js", "utf8");
 
 assert.match(migration, /add column if not exists featured boolean not null default false/i,
@@ -52,7 +53,15 @@ assert.match(module, /data-admin-featured-product/,
     "Admin debe poder marcar productos destacados.");
 assert.match(module, /producto\.html\?id=/,
     "Los destacados deben enlazar al detalle del producto.");
+assert.match(inventoryView, /button\.dataset\.adminView = VIEW_NAME/,
+    "Inventario debe tener una pestaña Admin dedicada.");
+assert.match(inventoryView, /productsButton\.insertAdjacentElement\("afterend", button\)/,
+    "La pestaña Inventario debe ubicarse inmediatamente después de Productos.");
+assert.match(inventoryView, /mount\.appendChild\(card\)/,
+    "El historial existente debe trasladarse a la vista Inventario sin duplicar su lógica.");
 assert.match(loader, /js\/commerce-ops\.js/,
     "El loader debe cargar el módulo comercial.");
+assert.match(loader, /js\/admin-inventory-view\.js/,
+    "El loader debe cargar la navegación dedicada de inventario.");
 
 console.log("Commerce operations checks OK");
