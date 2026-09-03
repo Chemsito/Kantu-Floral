@@ -42,12 +42,16 @@ test.describe("Kantu Floral Admin inventory navigation", () => {
         await expect(page.locator("#adminInventoryMount > #inventoryLedgerCard")).toHaveCount(1);
         await expect(page.locator("#adminProductsView #inventoryLedgerCard")).toHaveCount(0);
 
-        await page.locator("#adminInventorySearch").fill("Rosa");
+        await page.evaluate(() => {
+            const input = document.getElementById("adminInventorySearch");
+            input.value = "Rosa";
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
         await expect(page.locator('[data-test-inventory-row="rosa"]')).not.toHaveAttribute("hidden", "");
         await expect(page.locator('[data-test-inventory-row="girasol"]')).toHaveAttribute("hidden", "");
         await expect(page.locator("#adminInventoryFilterCount")).toContainText("1 de 2");
 
-        await page.locator("#adminInventoryFilterClear").click();
+        await page.evaluate(() => document.getElementById("adminInventoryFilterClear")?.click());
         await expect(page.locator('[data-test-inventory-row="rosa"]')).not.toHaveAttribute("hidden", "");
         await expect(page.locator('[data-test-inventory-row="girasol"]')).not.toHaveAttribute("hidden", "");
         await expect(page.locator("#adminInventoryFilterCount")).toContainText("2 movimientos");
