@@ -59,6 +59,14 @@ assert.match(inventoryView, /productsButton\.insertAdjacentElement\("afterend", 
     "La pestaña Inventario debe ubicarse inmediatamente después de Productos.");
 assert.match(inventoryView, /mount\.appendChild\(card\)/,
     "El historial existente debe trasladarse a la vista Inventario sin duplicar su lógica.");
+assert.match(inventoryView, /adminInventoryTools/,
+    "Inventario debe conservar su propia barra de búsqueda y filtros.");
+assert.match(inventoryView, /adminInventoryCategoryFilter/,
+    "Inventario debe poder filtrar movimientos por categoría.");
+assert.match(inventoryView, /adminProductTools/,
+    "La barra de filtros de Productos debe mantenerse dentro de la vista Productos.");
+assert.match(inventoryView, /list\.insertAdjacentElement\("beforebegin", toolbar\)/,
+    "Los filtros de Productos deben recolocarse antes de la lista de productos.");
 assert.match(loader, /js\/commerce-ops\.js/,
     "El loader debe cargar el módulo comercial.");
 assert.match(loader, /js\/admin-inventory-view\.js/,
