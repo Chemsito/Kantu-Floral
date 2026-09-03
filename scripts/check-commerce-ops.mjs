@@ -53,7 +53,7 @@ assert.match(module, /data-admin-featured-product/,
     "Admin debe poder marcar productos destacados.");
 assert.match(module, /producto\.html\?id=/,
     "Los destacados deben enlazar al detalle del producto.");
-assert.match(inventoryView, /data\.adminView = VIEW_NAME/,
+assert.match(inventoryView, /button\.dataset\.adminView = VIEW_NAME/,
     "Inventario debe tener una pestaña Admin dedicada.");
 assert.match(inventoryView, /productsButton\.insertAdjacentElement\("afterend", button\)/,
     "La pestaña Inventario debe ubicarse inmediatamente después de Productos.");
