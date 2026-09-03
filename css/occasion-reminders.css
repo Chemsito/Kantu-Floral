@@ -88,13 +88,13 @@
     width: 100%;
 }
 
+/*
+ * El estado se administra desde cada tarjeta con Activar/Pausar.
+ * Conservamos el checkbox interno para no alterar la lógica de creación/edición,
+ * pero no lo mostramos como un control duplicado en el formulario.
+ */
 .occasion-enabled-control {
-    align-self: end;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-weight: 600;
+    display: none !important;
 }
 
 .occasion-form-actions {
