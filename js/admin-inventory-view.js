@@ -12,6 +12,8 @@
     const inventoryCategoryByName = new Map();
     let categoryMapLoading = null;
     let observer = null;
+    let inventoryListObserver = null;
+    let observedInventoryList = null;
 
     function el(id) {
         return document.getElementById(id);
@@ -127,9 +129,11 @@
             button.addEventListener("click", () => {
                 if (typeof switchAdminView === "function") switchAdminView(VIEW_NAME);
                 moveInventoryLedger();
+                ensureInventoryListObserver();
                 loadInventoryCategoryMap();
                 window.setTimeout(() => {
                     moveInventoryLedger();
+                    ensureInventoryListObserver();
                     el("inventoryLedgerRefresh")?.click();
                     window.setTimeout(applyInventoryFilters, 0);
                 }, 0);
@@ -138,6 +142,7 @@
 
         moveInventoryLedger();
         ensureProductToolbarPlacement();
+        ensureInventoryListObserver();
         return true;
     }
 
@@ -223,13 +228,24 @@
         }
     }
 
+    function ensureInventoryListObserver() {
+        const list = el("inventoryLedgerList");
+        if (!list || list === observedInventoryList) return;
+
+        inventoryListObserver?.disconnect();
+        observedInventoryList = list;
+        inventoryListObserver = new MutationObserver(() => applyInventoryFilters());
+        inventoryListObserver.observe(list, { childList: true });
+        applyInventoryFilters();
+    }
+
     function installObserver() {
         if (observer || !document.body) return;
         observer = new MutationObserver(() => {
             ensureInventoryView();
             moveInventoryLedger();
             ensureProductToolbarPlacement();
-            applyInventoryFilters();
+            ensureInventoryListObserver();
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }
@@ -237,6 +253,7 @@
     function initialize() {
         ensureInventoryView();
         installObserver();
+        ensureInventoryListObserver();
         applyInventoryFilters();
     }
 
@@ -251,6 +268,7 @@
             ensureInventoryView();
             moveInventoryLedger();
             ensureProductToolbarPlacement();
+            ensureInventoryListObserver();
             applyInventoryFilters();
         }
     });
