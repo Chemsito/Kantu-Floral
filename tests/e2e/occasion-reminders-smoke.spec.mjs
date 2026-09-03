@@ -16,6 +16,11 @@ test.describe("Kantu Floral occasion reminders", () => {
         await expect(page.locator("#accountOccasionsSection")).toContainText("no enviará WhatsApp ni correo automáticamente");
         await expect(page.locator(".occasion-reminder-card")).toHaveCount(0);
 
+        const enabledControl = page.locator(".occasion-enabled-control");
+        await expect(enabledControl).toHaveCount(1);
+        await expect(enabledControl).toBeHidden();
+        await expect(page.locator("#occasionReminderEnabled")).toBeChecked();
+
         const apiReady = await page.evaluate(() => Boolean(
             window.KantuOccasionReminders
             && typeof window.KantuOccasionReminders.refresh === "function"
