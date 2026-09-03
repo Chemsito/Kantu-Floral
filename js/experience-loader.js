@@ -32,6 +32,7 @@
     loadScriptOnce("js/order-gifting-ui.js", "data-kantu-order-gifting-ui", "true");
     loadScriptOnce("js/order-customizations-ui.js", "data-kantu-order-customizations-ui", "true");
     loadScriptOnce("js/commerce-ops.js", "data-kantu-commerce-ops", "true");
+    loadScriptOnce("js/admin-inventory-view.js", "data-kantu-admin-inventory-view", "true");
     loadScriptOnce("js/product-customizations.js", "data-kantu-product-customizations", "true");
     loadScriptOnce("js/promotions.js", "data-kantu-promotions", "true");
     loadScriptOnce("js/promotion-rules.js", "data-kantu-promotion-rules", "true");
