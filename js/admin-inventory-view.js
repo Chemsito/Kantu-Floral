@@ -52,7 +52,10 @@
             button.addEventListener("click", () => {
                 if (typeof switchAdminView === "function") switchAdminView(VIEW_NAME);
                 moveInventoryLedger();
-                window.setTimeout(moveInventoryLedger, 0);
+                window.setTimeout(() => {
+                    moveInventoryLedger();
+                    el("inventoryLedgerRefresh")?.click();
+                }, 0);
             });
         }
 
