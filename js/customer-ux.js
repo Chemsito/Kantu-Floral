@@ -19,6 +19,7 @@
         ["tulipanes", "Tulipanes"],
         ["girasoles", "Girasoles"],
         ["ramos", "Ramos"],
+        ["crochet", "Crochet"],
         ["rosas", "Rosas"],
         ["box", "Box"],
         ["canasta", "Canasta"],
