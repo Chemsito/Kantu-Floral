@@ -70,4 +70,3 @@ WHERE NOT EXISTS (
       AND tag = 'ETERNA - Crochet 🧶'
 );
 
-COMMIT;
