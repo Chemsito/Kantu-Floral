@@ -340,17 +340,17 @@
     function categoryHeuristic(product, audience, occasion, style) {
         const category = String(product.category || "");
         let score = 0;
-        if (audience === "pareja" && ["rosas","tulipanes","ramos_buchones","box"].includes(category)) score += 7;
-        if (audience === "mama" && ["ramos","flores","canasta","girasoles"].includes(category)) score += 6;
-        if (audience === "amiga" && ["girasoles","ramos","flores"].includes(category)) score += 5;
-        if (["aniversario","amor","primera_cita"].includes(occasion) && ["rosas","tulipanes","ramos_buchones"].includes(category)) score += 9;
+        if (audience === "pareja" && ["rosas","tulipanes","ramos_buchones","crochet","box"].includes(category)) score += 7;
+        if (audience === "mama" && ["ramos","flores","canasta","girasoles","crochet"].includes(category)) score += 6;
+        if (audience === "amiga" && ["girasoles","ramos","flores","crochet"].includes(category)) score += 5;
+        if (["aniversario","amor","primera_cita"].includes(occasion) && ["rosas","tulipanes","ramos_buchones","crochet"].includes(category)) score += 9;
         if (occasion === "cumpleanos" && ["girasoles","ramos","box","cajas"].includes(category)) score += 7;
         if (occasion === "perdon" && ["rosas","tulipanes","ramos"].includes(category)) score += 6;
-        if (style === "romantico" && ["rosas","tulipanes"].includes(category)) score += 10;
-        if (style === "elegante" && ["box","tulipanes","cajas"].includes(category)) score += 8;
+        if (style === "romantico" && ["rosas","tulipanes","crochet"].includes(category)) score += 10;
+        if (style === "elegante" && ["box","tulipanes","cajas","crochet"].includes(category)) score += 8;
         if (style === "impactante" && ["ramos_buchones","box"].includes(category)) score += 9;
         if (style === "alegre" && category === "girasoles") score += 11;
-        if (style === "tierno" && ["ramos","flores","tulipanes"].includes(category)) score += 6;
+        if (style === "tierno" && ["ramos","flores","tulipanes","crochet"].includes(category)) score += 6;
         return score;
     }
 

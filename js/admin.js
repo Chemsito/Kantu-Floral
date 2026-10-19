@@ -3,7 +3,7 @@
 const KANTU_ADMIN = window.KantuCore;
 const ADMIN_STATUSES = ["pendiente", "confirmado", "preparando", "en_camino", "entregado", "cancelado"];
 const ADMIN_CATEGORIES = window.KantuProductConfig?.categoryValues || [
-    "tulipanes", "girasoles", "ramos", "rosas", "box", "canasta", "flores", "complementos", "cajas", "ramos_buchones"
+    "tulipanes", "girasoles", "ramos", "crochet", "rosas", "box", "canasta", "flores", "complementos", "cajas", "ramos_buchones"
 ];
 const ADMIN_STATUS_LABELS = KANTU_ADMIN.orderStatusLabels;
 

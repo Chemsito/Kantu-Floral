@@ -2,7 +2,7 @@
 
 (() => {
     const MAIN_GIFT_CATEGORIES = new Set([
-        "tulipanes", "girasoles", "ramos", "rosas", "box", "boxes",
+        "tulipanes", "girasoles", "ramos", "crochet", "rosas", "box", "boxes",
         "canasta", "canastas", "flores", "cajas", "ramos_buchones"
     ]);
     const EXCLUDED_GIFT_CATEGORIES = new Set([
@@ -131,13 +131,13 @@
         const style = String(answers?.style || "");
         let score = 0;
 
-        if (["pareja", "novio", "esposo"].includes(audience) && ["rosas", "tulipanes", "ramos_buchones", "box", "cajas"].includes(category)) score += 8;
-        if (audience === "mama" && ["ramos", "flores", "canasta", "girasoles", "tulipanes"].includes(category)) score += 7;
+        if (["pareja", "novio", "esposo"].includes(audience) && ["rosas", "tulipanes", "ramos_buchones", "crochet", "box", "cajas"].includes(category)) score += 8;
+        if (audience === "mama" && ["ramos", "flores", "canasta", "girasoles", "tulipanes", "crochet"].includes(category)) score += 7;
         if (audience === "papa" && ["box", "cajas", "ramos", "ramos_buchones"].includes(category)) score += 6;
         if (["hermano", "familiar"].includes(audience) && ["ramos", "flores", "girasoles", "box"].includes(category)) score += 5;
         if (["amigo", "companero"].includes(audience) && ["girasoles", "ramos", "flores", "box"].includes(category)) score += 5;
 
-        if (["aniversario", "amor", "primera_cita"].includes(occasion) && ["rosas", "tulipanes", "ramos_buchones"].includes(category)) score += 9;
+        if (["aniversario", "amor", "primera_cita"].includes(occasion) && ["rosas", "tulipanes", "ramos_buchones", "crochet"].includes(category)) score += 9;
         if (["cumpleanos", "graduacion", "sorpresa"].includes(occasion) && ["girasoles", "ramos", "box", "cajas"].includes(category)) score += 7;
         if (occasion === "perdon" && ["rosas", "tulipanes", "ramos"].includes(category)) score += 6;
         if (occasion === "nacimiento" && ["ramos", "flores", "tulipanes", "canasta"].includes(category)) score += 6;
@@ -145,11 +145,11 @@
         if (occasion === "dia_madre" && ["ramos", "flores", "girasoles", "tulipanes", "canasta"].includes(category)) score += 9;
         if (occasion === "dia_padre" && ["box", "cajas", "ramos", "ramos_buchones"].includes(category)) score += 8;
 
-        if (style === "romantico" && ["rosas", "tulipanes"].includes(category)) score += 10;
-        if (["elegante", "lujoso"].includes(style) && ["box", "tulipanes", "cajas", "ramos_buchones"].includes(category)) score += 8;
+        if (style === "romantico" && ["rosas", "tulipanes", "crochet"].includes(category)) score += 10;
+        if (["elegante", "lujoso"].includes(style) && ["box", "tulipanes", "cajas", "ramos_buchones", "crochet"].includes(category)) score += 8;
         if (style === "impactante" && ["ramos_buchones", "box"].includes(category)) score += 9;
         if (style === "alegre" && ["girasoles", "ramos", "flores"].includes(category)) score += 9;
-        if (["tierno", "delicado"].includes(style) && ["ramos", "flores", "tulipanes"].includes(category)) score += 7;
+        if (["tierno", "delicado"].includes(style) && ["ramos", "flores", "tulipanes", "crochet"].includes(category)) score += 7;
         if (style === "sobrio" && ["box", "cajas", "ramos"].includes(category)) score += 6;
         if (style === "moderno" && ["box", "cajas", "ramos_buchones", "tulipanes"].includes(category)) score += 7;
         return score;
