@@ -28,6 +28,12 @@
     --ks-shadow: 0 1px 2px rgba(31, 23, 26, .04), 0 10px 26px -14px rgba(31, 23, 26, .16);
     --ks-display: "Fraunces", "Playfair Display", Georgia, serif;
     --ks-body: "Plus Jakarta Sans", "DM Sans", system-ui, sans-serif;
+
+    /* Mismo acento de controles que la tienda (sistema visual compartido) */
+    --kantu-control-accent: #7b1e3a;
+    --kantu-control-accent-strong: #561226;
+    --kantu-control-border-focus: #7b1e3a;
+    --kantu-control-ring: rgba(123, 30, 58, .14);
 }
 
 body {

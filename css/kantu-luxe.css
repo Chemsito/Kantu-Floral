@@ -79,7 +79,7 @@
     --kantu-control-border-focus: var(--kf-wine);
     --kantu-control-text: var(--kf-ink);
     --kantu-control-muted: var(--kf-faint);
-    --kantu-control-accent: var(--kf-wine);
+    --kantu-control-accent: #7b1e3a;
     --kantu-control-accent-strong: var(--kf-wine-deep);
     --kantu-control-ring: rgba(123, 30, 58, .14);
     --kantu-control-radius: 14px;

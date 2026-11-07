@@ -69,13 +69,13 @@ test.describe("Kantu Floral global UI polish", () => {
         await page.goto("/producto.html?id=1");
         await expect(page.locator("link[data-kantu-ui-polish='true']")).toHaveCount(1);
         const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--kantu-control-accent").trim());
-        expect(accent).toBe("#a92f50");
+        expect(accent).toBe("#7b1e3a");
     });
 
     test("shares the visual system with staff", async ({ page }) => {
         await page.goto("/staff.html");
         await expect(page.locator("link[data-kantu-ui-polish='true']")).toHaveCount(1);
         const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--kantu-control-accent").trim());
-        expect(accent).toBe("#a92f50");
+        expect(accent).toBe("#7b1e3a");
     });
 });

@@ -153,7 +153,9 @@
         const modal = el("adminModal");
         const nav = document.querySelector("#adminModal .admin-nav");
         if (!modal || !nav) return false;
-        modal.classList.add("kf-admin");
+        // classList.add re-escribe el atributo aunque la clase exista y dispara
+        // los observers de clase de otros módulos (bucle de alertas).
+        if (!modal.classList.contains("kf-admin")) modal.classList.add("kf-admin");
 
         if (!nav.querySelector(".kf-admin-brand")) {
             const brand = document.createElement("div");
@@ -214,10 +216,11 @@
         let previous = "";
         nav.querySelectorAll(".admin-nav-button").forEach(button => {
             const section = NAV_SECTIONS[button.dataset.adminView] || "Más";
+            // Solo escribir cuando cambia: evita bucles con otros observers del panel.
             if (section !== previous) {
-                button.dataset.kfSection = section;
+                if (button.dataset.kfSection !== section) button.dataset.kfSection = section;
                 previous = section;
-            } else {
+            } else if ("kfSection" in button.dataset) {
                 delete button.dataset.kfSection;
             }
         });
@@ -236,9 +239,11 @@
         const active = document.querySelector("#adminModal .admin-nav-button.active");
         if (!title || !active) return;
         const label = active.textContent.replace(/\d+/g, "").trim();
-        title.textContent = label === "Dashboard" ? "Resumen general" : label;
+        const nextTitle = label === "Dashboard" ? "Resumen general" : label;
+        if (title.textContent !== nextTitle) title.textContent = nextTitle;
         const eyebrow = document.querySelector("#adminModal .admin-eyebrow");
-        if (eyebrow) eyebrow.textContent = NAV_SECTIONS[active.dataset.adminView] || "Kantu Floral";
+        const nextEyebrow = NAV_SECTIONS[active.dataset.adminView] || "Kantu Floral";
+        if (eyebrow && eyebrow.textContent !== nextEyebrow) eyebrow.textContent = nextEyebrow;
     }
 
     /* =====================================================
