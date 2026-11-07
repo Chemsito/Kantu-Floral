@@ -42,6 +42,13 @@ deno check --no-config \
 - Justo antes de crear la preferencia de Mercado Pago se vuelve a validar que los productos sigan activos y exista stock suficiente.
 - Un pago rechazado o cancelado puede reintentarse con Mercado Pago. El webhook oficial sigue siendo la fuente de verdad del estado y un pago ya aprobado no puede reemplazarse por otro `payment_id`.
 
+## Diseño Luxe 2026
+
+- `css/kantu-luxe.css`: sistema de diseño de la tienda (tipografía Fraunces + Plus Jakarta Sans, tokens de color, portada, ocasiones, catálogo, footer y modales). Se carga al final; `js/kantu-luxe.js` mueve las hojas que inyectan otros módulos *antes* de Luxe para conservar la prioridad sin parpadeos.
+- `css/kantu-luxe-admin.css` + `js/admin-dashboard-pro.js`: panel administrador como aplicación (sidebar, topbar) y dashboard analítico con KPIs, comparación con el periodo anterior, gráficos SVG sin dependencias, mapa de calor, inventario y actividad en vivo vía Supabase Realtime. Los datos vienen de una sola RPC (`admin_dashboard_analytics`) restringida a administradores.
+- `css/kantu-luxe-staff.css`: portal de operaciones como tablero de dos columnas (preparación / reparto).
+- Los visitantes no consultan endpoints de Admin/Staff: la tienda pública solo hace las lecturas que necesita (importante para el plan gratuito de Supabase).
+
 ## Migraciones
 
 Los archivos de `supabase/migrations` deben conservar exactamente las versiones registradas en el historial remoto de Supabase. No renombres migraciones ya aplicadas ni agregues migraciones antiguas fuera de historial; crea siempre una migración nueva.

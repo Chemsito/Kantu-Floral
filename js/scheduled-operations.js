@@ -165,8 +165,14 @@
             : '<p class="scheduled-operations-empty">No hay entregas programadas con pago aprobado en los próximos 14 días.</p>';
     }
 
+    function adminPanelVisible() {
+        const modal = el("adminModal");
+        const content = el("adminContent");
+        return Boolean(modal?.classList.contains("show") && content && !content.hidden);
+    }
+
     async function loadAdminAgenda() {
-        if (adminAgendaLoading || !ensureAdminAgendaCard()) return null;
+        if (adminAgendaLoading || !ensureAdminAgendaCard() || !adminPanelVisible()) return null;
         adminAgendaLoading = true;
         const content = el("adminDeliveryAgendaContent");
         if (content) content.innerHTML = '<div class="admin-loader">Cargando agenda...</div>';
@@ -191,6 +197,8 @@
     }
 
     async function loadStaffScheduleRows({ force = false } = {}) {
+        // Fuera del portal operativo (tienda pública) no se consulta el RPC de staff.
+        if (!el("staffApp")) return staffGiftRows;
         if (!document.querySelector(".staff-order-card") && !force) return staffGiftRows;
         if (!force && Date.now() - staffLastFetchAt < 900) return staffGiftRows;
         staffLastFetchAt = Date.now();
