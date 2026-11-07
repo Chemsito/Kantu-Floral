@@ -22,6 +22,7 @@
     }
 
     const isStandaloneAdmin = new URLSearchParams(window.location.search).get("admin") === "1";
+    loadScriptOnce("js/kantu-luxe.js?v=20261107", "data-kantu-luxe-script", "true");
     loadScriptOnce("js/ui-polish.js", "data-kantu-ui-polish-script", "true");
 
     loadScriptOnce("js/admin-standalone.js", "data-kantu-admin-standalone", "true");
@@ -47,6 +48,7 @@
     loadScriptOnce("js/checkout-review-editing.js", "data-kantu-checkout-review-editing", "true");
     loadScriptOnce("js/runtime-integrity.js", "data-kantu-runtime-integrity", "true");
     loadScriptOnce("js/admin-growth.js", "data-kantu-admin-growth", "true");
+    loadScriptOnce("js/admin-dashboard-pro.js?v=20261107", "data-kantu-admin-dashboard-pro", "true");
     if (!isStandaloneAdmin) {
         loadScriptOnce("js/kantu-growth.js", "data-kantu-growth", "true");
         loadScriptOnce("js/kantu-match-v2.js", "data-kantu-match-v2", "true");

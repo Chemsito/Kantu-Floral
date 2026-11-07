@@ -7,6 +7,15 @@
     let checkoutRequestId = 0;
     let adminLoading = false;
     let adminSettings = null;
+    let adminLastFailureAt = 0;
+    const ADMIN_RETRY_MS = 30000;
+
+    // Solo el panel Admin abierto y autorizado puede leer la configuración.
+    function adminPanelVisible() {
+        const modal = el("adminModal");
+        const content = el("adminContent");
+        return Boolean(modal?.classList.contains("show") && content && !content.hidden);
+    }
 
     const deliveryErrors = Object.freeze({
         DELIVERY_DATE_UNAVAILABLE: "La fecha seleccionada no está disponible para entregas programadas.",
@@ -244,7 +253,7 @@
     }
 
     async function loadAdminAvailability() {
-        if (adminLoading || !ensureAdminControls()) return null;
+        if (adminLoading || !ensureAdminControls() || !adminPanelVisible()) return null;
         adminLoading = true;
         setAdminStatus("Cargando disponibilidad...");
 
@@ -256,10 +265,12 @@
 
         adminLoading = false;
         if (error || !data) {
+            adminLastFailureAt = Date.now();
             setAdminStatus("");
             return null;
         }
 
+        adminLastFailureAt = 0;
         adminSettings = data;
         renderCapacityGrid(data.slots || [], data.slot_capacities || {});
         const blackout = el("adminDeliveryBlackoutDates");
@@ -343,7 +354,9 @@
 
         const observer = new MutationObserver(() => {
             bindCheckout();
-            if (ensureAdminControls() && !adminSettings) loadAdminAvailability();
+            if (adminSettings || adminLoading || !adminPanelVisible()) return;
+            if (adminLastFailureAt && Date.now() - adminLastFailureAt < ADMIN_RETRY_MS) return;
+            if (ensureAdminControls()) loadAdminAvailability();
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }

@@ -441,9 +441,12 @@
         `).join("");
 
         footerContent.innerHTML = `
-            <div class="footer-column">
-                <div class="footer-logo">Kantu Floral ✿</div>
+            <div class="footer-column footer-brand-column">
+                <div class="footer-logo"><img src="assets/brand/kantu-mark-512.png" alt="" width="40" height="40"> Kantu Floral</div>
                 <p>Flores que transmiten emociones. Creamos arreglos florales para convertir momentos especiales en recuerdos inolvidables.</p>
+                <div class="footer-payments" aria-label="Medios de pago aceptados">
+                    <span>Mercado Pago</span><span>Yape</span><span>Plin</span><span>Transferencia</span>
+                </div>
             </div>
             <div class="footer-column">
                 <h4>Comprar</h4>
