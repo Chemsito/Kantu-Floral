@@ -54,4 +54,26 @@ assert.ok(!ordersJs.includes('checkout-delivery-icon">🛵'), "El delivery del c
 assert.ok(luxeJs.includes("function syncRange(input)"), "Los sliders deben mostrar el tramo recorrido.");
 assert.match(index, /rel="preload" as="image"/, "La imagen principal de la portada debe precargarse.");
 
+// Crecimiento: metas, embudo, clientes y Telegram.
+const growth = read("supabase/migrations/20261107154446_admin_growth_tools.sql");
+const crm = read("js/admin-crm.js");
+const analytics = read("js/kantu-analytics.js");
+for (const fn of ["admin_set_sales_goal(date, numeric)", "admin_customer_insights()", "admin_telegram_status()",
+    "admin_set_telegram_credentials(text, text)", "admin_set_notification_settings(jsonb)", "admin_send_telegram_test()",
+    "admin_telegram_request_updates()", "admin_telegram_read_response(bigint)"]) {
+    assert.ok(growth.includes(`revoke all on function public.${fn} from public, anon;`), `${fn} no debe ser ejecutable por anon.`);
+}
+assert.ok(growth.includes("grant execute on function public.track_storefront_event(uuid, text, bigint) to anon, authenticated;"),
+    "La tienda debe poder registrar eventos anónimos.");
+assert.ok(growth.includes(">= 30 then") && growth.includes(">= 3000 then"), "El registro de eventos debe tener límites anti-abuso.");
+assert.ok(growth.includes("vault.create_secret") && !/'token',\s*v_token/.test(growth), "El token de Telegram vive en Vault y no se devuelve.");
+assert.ok((growth.match(/exception when others then\s+return new;/g) || []).length >= 3,
+    "Los avisos de Telegram nunca deben bloquear pedidos, pagos ni reclamos.");
+assert.ok(growth.includes("as restrictive for all to anon, authenticated using (false)"), "Las tablas nuevas niegan acceso directo.");
+assert.match(loader, /js\/admin-crm\.js/, "El loader debe cargar la vista de clientes.");
+assert.match(loader, /js\/kantu-analytics\.js/, "El loader debe cargar la medición del embudo.");
+assert.ok(analytics.includes("doNotTrack") && analytics.includes('get("admin") === "1"'), "La medición respeta Do Not Track y omite el panel admin.");
+assert.ok(crm.includes('type="password" name="token"'), "El token se ingresa en un campo oculto.");
+assert.ok(dashboard.includes("function goalCard(") && dashboard.includes("function funnelCard("), "El dashboard muestra meta y embudo.");
+
 console.log("Luxe redesign contracts OK");
