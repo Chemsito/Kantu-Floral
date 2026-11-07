@@ -27,6 +27,7 @@
         orders: "Ventas",
         payments: "Ventas",
         claims: "Atención",
+        customers: "Ventas",
         products: "Catálogo",
         inventory: "Catálogo",
         promotions: "Catálogo",
@@ -301,6 +302,16 @@
                 exportCsv();
                 return;
             }
+            if (event.target.closest("[data-kf-goal-edit]")) {
+                const card = el("kfGoalCard");
+                card?.classList.add("is-editing");
+                card?.querySelector("#kfGoalInput")?.focus();
+                return;
+            }
+            if (event.target.closest("[data-kf-goal-cancel]")) {
+                el("kfGoalCard")?.classList.remove("is-editing");
+                return;
+            }
             const go = event.target.closest("[data-kf-go]");
             if (go) {
                 const target = go.dataset.kfGo;
@@ -317,6 +328,28 @@
                     }
                 }
             }
+        });
+
+        root.addEventListener("submit", async event => {
+            const form = event.target.closest("#kfGoalForm");
+            if (!form) return;
+            event.preventDefault();
+            const input = form.querySelector("#kfGoalInput");
+            const button = form.querySelector("button[type='submit']");
+            const status = form.querySelector(".kf-goal-status");
+            const target = Number(input?.value);
+            if (!Number.isFinite(target) || target < 0) {
+                if (status) status.textContent = "Ingresa un monto válido.";
+                return;
+            }
+            if (button) button.disabled = true;
+            const { error } = await supabaseClient.rpc("admin_set_sales_goal", { p_month: null, p_target: target });
+            if (button) button.disabled = false;
+            if (error) {
+                if (status) status.textContent = "No se pudo guardar la meta.";
+                return;
+            }
+            loadDashboard();
         });
 
         root.addEventListener("pointermove", handleChartHover);
@@ -471,6 +504,14 @@
                         <p class="kf-kpi-foot">${escapeHtml(kpi.foot)}</p>
                     </article>
                 `).join("")}
+            </section>
+
+            <section class="kf-grid kf-grid-growth">
+                <article class="kf-card kf-goal-card" id="kfGoalCard">${goalCard(data.goal)}</article>
+                <article class="kf-card">
+                    <header class="kf-card-head"><div><h4>Embudo de ventas</h4><p>Visitantes únicos del periodo y en qué paso se quedan</p></div></header>
+                    ${funnelCard(data.funnel, data.top_viewed || [])}
+                </article>
             </section>
 
             <section class="kf-grid kf-grid-main">
@@ -752,6 +793,101 @@
             ? `<p class="kf-insight">Tu hora pico es el <strong>${DOW_LABELS[peak.dow].toLowerCase()} a las ${String(peak.hour).padStart(2, "0")}:00</strong>. Programa promociones y personal para ese momento.</p>`
             : '<p class="kf-insight">Aún no hay suficientes pedidos para detectar tus horas pico.</p>';
         return `<div class="kf-heat">${cells}${hoursAxis}</div>${insight}`;
+    }
+
+    function goalCard(goal) {
+        const info = goal || {};
+        const target = Number(info.target) || 0;
+        const achieved = Number(info.achieved) || 0;
+        const projection = Number(info.projection) || 0;
+        const daysLeft = Math.max(0, (Number(info.days_in_month) || 30) - (Number(info.days_elapsed) || 0));
+        const monthName = info.month
+            ? new Intl.DateTimeFormat("es-PE", { month: "long" }).format(new Date(`${info.month}T12:00:00`))
+            : "este mes";
+        const pct = target ? Math.min(100, (achieved / target) * 100) : 0;
+        const projectionPct = target ? Math.min(100, (projection / target) * 100) : 0;
+        const onTrack = target && projection >= target;
+        const form = `
+            <form class="kf-goal-form" id="kfGoalForm">
+                <label for="kfGoalInput">Meta de ventas de ${escapeHtml(monthName)} (S/)</label>
+                <div class="kf-goal-form-row">
+                    <input id="kfGoalInput" type="number" min="0" step="50" inputmode="decimal" value="${target ? escapeHtml(target) : ""}" placeholder="Ej.: 5000">
+                    <button type="submit" class="kf-btn-mini">Guardar</button>
+                    ${target ? '<button type="button" class="kf-link" data-kf-goal-cancel>Cancelar</button>' : ""}
+                </div>
+                <small class="kf-goal-status">Deja 0 para quitar la meta.</small>
+            </form>`;
+
+        if (!target) {
+            return `
+                <header class="kf-card-head"><div><h4>Meta del mes</h4><p>Define cuánto quieres vender en ${escapeHtml(monthName)}</p></div></header>
+                <div class="kf-goal-empty">
+                    <p>Llevas <strong>${escapeHtml(money(achieved))}</strong> en ventas pagadas este mes.</p>
+                    ${form}
+                </div>`;
+        }
+
+        return `
+            <header class="kf-card-head">
+                <div><h4>Meta de ${escapeHtml(monthName)}</h4><p>${daysLeft} ${daysLeft === 1 ? "día restante" : "días restantes"}</p></div>
+                <button type="button" class="kf-link" data-kf-goal-edit>Editar</button>
+            </header>
+            <div class="kf-goal-view">
+                <div class="kf-goal-figures">
+                    <strong>${escapeHtml(money(achieved))}</strong>
+                    <span>de ${escapeHtml(money(target))}</span>
+                </div>
+                <div class="kf-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}" aria-label="Avance de la meta">
+                    <i class="kf-goal-projection" style="width:${projectionPct}%"></i>
+                    <i class="kf-goal-fill" style="width:${pct}%"></i>
+                </div>
+                <div class="kf-goal-stats">
+                    <div><span>Avance</span><strong>${pct.toFixed(0)}%</strong></div>
+                    <div><span>Proyección al cierre</span><strong class="${onTrack ? "is-good" : "is-warn"}">${escapeHtml(moneyCompact(projection))}</strong></div>
+                    <div><span>Necesitas por día</span><strong>${escapeHtml(money(info.needed_per_day))}</strong></div>
+                </div>
+                <p class="kf-insight ${onTrack ? "kf-insight-good" : ""}">${onTrack
+                    ? "A este ritmo superas la meta. ¡Excelente mes!"
+                    : `A este ritmo cerrarías en ${escapeHtml(money(projection))}. Una promoción o campaña puede ayudarte a llegar.`}</p>
+            </div>
+            <div class="kf-goal-edit">${form}</div>`;
+    }
+
+    function funnelCard(funnel, topViewed) {
+        const f = funnel || {};
+        const steps = [
+            ["Visitaron la tienda", f.visits],
+            ["Vieron un producto", f.product_views],
+            ["Agregaron al carrito", f.add_to_cart],
+            ["Iniciaron la compra", f.checkout_start],
+            ["Crearon el pedido", f.orders],
+            ["Pagaron", f.paid]
+        ].map(([label, value]) => [label, Number(value) || 0]);
+        const max = Math.max(...steps.map(([, value]) => value), 1);
+        const since = f.tracking_since
+            ? new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short" }).format(new Date(f.tracking_since)).replace(".", "")
+            : null;
+
+        const rows = steps.map(([label, value], index) => {
+            const previous = index > 0 ? steps[index - 1][1] : 0;
+            const rate = index > 0 && previous > 0 ? Math.min(100, Math.round((value / previous) * 100)) : null;
+            return `<li>
+                <div class="kf-funnel-label"><span>${escapeHtml(label)}</span><strong>${integer(value)}</strong></div>
+                <div class="kf-funnel-bar"><i style="width:${Math.max((value / max) * 100, value ? 3 : 0)}%"></i></div>
+                ${rate === null ? "" : `<em class="kf-funnel-rate">${rate}% del paso anterior</em>`}
+            </li>`;
+        }).join("");
+
+        const conversion = steps[0][1] ? ((steps[5][1] / steps[0][1]) * 100).toFixed(1) : null;
+        const viewed = topViewed.length
+            ? `<div class="kf-divider"></div><p class="kf-mini-title">Más vistos</p><ul class="kf-low">${topViewed.map(item => `<li><span>${escapeHtml(item.name)}</span><strong>${integer(item.views)} vistas · ${integer(item.adds)} al carrito</strong></li>`).join("")}</ul>`
+            : "";
+
+        return `<ol class="kf-funnel">${rows}</ol>
+            <p class="kf-muted-note">${conversion === null
+                ? `Midiendo visitas${since ? ` desde el ${escapeHtml(since)}` : " desde hoy"}. Los datos aparecerán a medida que lleguen visitantes.`
+                : `Conversión total: <strong>${conversion}%</strong> de visitantes terminan pagando${since ? ` · midiendo desde el ${escapeHtml(since)}` : ""}.`}</p>
+            ${viewed}`;
     }
 
     function inventory(info, lowItems) {
