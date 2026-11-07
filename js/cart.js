@@ -419,7 +419,7 @@ function updateCart() {
     if (cart.length === 0) {
         cartItems.innerHTML = `
             <div class="empty-cart">
-                <span aria-hidden="true">🌷</span>
+                <span class="empty-cart-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 10c-3-1-4-5-1-6 3-1 4 3 2 6M14 12c1-3 5-4 6-1 1 3-3 4-6 2M12 14c3 1 4 5 1 6-3 1-4-3-2-6M10 12c-1 3-5 4-6 1-1-3 3-4 6-2"/></svg></span>
                 <h3>Tu carrito está vacío</h3>
                 <p>Agrega flores para comenzar.</p>
             </div>
@@ -457,7 +457,7 @@ function updateCart() {
                         <button type="button" onclick="changeQuantity(${item.id}, 1)" aria-label="Aumentar cantidad">+</button>
                     </div>
                 </div>
-                <button type="button" class="remove-item" onclick="removeFromCart(${item.id})" aria-label="Eliminar ${KANTU_CART.escapeHtml(product.name || "producto")}">🗑</button>
+                <button type="button" class="remove-item" onclick="removeFromCart(${item.id})" aria-label="Eliminar ${KANTU_CART.escapeHtml(product.name || "producto")}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
             </div>
         `;
     }).join("");

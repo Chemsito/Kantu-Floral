@@ -171,9 +171,33 @@
         if (actions) new MutationObserver(apply).observe(actions, { childList: true, subtree: true });
     }
 
+    /* Los sliders muestran la parte recorrida en color (WebKit no tiene
+       ::-moz-range-progress); --kf-range se recalcula al interactuar. */
+    function syncRange(input) {
+        const min = Number(input.min) || 0;
+        const max = Number(input.max) || 100;
+        const value = Number(input.value) || 0;
+        const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+        input.style.setProperty("--kf-range", `${Math.min(100, Math.max(0, percent))}%`);
+    }
+
+    function initializeRangeFill() {
+        const syncAll = () => document.querySelectorAll('input[type="range"]').forEach(syncRange);
+        const onChange = event => {
+            if (event.target?.matches?.('input[type="range"]')) syncRange(event.target);
+            else if (event.target?.matches?.("input")) window.setTimeout(syncAll, 0);
+        };
+        document.addEventListener("input", onChange, true);
+        document.addEventListener("change", onChange, true);
+        // Valores cargados por código (p. ej. al editar un producto) no emiten eventos.
+        document.addEventListener("click", () => window.setTimeout(syncAll, 80), true);
+        syncAll();
+    }
+
     function initialize() {
         keepLuxeStylesLast();
         refineHeaderIcons();
+        initializeRangeFill();
         if (isStandaloneAdmin) return;
         initializeHeaderState();
         initializeOccasions();

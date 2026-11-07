@@ -37,6 +37,8 @@ function renderCustomerOrderTracker(order) {
     const statusIndexes = { pendiente: 0, confirmado: 1, preparando: 2, en_camino: 3, entregado: 4 };
     let currentIndex = order.payment_status === "approved" ? (statusIndexes[order.status] ?? 1) : 0;
     if (order.status === "cancelado") currentIndex = -1;
+    // Entregado es el final del recorrido: todas las etapas quedan completas.
+    if (order.status === "entregado" && order.payment_status === "approved") currentIndex = steps.length;
 
     return `<ol class="customer-order-tracker">${steps.map((label, index) => {
         const className = index < currentIndex ? "complete" : index === currentIndex ? "current" : "upcoming";

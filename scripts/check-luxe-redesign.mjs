@@ -42,4 +42,16 @@ assert.match(availability, /ADMIN_RETRY_MS/, "Disponibilidad debe espaciar reint
 assert.match(scheduled, /if \(!el\("staffApp"\)\) return staffGiftRows;/, "La tienda no debe consultar el RPC de staff.");
 assert.match(scheduled, /!adminPanelVisible\(\)\) return null;/, "La agenda admin solo debe cargarse con el panel visible.");
 
+// Pulido 2: seguimiento, iconografía y controles.
+const tracking = read("js/order-tracking.js");
+const cart = read("js/cart.js");
+const ordersJs = read("js/orders.js");
+assert.ok(tracking.includes('order.status === "entregado" && order.payment_status === "approved") currentIndex = steps.length'),
+  "Un pedido entregado debe mostrar todas las etapas completas.");
+assert.ok(!cart.includes(">🗑<") && !cart.includes('<span aria-hidden="true">🌷</span>'),
+  "El carrito no debe usar emoji como iconos funcionales.");
+assert.ok(!ordersJs.includes('checkout-delivery-icon">🛵'), "El delivery del checkout debe usar icono SVG.");
+assert.ok(luxeJs.includes("function syncRange(input)"), "Los sliders deben mostrar el tramo recorrido.");
+assert.match(index, /rel="preload" as="image"/, "La imagen principal de la portada debe precargarse.");
+
 console.log("Luxe redesign contracts OK");

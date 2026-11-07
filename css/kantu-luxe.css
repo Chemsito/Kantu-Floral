@@ -2055,3 +2055,448 @@ body:has(#cartPanel.show)::before {
     #productsGrid .product-tag { top: 8px !important; left: 8px !important; padding: 5px 8px !important; font-size: 9px !important; }
     #productsGrid .favorite { top: 8px !important; right: 8px !important; width: 34px !important; height: 34px !important; }
 }
+
+/* =====================================================
+   PULIDO 2 · CONTROLES, CARRITO, CHECKOUT Y SEGUIMIENTO
+===================================================== */
+
+/* Iconos SVG en línea heredan color y tamaño */
+:where(.remove-item, .empty-cart-icon, .checkout-delivery-icon, .kantu-bell, .kantu-notification-icon, #kantuMatchButton, .kantu-notification-empty > span, .admin-alert-bell) svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+#kantuMatchButton { display: inline-flex !important; align-items: center; gap: 8px; }
+#kantuMatchButton svg { width: 16px; height: 16px; }
+
+/* Botones de cierre unificados: círculo neutro */
+:where(.checkout-summary-remove, .kantu-customization-close, .kantu-growth-close, #notificationClose, #footerInfoClose) {
+    display: inline-grid !important;
+    place-items: center;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    border: 1px solid var(--kf-line) !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    color: var(--kf-ink-soft) !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+    transition: border-color .2s, color .2s, background .2s, transform .25s var(--kf-ease) !important;
+}
+
+:where(.checkout-summary-remove, .kantu-customization-close, .kantu-growth-close, #notificationClose, #footerInfoClose):hover:not(:disabled) {
+    border-color: var(--kf-ink) !important;
+    background: #fff !important;
+    color: var(--kf-ink) !important;
+}
+
+.checkout-summary-remove { width: 28px !important; min-width: 28px !important; height: 28px !important; min-height: 28px !important; font-size: 15px !important; }
+.checkout-summary-remove:hover:not(:disabled) { border-color: var(--kf-danger) !important; color: var(--kf-danger) !important; }
+
+/* Ítem del carrito */
+.cart-item {
+    display: grid !important;
+    grid-template-columns: 76px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 12px !important;
+}
+
+.cart-item > img,
+.cart-item-image-placeholder {
+    width: 76px !important;
+    height: 76px !important;
+    border-radius: 14px !important;
+    object-fit: cover;
+}
+
+.cart-item-info { display: grid; gap: 4px; min-width: 0; }
+
+.cart-item-info h4 {
+    overflow: hidden;
+    margin: 0 !important;
+    color: var(--kf-ink) !important;
+    font-size: 17px !important;
+    font-weight: 500 !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cart-item-price {
+    color: var(--kf-ink-soft) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+.quantity-controls {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 2px !important;
+    width: fit-content;
+    margin-top: 4px;
+    padding: 3px !important;
+    border: 1px solid var(--kf-line) !important;
+    border-radius: 999px !important;
+    background: var(--kf-bg) !important;
+}
+
+.quantity-controls button {
+    display: grid !important;
+    place-items: center;
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    color: var(--kf-ink) !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    box-shadow: var(--kf-shadow-xs) !important;
+    transition: background .2s, color .2s !important;
+}
+
+.quantity-controls button:hover:not(:disabled) { background: var(--kf-ink) !important; color: #fff !important; }
+
+.quantity-controls span {
+    min-width: 26px;
+    color: var(--kf-ink);
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.remove-item {
+    display: grid !important;
+    place-items: center;
+    align-self: start;
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: var(--kf-faint) !important;
+    opacity: 1 !important;
+    transition: background .2s, color .2s !important;
+}
+
+.remove-item:hover { background: #fbe9ec !important; color: var(--kf-danger) !important; }
+
+.empty-cart {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 56px 20px !important;
+    text-align: center;
+}
+
+.empty-cart-icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: var(--kf-wine-soft);
+    color: var(--kf-wine);
+}
+
+.empty-cart-icon svg { width: 28px !important; height: 28px !important; }
+.empty-cart h3 { color: var(--kf-ink) !important; font-size: 22px !important; font-weight: 500 !important; }
+.empty-cart p { color: var(--kf-muted) !important; }
+
+/* Cotización de delivery */
+.checkout-delivery-quote,
+#checkoutDeliveryQuote {
+    border: 1px solid var(--kf-line) !important;
+    border-radius: var(--kf-radius) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+.checkout-delivery-quote-heading { align-items: center !important; gap: 12px !important; }
+
+.checkout-delivery-icon {
+    display: grid !important;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    background: var(--kf-wine-soft) !important;
+    color: var(--kf-wine) !important;
+    font-weight: 800;
+}
+
+.checkout-delivery-quote-heading.error .checkout-delivery-icon { background: #fbe9ec !important; color: var(--kf-danger) !important; }
+.checkout-delivery-quote-heading strong { color: var(--kf-ink) !important; }
+.checkout-delivery-quote-heading span:not(.checkout-delivery-icon) { color: var(--kf-muted) !important; }
+
+.checkout-delivery-quote-grid > div {
+    border: 0 !important;
+    border-radius: 14px !important;
+    background: var(--kf-bg) !important;
+}
+
+.checkout-delivery-quote-grid span { color: var(--kf-muted) !important; font-size: 12px !important; }
+.checkout-delivery-quote-grid strong { color: var(--kf-ink) !important; font-size: 16px !important; }
+
+/* Rango genérico (relleno con --kf-range, lo actualiza kantu-luxe.js) */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--kf-wine, #7b1e3a) var(--kf-range, 0%), var(--kf-line, #ece3dc) var(--kf-range, 0%));
+}
+
+input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--kf-line, #ece3dc); }
+input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--kf-wine, #7b1e3a); }
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -8px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--kf-wine, #7b1e3a);
+    box-shadow: 0 2px 8px rgba(54, 22, 34, .3);
+    transition: transform .15s;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--kf-wine, #7b1e3a);
+    box-shadow: 0 2px 8px rgba(54, 22, 34, .3);
+}
+
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
+
+/* Seguimiento del pedido del cliente */
+.active-order-card {
+    border: 1px solid var(--kf-line) !important;
+    border-radius: var(--kf-radius-lg) !important;
+    background: #fff !important;
+    box-shadow: var(--kf-shadow) !important;
+}
+
+.customer-order-tracker li { color: var(--kf-faint) !important; font-size: 12px !important; font-weight: 600; }
+
+.customer-order-tracker li::after {
+    top: 13px !important;
+    height: 2px !important;
+    background: var(--kf-line) !important;
+}
+
+.customer-order-tracker li.complete::after { background: var(--kf-sage) !important; }
+
+.customer-order-tracker li > span {
+    width: 28px !important;
+    height: 28px !important;
+    border: 2px solid var(--kf-line) !important;
+    background: #fff !important;
+    color: var(--kf-faint) !important;
+    font-size: 12px !important;
+    font-weight: 800;
+}
+
+.customer-order-tracker li.complete > span {
+    border-color: var(--kf-sage) !important;
+    background: var(--kf-sage) !important;
+    color: #fff !important;
+}
+
+.customer-order-tracker li.current > span {
+    border-color: var(--kf-wine) !important;
+    background: var(--kf-wine) !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 5px rgba(123, 30, 58, .14);
+}
+
+.customer-order-tracker li.complete,
+.customer-order-tracker li.current { color: var(--kf-ink) !important; }
+
+/* Panel de notificaciones */
+.kantu-notification-panel {
+    border: 1px solid var(--kf-line) !important;
+    border-radius: var(--kf-radius) !important;
+    background: #fff !important;
+    box-shadow: var(--kf-shadow-lg) !important;
+}
+
+.kantu-notification-icon {
+    display: grid !important;
+    place-items: center;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: var(--kf-wine-soft) !important;
+    color: var(--kf-wine) !important;
+}
+
+.kantu-notification-empty > span {
+    display: inline-grid !important;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--kf-wine-soft);
+    color: var(--kf-wine);
+}
+
+.kantu-notification-dot { background: var(--kf-wine) !important; }
+
+/* Barras de desplazamiento neutras (antes rosadas) */
+* { scrollbar-color: rgba(36, 26, 30, .22) transparent !important; scrollbar-width: thin; }
+#adminModal.kf-admin .admin-nav { scrollbar-color: rgba(255, 255, 255, .18) transparent !important; }
+
+/* Resumen del checkout: sin desplazamiento horizontal */
+.checkout-review-flow-section { overflow-x: clip !important; }
+
+/* Acciones secundarias del checkout */
+.checkout-location-button,
+#checkoutUseLocationButton {
+    min-height: 40px !important;
+    padding: 0 16px !important;
+    border: 1px solid var(--kf-line-strong) !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: var(--kf-ink) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+.checkout-location-button:hover { border-color: var(--kf-ink) !important; }
+
+.checkout-delivery-map,
+#checkoutDeliveryMap {
+    overflow: hidden;
+    border: 1px solid var(--kf-line) !important;
+    border-radius: var(--kf-radius) !important;
+}
+
+/* Nota de confianza en el carrito */
+.kf-cart-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px 0 0;
+    color: var(--kf-muted);
+    font-size: 12.5px;
+    text-align: center;
+}
+
+.kf-cart-note svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: var(--kf-sage);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Notificaciones: lista limpia */
+.kantu-notification-head,
+.kantu-notification-actions {
+    border-color: var(--kf-line) !important;
+    background: #fff !important;
+}
+
+.kantu-notification-head h2,
+.kantu-notification-head h3,
+.kantu-notification-head strong {
+    color: var(--kf-ink) !important;
+    font-family: var(--kf-font-display) !important;
+    font-weight: 500 !important;
+}
+
+.kantu-notification-actions button {
+    min-height: 34px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--kf-line-strong) !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: var(--kf-ink) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+.kantu-notification-item {
+    border: 1px solid transparent !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    transition: background .2s, border-color .2s !important;
+}
+
+.kantu-notification-item:hover { border-color: var(--kf-line) !important; background: var(--kf-bg) !important; }
+.kantu-notification-item.unread { background: var(--kf-surface-soft) !important; }
+.kantu-notification-item.read { opacity: .75; }
+.kantu-notification-copy strong { color: var(--kf-ink) !important; font-size: 13.5px !important; }
+.kantu-notification-copy small { color: var(--kf-muted) !important; font-size: 12.5px !important; }
+
+/* Kantu Match: opciones tipo chip */
+.kantu-match-modal {
+    border: 1px solid var(--kf-line) !important;
+    border-radius: var(--kf-radius-lg) !important;
+    background: #fff !important;
+}
+
+.kantu-match-modal h2 { color: var(--kf-ink) !important; font-weight: 500 !important; }
+.kantu-match-eyebrow { color: var(--kf-wine) !important; letter-spacing: .16em !important; }
+
+.kantu-match-choice span {
+    border: 1px solid var(--kf-line) !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    color: var(--kf-ink-soft) !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    transition: border-color .2s, background .2s, color .2s, transform .2s !important;
+}
+
+.kantu-match-choice:hover span { border-color: var(--kf-ink) !important; }
+
+.kantu-match-choice input:checked + span {
+    border-color: var(--kf-ink) !important;
+    background: var(--kf-ink) !important;
+    color: #fff !important;
+}
+
+.kantu-match-card {
+    border: 1px solid var(--kf-line) !important;
+    border-radius: var(--kf-radius) !important;
+    box-shadow: var(--kf-shadow-sm) !important;
+}
+
+.kantu-match-rank {
+    background: var(--kf-gold-soft) !important;
+    color: #7a5a24 !important;
+}
