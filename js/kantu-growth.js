@@ -81,7 +81,7 @@
         button.title = "Notificaciones";
         button.setAttribute("aria-label", "Abrir notificaciones");
         button.setAttribute("aria-expanded", "false");
-        button.innerHTML = '<span class="kantu-bell" aria-hidden="true">🔔</span><span id="notificationCount" class="cart-count kantu-notification-count" hidden>0</span>';
+        button.innerHTML = '<span class="kantu-bell" aria-hidden="true" data-kf-icon="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></span><span id="notificationCount" class="cart-count kantu-notification-count" hidden>0</span>';
         cartButton.insertAdjacentElement("afterend", button);
 
         const panel = document.createElement("aside");
@@ -216,9 +216,9 @@
     }
 
     function notificationIcon(kind) {
-        if (kind === "promotion") return "🏷️";
-        if (kind === "trend") return "🌸";
-        return "🔔";
+        if (kind === "promotion") return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12 12 20l-8-8V4h8l8 8Z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>';
+        if (kind === "trend") return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 10c-3-1-4-5-1-6 3-1 4 3 2 6M14 12c1-3 5-4 6-1 1 3-3 4-6 2M12 14c3 1 4 5 1 6-3 1-4-3-2-6M10 12c-1 3-5 4-6 1-1-3 3-4 6-2"/></svg>';
+        return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>';
     }
 
     function notificationActionUrl(value) {
@@ -234,7 +234,7 @@
         const list = document.getElementById("notificationList");
         if (!list) return;
         if (!notificationState.items.length) {
-            list.innerHTML = '<div class="kantu-notification-empty"><span>🌷</span><strong>Todo al día</strong><p>Cuando Kantu tenga algo útil para ti, aparecerá aquí.</p></div>';
+            list.innerHTML = '<div class="kantu-notification-empty"><span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 10c-3-1-4-5-1-6 3-1 4 3 2 6M14 12c1-3 5-4 6-1 1 3-3 4-6 2M12 14c3 1 4 5 1 6-3 1-4-3-2-6M10 12c-1 3-5 4-6 1-1-3 3-4 6-2"/></svg></span><strong>Todo al día</strong><p>Cuando Kantu tenga algo útil para ti, aparecerá aquí.</p></div>';
             return;
         }
         list.innerHTML = notificationState.items.map(item => {
@@ -291,7 +291,7 @@
 
         const prompt = document.createElement("div");
         prompt.className = "kantu-match-prompt";
-        prompt.innerHTML = `<p>¿No sabes cuál elegir? Te ayudamos en menos de 1 minuto.</p><button type="button" id="kantuMatchButton">✨ Encontrar mi regalo perfecto</button>`;
+        prompt.innerHTML = `<p>¿No sabes cuál elegir? Te ayudamos en menos de 1 minuto.</p><button type="button" id="kantuMatchButton"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg> Encontrar mi regalo perfecto</button>`;
         heading.appendChild(prompt);
 
         const overlay = document.createElement("div");

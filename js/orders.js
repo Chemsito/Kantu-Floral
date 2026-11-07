@@ -275,7 +275,7 @@ function renderDeliveryQuote(state = {}) {
     if (state.loading) {
         box.hidden = false;
         box.innerHTML = `<div class="checkout-delivery-quote-heading">
-            <span class="checkout-delivery-icon">🛵</span>
+            <span class="checkout-delivery-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/><path d="M8.5 17h7M15 7h3l2.5 7.5M12 9h3.5l-1.5 8M5 12h6"/></svg></span>
             <div><strong>Calculando tu delivery</strong><span>Estamos estimando distancia, costo y tiempo de reparto.</span></div>
         </div>`;
         return;
@@ -307,7 +307,7 @@ function renderDeliveryQuote(state = {}) {
 
     box.hidden = false;
     box.innerHTML = `<div class="checkout-delivery-quote-heading">
-            <span class="checkout-delivery-icon">🛵</span>
+            <span class="checkout-delivery-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/><path d="M8.5 17h7M15 7h3l2.5 7.5M12 9h3.5l-1.5 8M5 12h6"/></svg></span>
             <div><strong>Delivery calculado según tu ubicación</strong><span>Este importe se suma de forma transparente antes de pagar.</span></div>
         </div>
         <div class="checkout-delivery-quote-grid">

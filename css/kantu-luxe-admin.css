@@ -1007,3 +1007,110 @@
     .kf-segment button { padding: 0 10px; font-size: 12px; }
     .kf-dash-controls .kf-live { order: 3; }
 }
+
+/* ---------- Formulario de producto: recomendaciones Kantu Match ---------- */
+#adminModal.kf-admin .admin-recommendation-fields {
+    padding: 22px !important;
+    border: 1px solid var(--kfa-line) !important;
+    border-radius: var(--kfa-radius) !important;
+    background: var(--kfa-bg) !important;
+    box-shadow: none !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-fields h4 {
+    color: var(--kfa-ink) !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-fields > p { color: var(--kfa-muted) !important; font-size: 13px !important; }
+
+#adminModal.kf-admin .admin-recommendation-priority {
+    grid-template-columns: minmax(0, 1fr) 96px !important;
+    align-items: center !important;
+    padding: 14px 16px;
+    border: 1px solid var(--kfa-line);
+    border-radius: 14px;
+    background: #fff;
+}
+
+#adminModal.kf-admin .admin-recommendation-priority label {
+    color: var(--kfa-ink-soft) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-priority input[type="number"] {
+    min-height: 44px !important;
+    border: 1px solid var(--kfa-line-strong) !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    text-align: center;
+}
+
+#adminModal.kf-admin .admin-recommendation-group {
+    padding: 16px !important;
+    border: 1px solid var(--kfa-line) !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-group strong {
+    color: var(--kfa-ink) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-checks { gap: 8px !important; }
+
+#adminModal.kf-admin .admin-recommendation-checks span {
+    min-height: 36px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--kfa-line-strong) !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: var(--kfa-ink-soft) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-checks span::before { display: none !important; }
+
+#adminModal.kf-admin .admin-recommendation-checks label:hover span { border-color: var(--kfa-ink) !important; }
+
+#adminModal.kf-admin .admin-recommendation-checks input:checked + span {
+    border-color: var(--kfa-ink) !important;
+    background: var(--kfa-ink) !important;
+    color: #fff !important;
+}
+
+#adminModal.kf-admin .admin-recommendation-checks input:checked + span::after {
+    content: "✓";
+    margin-left: 6px;
+    font-size: 12px;
+}
+
+#adminModal.kf-admin .admin-recommendation-checks input:focus-visible + span {
+    outline: 2px solid var(--kfa-brand);
+    outline-offset: 2px;
+}
+
+#adminModal.kf-admin .admin-alert-bell {
+    display: grid !important;
+    place-items: center;
+    color: var(--kfa-ink) !important;
+}
+
+#adminModal.kf-admin .admin-alert-bell svg { width: 19px; height: 19px; }
+
+/* Formulario de producto: campos y checkbox de "activo" en la paleta Luxe */
+#adminModal.kf-admin .admin-product-form .form-group label {
+    color: var(--kfa-ink-soft) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+@media (max-width: 900px) {
+    #adminModal.kf-admin .admin-recommendation-groups { grid-template-columns: 1fr !important; }
+}
